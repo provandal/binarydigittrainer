@@ -407,7 +407,7 @@ export default function BinaryDigitTrainer() {
           <p className="text-gray-600">Step-by-step Neural Network Learning Simulator</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Drawing Canvas */}
           <Card>
             <CardContent className="p-6">
@@ -833,7 +833,7 @@ export default function BinaryDigitTrainer() {
           )}
 
           {/* Controls - Made 50% wider */}
-          <Card className="lg:col-span-1 lg:w-[150%]">
+          <Card className="lg:col-span-1 lg:min-w-[400px]">
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
               

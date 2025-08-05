@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 // Each pixel is a 3x3 grid of sub-pixels (9 total per pixel)
 const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9 pixels, each with 9 sub-pixels
@@ -9,8 +10,8 @@ const initialBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 const initialOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
 const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 
-const sigmoid = (x) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
-const sigmoidDerivative = (x) => x * (1 - x);
+const sigmoid = (x: number) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
+const sigmoidDerivative = (x: number) => x * (1 - x);
 
 const STEP_NAMES = [
   "Ready - Draw your digit",
@@ -34,7 +35,10 @@ export default function BinaryDigitTrainer() {
   const [loss, setLoss] = useState(0);
   const [learningRate] = useState(0.5);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [hoveredPixel, setHoveredPixel] = useState(null);
+  const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
+  const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
+  const [weightDialogIteration, setWeightDialogIteration] = useState(0);
+  const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
 
   // Calculate pixel values (0-1 based on how many sub-pixels are filled)
   const getPixelValues = () => {
@@ -44,7 +48,7 @@ export default function BinaryDigitTrainer() {
     });
   };
 
-  const toggleSubPixel = (pixelIndex, subPixelIndex) => {
+  const toggleSubPixel = (pixelIndex: number, subPixelIndex: number) => {
     const newPixelGrid = [...pixelGrid];
     newPixelGrid[pixelIndex] = [...newPixelGrid[pixelIndex]];
     newPixelGrid[pixelIndex][subPixelIndex] = newPixelGrid[pixelIndex][subPixelIndex] === 0 ? 1 : 0;
@@ -52,12 +56,12 @@ export default function BinaryDigitTrainer() {
     setStep(0); // Reset to first step when input changes
   };
 
-  const handleMouseDown = (pixelIndex, subPixelIndex) => {
+  const handleMouseDown = (pixelIndex: number, subPixelIndex: number) => {
     setIsDrawing(true);
     toggleSubPixel(pixelIndex, subPixelIndex);
   };
 
-  const handleMouseEnter = (pixelIndex, subPixelIndex) => {
+  const handleMouseEnter = (pixelIndex: number, subPixelIndex: number) => {
     if (isDrawing) {
       toggleSubPixel(pixelIndex, subPixelIndex);
     }
@@ -67,7 +71,7 @@ export default function BinaryDigitTrainer() {
     setIsDrawing(false);
   };
 
-  const handlePixelHover = (pixelIndex) => {
+  const handlePixelHover = (pixelIndex: number) => {
     setHoveredPixel(pixelIndex);
   };
 
@@ -135,6 +139,17 @@ export default function BinaryDigitTrainer() {
     const newBiases = biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
+    // Save training history snapshot
+    const historySnapshot = {
+      iteration: trainingHistory.length,
+      weights: newWeights.map(w => [...w]),
+      outputWeights: outputWeights.map(w => [...w]),
+      loss: loss,
+      hiddenActivations: [...hiddenActivations],
+      outputActivations: [...outputActivations]
+    };
+    setTrainingHistory(prev => [...prev, historySnapshot]);
+    
     setWeights(newWeights);
     setBiases(newBiases);
   };
@@ -174,6 +189,9 @@ export default function BinaryDigitTrainer() {
     setOutputActivations(Array(2).fill(0));
     setLoss(0);
     setStep(0);
+    setTrainingHistory([]);
+    setSelectedWeightBox(null);
+    setWeightDialogIteration(0);
   };
 
   return (
@@ -257,22 +275,22 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[500px] bg-gray-50 rounded-lg p-4 overflow-hidden">
-                <svg className="w-full h-full" viewBox="0 0 600 450">
+              <div className="relative h-[625px] bg-gray-50 rounded-lg p-4 overflow-hidden">
+                <svg className="w-full h-full" viewBox="0 0 750 563">
                   {/* Input Layer */}
                   <g className="input-layer">
-                    <text x="30" y="30" fontSize="16" fill="#666" fontWeight="bold">Input (9)</text>
+                    <text x="38" y="38" fontSize="20" fill="#666" fontWeight="bold">Input (9)</text>
                     {getPixelValues().map((value, i) => (
                       <g key={`input-${i}`}>
                         <circle
-                          cx="60"
-                          cy={60 + i * 35}
-                          r="15"
+                          cx="75"
+                          cy={75 + i * 44}
+                          r="19"
                           fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
                           stroke="#9CA3AF"
-                          strokeWidth="2"
+                          strokeWidth="2.5"
                         />
-                        <text x="60" y={66 + i * 35} fontSize="10" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="75" y={83 + i * 44} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
                           {value.toFixed(2)}
                         </text>
                       </g>
@@ -281,18 +299,18 @@ export default function BinaryDigitTrainer() {
 
                   {/* Hidden Layer */}
                   <g className="hidden-layer">
-                    <text x="200" y="30" fontSize="16" fill="#666" fontWeight="bold">Hidden (4)</text>
+                    <text x="250" y="38" fontSize="20" fill="#666" fontWeight="bold">Hidden (4)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
                         <circle
-                          cx="250"
-                          cy={120 + i * 80}
-                          r="18"
+                          cx="313"
+                          cy={150 + i * 100}
+                          r="23"
                           fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
                           stroke="#9CA3AF"
-                          strokeWidth="2"
+                          strokeWidth="2.5"
                         />
-                        <text x="250" y={127 + i * 80} fontSize="10" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="313" y={159 + i * 100} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
                       </g>
@@ -301,21 +319,21 @@ export default function BinaryDigitTrainer() {
 
                   {/* Output Layer */}
                   <g className="output-layer">
-                    <text x="420" y="30" fontSize="16" fill="#666" fontWeight="bold">Output (2)</text>
+                    <text x="525" y="38" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
                     {outputActivations.map((activation, i) => (
                       <g key={`output-${i}`}>
                         <circle
-                          cx="480"
-                          cy={180 + i * 120}
-                          r="22"
+                          cx="600"
+                          cy={225 + i * 150}
+                          r="28"
                           fill={activation === Math.max(...outputActivations) ? "#10B981" : "#E5E7EB"}
                           stroke="#9CA3AF"
-                          strokeWidth="3"
+                          strokeWidth="3.75"
                         />
-                        <text x="480" y={188 + i * 120} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="600" y={235 + i * 150} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
-                        <text x="510" y={185 + i * 120} fontSize="12" fill="#666" fontWeight="bold">
+                        <text x="638" y={231 + i * 150} fontSize="15" fill="#666" fontWeight="bold">
                           {i}: {(activation * 100).toFixed(0)}%
                         </text>
                       </g>
@@ -327,12 +345,12 @@ export default function BinaryDigitTrainer() {
                     hiddenWeights.map((weight, inputIdx) => (
                       <line
                         key={`line-ih-${hiddenIdx}-${inputIdx}`}
-                        x1="75"
-                        y1={60 + inputIdx * 35}
-                        x2="232"
-                        y2={120 + hiddenIdx * 80}
+                        x1="94"
+                        y1={75 + inputIdx * 44}
+                        x2="290"
+                        y2={150 + hiddenIdx * 100}
                         stroke="#9CA3AF"
-                        strokeWidth="1"
+                        strokeWidth="1.25"
                         opacity="0.4"
                       />
                     ))
@@ -342,12 +360,12 @@ export default function BinaryDigitTrainer() {
                     outputWeightArray.map((weight, hiddenIdx) => (
                       <line
                         key={`line-ho-${outputIdx}-${hiddenIdx}`}
-                        x1="268"
-                        y1={120 + hiddenIdx * 80}
-                        x2="458"
-                        y2={180 + outputIdx * 120}
+                        x1="336"
+                        y1={150 + hiddenIdx * 100}
+                        x2="572"
+                        y2={225 + outputIdx * 150}
                         stroke="#9CA3AF"
-                        strokeWidth="1"
+                        strokeWidth="1.25"
                         opacity="0.4"
                       />
                     ))
@@ -356,108 +374,114 @@ export default function BinaryDigitTrainer() {
                   {/* Weight bar graphs - rendered on top */}
                   {/* Hidden layer weight boxes */}
                   {hiddenActivations.map((activation, i) => (
-                    <g key={`hidden-weight-box-${i}`} className="weight-box">
+                    <g key={`hidden-weight-box-${i}`} className="weight-box cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'hidden', index: i});
+                      setWeightDialogIteration(Math.max(0, trainingHistory.length - 1));
+                    }}>
                       {/* Box border - centered on neuron */}
                       <rect
-                        x="150"
-                        y={93 + i * 80}
-                        width="80"
-                        height="54"
+                        x="188"
+                        y={116 + i * 100}
+                        width="100"
+                        height="68"
                         fill="white"
                         stroke="#9CA3AF"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         opacity="1"
                       />
                       {/* Zero line in middle */}
                       <line
-                        x1="190"
-                        y1={93 + i * 80}
-                        x2="190"
-                        y2={147 + i * 80}
+                        x1="238"
+                        y1={116 + i * 100}
+                        x2="238"
+                        y2={184 + i * 100}
                         stroke="#666"
-                        strokeWidth="1"
+                        strokeWidth="1.25"
                         opacity="0.5"
                       />
                       {/* Weight bars - 9 bars for 9 inputs */}
                       {weights[i].map((weight, inputIdx) => {
-                        const barY = 98 + i * 80 + inputIdx * 5.5;
-                        const barWidth = Math.abs(weight) * 40;
-                        const barX = weight >= 0 ? 190 : 190 - barWidth;
+                        const barY = 123 + i * 100 + inputIdx * 6.9;
+                        const barWidth = Math.abs(weight) * 50;
+                        const barX = weight >= 0 ? 238 : 238 - barWidth;
                         return (
                           <rect
                             key={`weight-bar-${i}-${inputIdx}`}
                             x={barX}
                             y={barY}
                             width={barWidth}
-                            height="4"
+                            height="5"
                             fill={weight > 0 ? "#10B981" : "#EF4444"}
                             opacity="0.9"
                           />
                         );
                       })}
                       {/* Labels */}
-                      <text x="155" y="106" fontSize="8" fill="#666">-1</text>
-                      <text x="185" y="106" fontSize="8" fill="#666">0</text>
-                      <text x="220" y="106" fontSize="8" fill="#666">+1</text>
+                      <text x="194" y="133" fontSize="10" fill="#666">-1</text>
+                      <text x="231" y="133" fontSize="10" fill="#666">0</text>
+                      <text x="275" y="133" fontSize="10" fill="#666">+1</text>
                     </g>
                   ))}
 
                   {/* Output layer weight boxes */}
                   {outputActivations.map((activation, i) => (
-                    <g key={`output-weight-box-${i}`} className="weight-box">
+                    <g key={`output-weight-box-${i}`} className="weight-box cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'output', index: i});
+                      setWeightDialogIteration(Math.max(0, trainingHistory.length - 1));
+                    }}>
                       {/* Box border - centered on neuron */}
                       <rect
-                        x="360"
-                        y={156 + i * 120}
-                        width="100"
-                        height="48"
+                        x="450"
+                        y={195 + i * 150}
+                        width="125"
+                        height="60"
                         fill="white"
                         stroke="#9CA3AF"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         opacity="1"
                       />
                       {/* Zero line in middle */}
                       <line
-                        x1="410"
-                        y1={156 + i * 120}
-                        x2="410"
-                        y2={204 + i * 120}
+                        x1="513"
+                        y1={195 + i * 150}
+                        x2="513"
+                        y2={255 + i * 150}
                         stroke="#666"
-                        strokeWidth="1"
+                        strokeWidth="1.25"
                         opacity="0.5"
                       />
                       {/* Weight bars - 4 bars for 4 hidden inputs */}
                       {outputWeights[i].map((weight, hiddenIdx) => {
-                        const barY = 162 + i * 120 + hiddenIdx * 10;
-                        const barWidth = Math.abs(weight) * 50;
-                        const barX = weight >= 0 ? 410 : 410 - barWidth;
+                        const barY = 203 + i * 150 + hiddenIdx * 12.5;
+                        const barWidth = Math.abs(weight) * 63;
+                        const barX = weight >= 0 ? 513 : 513 - barWidth;
                         return (
                           <rect
                             key={`output-weight-bar-${i}-${hiddenIdx}`}
                             x={barX}
                             y={barY}
                             width={barWidth}
-                            height="6"
+                            height="7.5"
                             fill={weight > 0 ? "#10B981" : "#EF4444"}
                             opacity="0.9"
                           />
                         );
                       })}
                       {/* Labels */}
-                      <text x="365" y="169" fontSize="10" fill="#666">-1</text>
-                      <text x="405" y="169" fontSize="10" fill="#666">0</text>
-                      <text x="445" y="169" fontSize="10" fill="#666">+1</text>
+                      <text x="456" y="211" fontSize="12" fill="#666">-1</text>
+                      <text x="506" y="211" fontSize="12" fill="#666">0</text>
+                      <text x="556" y="211" fontSize="12" fill="#666">+1</text>
                     </g>
                   ))}
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="30" y="400" fontSize="14" fill="#666" fontWeight="bold">Weight Bar Graphs:</text>
-                    <rect x="30" y="415" width="25" height="4" fill="#10B981" opacity="0.8"/>
-                    <text x="60" y="420" fontSize="12" fill="#666">Positive Weights (extend right from center)</text>
-                    <rect x="280" y="415" width="25" height="4" fill="#EF4444" opacity="0.8"/>
-                    <text x="310" y="420" fontSize="12" fill="#666">Negative Weights (extend left from center)</text>
-                    <text x="30" y="435" fontSize="10" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
+                    <text x="38" y="500" fontSize="18" fill="#666" fontWeight="bold">Weight Bar Graphs (click for details):</text>
+                    <rect x="38" y="519" width="31" height="5" fill="#10B981" opacity="0.8"/>
+                    <text x="75" y="525" fontSize="15" fill="#666">Positive Weights (extend right from center)</text>
+                    <rect x="350" y="519" width="31" height="5" fill="#EF4444" opacity="0.8"/>
+                    <text x="387" y="525" fontSize="15" fill="#666">Negative Weights (extend left from center)</text>
+                    <text x="38" y="544" fontSize="12" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
                   </g>
                 </svg>
               </div>
@@ -524,6 +548,162 @@ export default function BinaryDigitTrainer() {
           </Card>
         </div>
       </div>
+
+      {/* Weight Details Dialog */}
+      <Dialog open={selectedWeightBox !== null} onOpenChange={() => setSelectedWeightBox(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedWeightBox?.type === 'hidden' 
+                ? `Hidden Neuron ${selectedWeightBox.index + 1} - Weight Details` 
+                : selectedWeightBox?.type === 'output'
+                ? `Output Neuron ${selectedWeightBox.index} - Weight Details`
+                : ''}
+            </DialogTitle>
+            <DialogDescription>
+              Step through training iterations to see how weights evolve during learning.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedWeightBox && (
+            <div className="space-y-6">
+              {/* Iteration Controls */}
+              <div className="flex items-center gap-4">
+                <Button 
+                  onClick={() => setWeightDialogIteration(Math.max(0, weightDialogIteration - 1))}
+                  disabled={weightDialogIteration === 0}
+                  variant="outline"
+                  size="sm"
+                >
+                  ← Previous
+                </Button>
+                <span className="text-sm font-medium px-4 py-2 bg-gray-100 rounded">
+                  Iteration {weightDialogIteration} of {trainingHistory.length - 1}
+                </span>
+                <Button 
+                  onClick={() => setWeightDialogIteration(Math.min(trainingHistory.length - 1, weightDialogIteration + 1))}
+                  disabled={weightDialogIteration >= trainingHistory.length - 1 || trainingHistory.length === 0}
+                  variant="outline"
+                  size="sm"
+                >
+                  Next →
+                </Button>
+              </div>
+
+              {/* Large Weight Visualization */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <svg width="600" height="300" viewBox="0 0 600 300">
+                  {selectedWeightBox.type === 'hidden' && trainingHistory[weightDialogIteration] && (
+                    <g>
+                      <text x="20" y="30" fontSize="16" fill="#666" fontWeight="bold">
+                        Hidden Neuron {selectedWeightBox.index + 1} Weights (9 input connections)
+                      </text>
+                      
+                      {/* Large weight box */}
+                      <rect x="50" y="50" width="500" height="200" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                      <line x1="300" y1="50" x2="300" y2="250" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                      
+                      {/* Weight bars */}
+                      {trainingHistory[weightDialogIteration].weights[selectedWeightBox.index].map((weight: number, i: number) => {
+                        const barY = 65 + i * 20;
+                        const barWidth = Math.abs(weight) * 250;
+                        const barX = weight >= 0 ? 300 : 300 - barWidth;
+                        return (
+                          <g key={i}>
+                            <rect
+                              x={barX}
+                              y={barY}
+                              width={barWidth}
+                              height="15"
+                              fill={weight > 0 ? "#10B981" : "#EF4444"}
+                              opacity="0.8"
+                            />
+                            <text x="20" y={barY + 12} fontSize="12" fill="#666">
+                              Input {i + 1}:
+                            </text>
+                            <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 12} 
+                                  fontSize="12" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                              {weight.toFixed(3)}
+                            </text>
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Labels */}
+                      <text x="55" y="265" fontSize="12" fill="#666">-1</text>
+                      <text x="295" y="265" fontSize="12" fill="#666">0</text>
+                      <text x="535" y="265" fontSize="12" fill="#666">+1</text>
+                    </g>
+                  )}
+
+                  {selectedWeightBox.type === 'output' && trainingHistory[weightDialogIteration] && (
+                    <g>
+                      <text x="20" y="30" fontSize="16" fill="#666" fontWeight="bold">
+                        Output Neuron {selectedWeightBox.index} Weights (4 hidden connections)
+                      </text>
+                      
+                      {/* Large weight box */}
+                      <rect x="50" y="50" width="500" height="120" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                      <line x1="300" y1="50" x2="300" y2="170" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                      
+                      {/* Weight bars */}
+                      {trainingHistory[weightDialogIteration].outputWeights[selectedWeightBox.index].map((weight: number, i: number) => {
+                        const barY = 65 + i * 25;
+                        const barWidth = Math.abs(weight) * 250;
+                        const barX = weight >= 0 ? 300 : 300 - barWidth;
+                        return (
+                          <g key={i}>
+                            <rect
+                              x={barX}
+                              y={barY}
+                              width={barWidth}
+                              height="18"
+                              fill={weight > 0 ? "#10B981" : "#EF4444"}
+                              opacity="0.8"
+                            />
+                            <text x="20" y={barY + 14} fontSize="12" fill="#666">
+                              Hidden {i + 1}:
+                            </text>
+                            <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 14} 
+                                  fontSize="12" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                              {weight.toFixed(3)}
+                            </text>
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Labels */}
+                      <text x="55" y="185" fontSize="12" fill="#666">-1</text>
+                      <text x="295" y="185" fontSize="12" fill="#666">0</text>
+                      <text x="535" y="185" fontSize="12" fill="#666">+1</text>
+                    </g>
+                  )}
+                </svg>
+              </div>
+
+              {/* Training Info */}
+              {trainingHistory[weightDialogIteration] && (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <div className="font-medium text-blue-900">Loss</div>
+                    <div className="text-blue-700">{trainingHistory[weightDialogIteration].loss.toFixed(4)}</div>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded">
+                    <div className="font-medium text-green-900">Iteration</div>
+                    <div className="text-green-700">{weightDialogIteration}</div>
+                  </div>
+                </div>
+              )}
+              
+              {trainingHistory.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No training history available. Complete at least one training cycle to see weight evolution.
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -284,52 +284,6 @@ export default function BinaryDigitTrainer() {
                     <text x="200" y="30" fontSize="16" fill="#666" fontWeight="bold">Hidden (4)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
-                        {/* Weight bar graph box for this hidden neuron */}
-                        <g className="weight-box">
-                          {/* Box border */}
-                          <rect
-                            x="150"
-                            y={75 + i * 80}
-                            width="80"
-                            height="54"
-                            fill="white"
-                            stroke="#9CA3AF"
-                            strokeWidth="1"
-                            opacity="0.9"
-                          />
-                          {/* Zero line in middle */}
-                          <line
-                            x1="190"
-                            y1={75 + i * 80}
-                            x2="190"
-                            y2={129 + i * 80}
-                            stroke="#666"
-                            strokeWidth="1"
-                            opacity="0.5"
-                          />
-                          {/* Weight bars - 9 bars for 9 inputs */}
-                          {weights[i].map((weight, inputIdx) => {
-                            const barY = 80 + i * 80 + inputIdx * 5.5;
-                            const barWidth = Math.abs(weight) * 40;
-                            const barX = weight >= 0 ? 190 : 190 - barWidth;
-                            return (
-                              <rect
-                                key={`weight-bar-${i}-${inputIdx}`}
-                                x={barX}
-                                y={barY}
-                                width={barWidth}
-                                height="4"
-                                fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                opacity="0.8"
-                              />
-                            );
-                          })}
-                          {/* Labels */}
-                          <text x="155" y="88" fontSize="8" fill="#666">-1</text>
-                          <text x="185" y="88" fontSize="8" fill="#666">0</text>
-                          <text x="220" y="88" fontSize="8" fill="#666">+1</text>
-                        </g>
-                        
                         <circle
                           cx="250"
                           cy={120 + i * 80}
@@ -350,52 +304,6 @@ export default function BinaryDigitTrainer() {
                     <text x="420" y="30" fontSize="16" fill="#666" fontWeight="bold">Output (2)</text>
                     {outputActivations.map((activation, i) => (
                       <g key={`output-${i}`}>
-                        {/* Weight bar graph box for this output neuron */}
-                        <g className="weight-box">
-                          {/* Box border */}
-                          <rect
-                            x="360"
-                            y={140 + i * 120}
-                            width="100"
-                            height="48"
-                            fill="white"
-                            stroke="#9CA3AF"
-                            strokeWidth="1"
-                            opacity="0.9"
-                          />
-                          {/* Zero line in middle */}
-                          <line
-                            x1="410"
-                            y1={140 + i * 120}
-                            x2="410"
-                            y2={188 + i * 120}
-                            stroke="#666"
-                            strokeWidth="1"
-                            opacity="0.5"
-                          />
-                          {/* Weight bars - 4 bars for 4 hidden inputs */}
-                          {outputWeights[i].map((weight, hiddenIdx) => {
-                            const barY = 146 + i * 120 + hiddenIdx * 10;
-                            const barWidth = Math.abs(weight) * 50;
-                            const barX = weight >= 0 ? 410 : 410 - barWidth;
-                            return (
-                              <rect
-                                key={`output-weight-bar-${i}-${hiddenIdx}`}
-                                x={barX}
-                                y={barY}
-                                width={barWidth}
-                                height="6"
-                                fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                opacity="0.8"
-                              />
-                            );
-                          })}
-                          {/* Labels */}
-                          <text x="365" y="153" fontSize="10" fill="#666">-1</text>
-                          <text x="405" y="153" fontSize="10" fill="#666">0</text>
-                          <text x="445" y="153" fontSize="10" fill="#666">+1</text>
-                        </g>
-                        
                         <circle
                           cx="480"
                           cy={180 + i * 120}
@@ -444,6 +352,103 @@ export default function BinaryDigitTrainer() {
                       />
                     ))
                   )}
+
+                  {/* Weight bar graphs - rendered on top */}
+                  {/* Hidden layer weight boxes */}
+                  {hiddenActivations.map((activation, i) => (
+                    <g key={`hidden-weight-box-${i}`} className="weight-box">
+                      {/* Box border - centered on neuron */}
+                      <rect
+                        x="150"
+                        y={93 + i * 80}
+                        width="80"
+                        height="54"
+                        fill="white"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        opacity="1"
+                      />
+                      {/* Zero line in middle */}
+                      <line
+                        x1="190"
+                        y1={93 + i * 80}
+                        x2="190"
+                        y2={147 + i * 80}
+                        stroke="#666"
+                        strokeWidth="1"
+                        opacity="0.5"
+                      />
+                      {/* Weight bars - 9 bars for 9 inputs */}
+                      {weights[i].map((weight, inputIdx) => {
+                        const barY = 98 + i * 80 + inputIdx * 5.5;
+                        const barWidth = Math.abs(weight) * 40;
+                        const barX = weight >= 0 ? 190 : 190 - barWidth;
+                        return (
+                          <rect
+                            key={`weight-bar-${i}-${inputIdx}`}
+                            x={barX}
+                            y={barY}
+                            width={barWidth}
+                            height="4"
+                            fill={weight > 0 ? "#10B981" : "#EF4444"}
+                            opacity="0.9"
+                          />
+                        );
+                      })}
+                      {/* Labels */}
+                      <text x="155" y="106" fontSize="8" fill="#666">-1</text>
+                      <text x="185" y="106" fontSize="8" fill="#666">0</text>
+                      <text x="220" y="106" fontSize="8" fill="#666">+1</text>
+                    </g>
+                  ))}
+
+                  {/* Output layer weight boxes */}
+                  {outputActivations.map((activation, i) => (
+                    <g key={`output-weight-box-${i}`} className="weight-box">
+                      {/* Box border - centered on neuron */}
+                      <rect
+                        x="360"
+                        y={156 + i * 120}
+                        width="100"
+                        height="48"
+                        fill="white"
+                        stroke="#9CA3AF"
+                        strokeWidth="2"
+                        opacity="1"
+                      />
+                      {/* Zero line in middle */}
+                      <line
+                        x1="410"
+                        y1={156 + i * 120}
+                        x2="410"
+                        y2={204 + i * 120}
+                        stroke="#666"
+                        strokeWidth="1"
+                        opacity="0.5"
+                      />
+                      {/* Weight bars - 4 bars for 4 hidden inputs */}
+                      {outputWeights[i].map((weight, hiddenIdx) => {
+                        const barY = 162 + i * 120 + hiddenIdx * 10;
+                        const barWidth = Math.abs(weight) * 50;
+                        const barX = weight >= 0 ? 410 : 410 - barWidth;
+                        return (
+                          <rect
+                            key={`output-weight-bar-${i}-${hiddenIdx}`}
+                            x={barX}
+                            y={barY}
+                            width={barWidth}
+                            height="6"
+                            fill={weight > 0 ? "#10B981" : "#EF4444"}
+                            opacity="0.9"
+                          />
+                        );
+                      })}
+                      {/* Labels */}
+                      <text x="365" y="169" fontSize="10" fill="#666">-1</text>
+                      <text x="405" y="169" fontSize="10" fill="#666">0</text>
+                      <text x="445" y="169" fontSize="10" fill="#666">+1</text>
+                    </g>
+                  ))}
 
                   {/* Legend */}
                   <g className="legend">

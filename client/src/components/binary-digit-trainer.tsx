@@ -93,6 +93,7 @@ export default function BinaryDigitTrainer() {
   const [showDatasetEditor, setShowDatasetEditor] = useState(false);
   const [editingDataset, setEditingDataset] = useState<Array<{pattern: number[][], label: number}>>([]);
   const [trainingDataset, setTrainingDataset] = useState(generateTrainingDataset());
+  const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
 
   // Load dataset example when in dataset mode
   useEffect(() => {
@@ -286,6 +287,31 @@ export default function BinaryDigitTrainer() {
     const updated = [...editingDataset];
     updated[index] = { pattern, label };
     setEditingDataset(updated);
+  };
+
+  // Editor drawing functions
+  const handleEditorMouseDown = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+    setIsDrawingInEditor(true);
+    toggleEditorSubPixel(exampleIndex, pixelIndex, subPixelIndex);
+  };
+
+  const handleEditorMouseEnter = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+    if (isDrawingInEditor) {
+      toggleEditorSubPixel(exampleIndex, pixelIndex, subPixelIndex);
+    }
+  };
+
+  const handleEditorMouseUp = () => {
+    setIsDrawingInEditor(false);
+  };
+
+  const toggleEditorSubPixel = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+    const newDataset = [...editingDataset];
+    const newPattern = [...newDataset[exampleIndex].pattern];
+    newPattern[pixelIndex] = [...newPattern[pixelIndex]];
+    newPattern[pixelIndex][subPixelIndex] = newPattern[pixelIndex][subPixelIndex] ? 0 : 1;
+    newDataset[exampleIndex] = { ...newDataset[exampleIndex], pattern: newPattern };
+    setEditingDataset(newDataset);
   };
 
   const saveDataset = () => {
@@ -870,7 +896,7 @@ export default function BinaryDigitTrainer() {
 
         {/* Dataset Editor Dialog */}
         <Dialog open={showDatasetEditor} onOpenChange={setShowDatasetEditor}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onMouseUp={handleEditorMouseUp}>
             <DialogHeader>
               <DialogTitle>Edit Training Dataset</DialogTitle>
             </DialogHeader>
@@ -934,12 +960,8 @@ export default function BinaryDigitTrainer() {
                                     className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
                                       subPixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
                                     }`}
-                                    onClick={() => {
-                                      const newPattern = [...example.pattern];
-                                      newPattern[pixelIndex] = [...pixel];
-                                      newPattern[pixelIndex][subPixelIndex] = subPixel ? 0 : 1;
-                                      updateDatasetExample(index, newPattern, example.label);
-                                    }}
+                                    onMouseDown={() => handleEditorMouseDown(index, pixelIndex, subPixelIndex)}
+                                    onMouseEnter={() => handleEditorMouseEnter(index, pixelIndex, subPixelIndex)}
                                   />
                                 ))}
                               </div>

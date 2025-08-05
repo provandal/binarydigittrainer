@@ -172,7 +172,8 @@ export default function BinaryDigitTrainer() {
         backpropagationHidden();
         break;
       case 5:
-        // Complete cycle, start over
+        // Complete cycle, start over - clear the canvas for next digit
+        setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
         setStep(-1);
         break;
     }

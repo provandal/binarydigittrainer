@@ -18,103 +18,126 @@ const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0
 const generateTrainingDataset = () => {
   const dataset: { pattern: number[][], label: number }[] = [];
   
-  // Generate 120 examples of digit 0
-  for (let i = 0; i < 120; i++) {
-    const pattern = Array(9).fill(0).map(() => Array(9).fill(0));
+  // Define recognizable digit templates
+  const zeroTemplates = [
+    // Classic oval 0
+    [
+      [[0,1,0], [1,1,1], [0,1,0]],
+      [[1,0,0], [0,0,0], [0,0,1]],
+      [[0,1,0], [1,1,1], [0,1,0]]
+    ],
+    // Rounded square 0
+    [
+      [[1,1,1], [1,1,1], [1,1,1]],
+      [[1,0,0], [0,0,0], [0,0,1]],
+      [[1,1,1], [1,1,1], [1,1,1]]
+    ],
+    // Tilted 0
+    [
+      [[0,0,1], [0,1,1], [1,1,0]],
+      [[1,0,0], [0,0,0], [0,0,1]],
+      [[0,1,1], [1,1,0], [1,0,0]]
+    ],
+    // Narrow 0
+    [
+      [[0,1,0], [0,1,0], [0,1,0]],
+      [[1,0,0], [0,0,0], [0,0,1]],
+      [[0,1,0], [0,1,0], [0,1,0]]
+    ],
+    // Wide 0
+    [
+      [[1,1,1], [1,1,1], [1,1,1]],
+      [[1,0,0], [0,0,0], [0,0,1]],
+      [[1,1,1], [1,1,1], [1,1,1]]
+    ]
+  ];
+
+  const oneTemplates = [
+    // Classic straight 1
+    [
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]]
+    ],
+    // 1 with top hook
+    [
+      [[0,1,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]]
+    ],
+    // Thick 1
+    [
+      [[0,0,0], [1,1,1], [0,0,0]],
+      [[0,0,0], [1,1,1], [0,0,0]],
+      [[0,0,0], [1,1,1], [0,0,0]]
+    ],
+    // 1 with base
+    [
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,1,0], [1,1,1], [0,1,0]]
+    ],
+    // Tilted 1
+    [
+      [[0,0,0], [0,0,1], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [1,0,0], [0,0,0]]
+    ],
+    // 1 with serif
+    [
+      [[0,1,1], [0,1,0], [0,0,0]],
+      [[0,0,0], [0,1,0], [0,0,0]],
+      [[0,0,0], [1,1,1], [0,0,0]]
+    ]
+  ];
+
+  // Generate variations of 0s
+  for (let templateIdx = 0; templateIdx < zeroTemplates.length; templateIdx++) {
+    const template = zeroTemplates[templateIdx];
     
-    if (i < 30) {
-      // Hollow rectangles
-      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
-        const filled = Math.floor(Math.random() * 6) + 3; // 3-8 sub-pixels
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    } else if (i < 60) {
-      // Oval patterns
-      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
-        if ([1, 3, 5, 7].includes(idx)) {
-          const filled = Math.floor(Math.random() * 7) + 2;
-          for (let j = 0; j < filled; j++) {
-            pattern[idx][Math.floor(Math.random() * 9)] = 1;
-          }
-        } else {
-          const filled = Math.floor(Math.random() * 5) + 2;
-          for (let j = 0; j < filled; j++) {
-            pattern[idx][Math.floor(Math.random() * 9)] = 1;
-          }
-        }
-      });
-    } else if (i < 90) {
-      // Circle-like patterns
-      [0, 2, 3, 5, 6, 8].forEach(idx => {
-        const filled = Math.floor(Math.random() * 6) + 2;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    } else {
-      // Thick border variations
-      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
-        const filled = Math.floor(Math.random() * 8) + 1;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
+    for (let variation = 0; variation < 24; variation++) {
+      const pattern = template.map(pixel => 
+        pixel.map(subPixel => 
+          subPixel.map(bit => {
+            // Add controlled noise/variation
+            if (bit === 1) {
+              // 85% chance to keep filled pixels
+              return Math.random() < 0.85 ? 1 : 0;
+            } else {
+              // 10% chance to add noise to empty pixels
+              return Math.random() < 0.1 ? 1 : 0;
+            }
+          })
+        )
+      );
+      dataset.push({ pattern, label: 0 });
     }
+  }
+
+  // Generate variations of 1s
+  for (let templateIdx = 0; templateIdx < oneTemplates.length; templateIdx++) {
+    const template = oneTemplates[templateIdx];
     
-    dataset.push({ pattern, label: 0 });
+    for (let variation = 0; variation < 20; variation++) {
+      const pattern = template.map(pixel => 
+        pixel.map(subPixel => 
+          subPixel.map(bit => {
+            // Add controlled noise/variation
+            if (bit === 1) {
+              // 85% chance to keep filled pixels
+              return Math.random() < 0.85 ? 1 : 0;
+            } else {
+              // 10% chance to add noise to empty pixels
+              return Math.random() < 0.1 ? 1 : 0;
+            }
+          })
+        )
+      );
+      dataset.push({ pattern, label: 1 });
+    }
   }
   
-  // Generate 120 examples of digit 1
-  for (let i = 0; i < 120; i++) {
-    const pattern = Array(9).fill(0).map(() => Array(9).fill(0));
-    
-    if (i < 40) {
-      // Vertical line center
-      [1, 4, 7].forEach(idx => {
-        const filled = Math.floor(Math.random() * 8) + 1;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    } else if (i < 80) {
-      // Vertical line right
-      [2, 5, 8].forEach(idx => {
-        const filled = Math.floor(Math.random() * 7) + 2;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    } else if (i < 100) {
-      // L-shape variations
-      [6, 7, 8].forEach(idx => {
-        const filled = Math.floor(Math.random() * 6) + 3;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-      [2, 5].forEach(idx => {
-        const filled = Math.floor(Math.random() * 5) + 2;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    } else {
-      // Diagonal and mixed patterns
-      const positions = [1, 4, 7, 2, 5].slice(0, Math.floor(Math.random() * 3) + 2);
-      positions.forEach(idx => {
-        const filled = Math.floor(Math.random() * 6) + 2;
-        for (let j = 0; j < filled; j++) {
-          pattern[idx][Math.floor(Math.random() * 9)] = 1;
-        }
-      });
-    }
-    
-    dataset.push({ pattern, label: 1 });
-  }
-  
-  // Shuffle dataset
+  // Shuffle the dataset
   for (let i = dataset.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [dataset[i], dataset[j]] = [dataset[j], dataset[i]];

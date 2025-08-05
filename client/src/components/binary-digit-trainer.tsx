@@ -18,76 +18,86 @@ const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0
 const generateTrainingDataset = () => {
   const dataset: { pattern: number[][], label: number }[] = [];
   
-  // Define recognizable digit templates
+  // Create proper 3x3 pixel grid templates where each element corresponds to the 9 pixels in the grid
+  // Grid layout: [0,1,2]
+  //              [3,4,5]  
+  //              [6,7,8]
+  
   const zeroTemplates = [
-    // Classic oval 0
+    // Classic oval 0 - hollow in center
     [
-      [[0,1,0], [1,1,1], [0,1,0]],
-      [[1,0,0], [0,0,0], [0,0,1]],
-      [[0,1,0], [1,1,1], [0,1,0]]
+      [0,1,0,1,1,1,0,1,0], // pixel 0 (top-left): oval top
+      [1,1,1,1,1,1,1,1,1], // pixel 1 (top-center): full top
+      [0,1,0,1,1,1,0,1,0], // pixel 2 (top-right): oval top
+      [1,0,0,0,0,0,0,0,1], // pixel 3 (mid-left): left edge only
+      [0,0,0,0,0,0,0,0,0], // pixel 4 (center): empty for hollow
+      [1,0,0,0,0,0,0,0,1], // pixel 5 (mid-right): right edge only
+      [0,1,0,1,1,1,0,1,0], // pixel 6 (bot-left): oval bottom
+      [1,1,1,1,1,1,1,1,1], // pixel 7 (bot-center): full bottom
+      [0,1,0,1,1,1,0,1,0]  // pixel 8 (bot-right): oval bottom
     ],
-    // Rounded square 0
+    // Square 0
     [
-      [[1,1,1], [1,1,1], [1,1,1]],
-      [[1,0,0], [0,0,0], [0,0,1]],
-      [[1,1,1], [1,1,1], [1,1,1]]
-    ],
-    // Tilted 0
-    [
-      [[0,0,1], [0,1,1], [1,1,0]],
-      [[1,0,0], [0,0,0], [0,0,1]],
-      [[0,1,1], [1,1,0], [1,0,0]]
+      [1,1,1,1,1,1,1,1,1], // pixel 0: full
+      [1,1,1,1,1,1,1,1,1], // pixel 1: full
+      [1,1,1,1,1,1,1,1,1], // pixel 2: full
+      [1,0,0,0,0,0,0,0,1], // pixel 3: edges
+      [0,0,0,0,0,0,0,0,0], // pixel 4: empty
+      [1,0,0,0,0,0,0,0,1], // pixel 5: edges
+      [1,1,1,1,1,1,1,1,1], // pixel 6: full
+      [1,1,1,1,1,1,1,1,1], // pixel 7: full
+      [1,1,1,1,1,1,1,1,1]  // pixel 8: full
     ],
     // Narrow 0
     [
-      [[0,1,0], [0,1,0], [0,1,0]],
-      [[1,0,0], [0,0,0], [0,0,1]],
-      [[0,1,0], [0,1,0], [0,1,0]]
-    ],
-    // Wide 0
-    [
-      [[1,1,1], [1,1,1], [1,1,1]],
-      [[1,0,0], [0,0,0], [0,0,1]],
-      [[1,1,1], [1,1,1], [1,1,1]]
+      [0,1,0,0,1,0,0,1,0], // pixel 0: thin top
+      [0,1,0,0,1,0,0,1,0], // pixel 1: thin top
+      [0,1,0,0,1,0,0,1,0], // pixel 2: thin top
+      [1,0,0,0,0,0,0,0,0], // pixel 3: left edge
+      [0,0,0,0,0,0,0,0,0], // pixel 4: empty
+      [0,0,0,0,0,0,0,0,1], // pixel 5: right edge
+      [0,1,0,0,1,0,0,1,0], // pixel 6: thin bottom
+      [0,1,0,0,1,0,0,1,0], // pixel 7: thin bottom
+      [0,1,0,0,1,0,0,1,0]  // pixel 8: thin bottom
     ]
   ];
 
   const oneTemplates = [
-    // Classic straight 1
+    // Straight 1
     [
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]]
-    ],
-    // 1 with top hook
-    [
-      [[0,1,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]]
+      [0,0,0,0,0,0,0,0,0], // pixel 0: empty
+      [0,0,0,0,1,0,0,1,0], // pixel 1: center line
+      [0,0,0,0,0,0,0,0,0], // pixel 2: empty
+      [0,0,0,0,0,0,0,0,0], // pixel 3: empty
+      [0,0,0,0,1,0,0,1,0], // pixel 4: center line
+      [0,0,0,0,0,0,0,0,0], // pixel 5: empty
+      [0,0,0,0,0,0,0,0,0], // pixel 6: empty
+      [0,0,0,0,1,0,0,1,0], // pixel 7: center line
+      [0,0,0,0,0,0,0,0,0]  // pixel 8: empty
     ],
     // Thick 1
     [
-      [[0,0,0], [1,1,1], [0,0,0]],
-      [[0,0,0], [1,1,1], [0,0,0]],
-      [[0,0,0], [1,1,1], [0,0,0]]
+      [0,0,0,0,0,0,0,0,0], // pixel 0: empty
+      [0,1,0,1,1,1,1,1,0], // pixel 1: thick center
+      [0,0,0,0,0,0,0,0,0], // pixel 2: empty
+      [0,0,0,0,0,0,0,0,0], // pixel 3: empty
+      [0,1,0,1,1,1,1,1,0], // pixel 4: thick center
+      [0,0,0,0,0,0,0,0,0], // pixel 5: empty
+      [0,0,0,0,0,0,0,0,0], // pixel 6: empty
+      [0,1,0,1,1,1,1,1,0], // pixel 7: thick center
+      [0,0,0,0,0,0,0,0,0]  // pixel 8: empty
     ],
     // 1 with base
     [
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,1,0], [1,1,1], [0,1,0]]
-    ],
-    // Tilted 1
-    [
-      [[0,0,0], [0,0,1], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [1,0,0], [0,0,0]]
-    ],
-    // 1 with serif
-    [
-      [[0,1,1], [0,1,0], [0,0,0]],
-      [[0,0,0], [0,1,0], [0,0,0]],
-      [[0,0,0], [1,1,1], [0,0,0]]
+      [0,0,0,0,0,0,0,0,0], // pixel 0: empty
+      [0,0,0,0,1,0,0,1,0], // pixel 1: center line
+      [0,0,0,0,0,0,0,0,0], // pixel 2: empty
+      [0,0,0,0,0,0,0,0,0], // pixel 3: empty
+      [0,0,0,0,1,0,0,1,0], // pixel 4: center line
+      [0,0,0,0,0,0,0,0,0], // pixel 5: empty
+      [0,1,0,1,1,1,1,1,0], // pixel 6: base left
+      [0,1,0,1,1,1,1,1,0], // pixel 7: base center
+      [0,1,0,1,1,1,1,1,0]  // pixel 8: base right
     ]
   ];
 
@@ -97,18 +107,16 @@ const generateTrainingDataset = () => {
     
     for (let variation = 0; variation < 24; variation++) {
       const pattern = template.map(pixel => 
-        pixel.map(subPixel => 
-          subPixel.map(bit => {
-            // Add controlled noise/variation
-            if (bit === 1) {
-              // 85% chance to keep filled pixels
-              return Math.random() < 0.85 ? 1 : 0;
-            } else {
-              // 10% chance to add noise to empty pixels
-              return Math.random() < 0.1 ? 1 : 0;
-            }
-          })
-        )
+        pixel.map(bit => {
+          // Add controlled noise/variation
+          if (bit === 1) {
+            // 85% chance to keep filled pixels
+            return Math.random() < 0.85 ? 1 : 0;
+          } else {
+            // 10% chance to add noise to empty pixels
+            return Math.random() < 0.1 ? 1 : 0;
+          }
+        })
       );
       dataset.push({ pattern, label: 0 });
     }
@@ -120,18 +128,16 @@ const generateTrainingDataset = () => {
     
     for (let variation = 0; variation < 20; variation++) {
       const pattern = template.map(pixel => 
-        pixel.map(subPixel => 
-          subPixel.map(bit => {
-            // Add controlled noise/variation
-            if (bit === 1) {
-              // 85% chance to keep filled pixels
-              return Math.random() < 0.85 ? 1 : 0;
-            } else {
-              // 10% chance to add noise to empty pixels
-              return Math.random() < 0.1 ? 1 : 0;
-            }
-          })
-        )
+        pixel.map(bit => {
+          // Add controlled noise/variation
+          if (bit === 1) {
+            // 85% chance to keep filled pixels
+            return Math.random() < 0.85 ? 1 : 0;
+          } else {
+            // 10% chance to add noise to empty pixels
+            return Math.random() < 0.1 ? 1 : 0;
+          }
+        })
       );
       dataset.push({ pattern, label: 1 });
     }

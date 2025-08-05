@@ -284,35 +284,50 @@ export default function BinaryDigitTrainer() {
                     <text x="200" y="30" fontSize="16" fill="#666" fontWeight="bold">Hidden (4)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
-                        {/* Bar graph for this hidden neuron - 9 bars for 9 inputs */}
-                        <g className="bar-graph">
-                          {getPixelValues().map((inputValue, inputIdx) => {
-                            const weight = weights[i][inputIdx];
-                            const barY = 80 + i * 80 + inputIdx * 6;
-                            const barX = 180; // Directly to the left of neuron
+                        {/* Weight bar graph box for this hidden neuron */}
+                        <g className="weight-box">
+                          {/* Box border */}
+                          <rect
+                            x="150"
+                            y={75 + i * 80}
+                            width="80"
+                            height="54"
+                            fill="white"
+                            stroke="#9CA3AF"
+                            strokeWidth="1"
+                            opacity="0.9"
+                          />
+                          {/* Zero line in middle */}
+                          <line
+                            x1="190"
+                            y1={75 + i * 80}
+                            x2="190"
+                            y2={129 + i * 80}
+                            stroke="#666"
+                            strokeWidth="1"
+                            opacity="0.5"
+                          />
+                          {/* Weight bars - 9 bars for 9 inputs */}
+                          {weights[i].map((weight, inputIdx) => {
+                            const barY = 80 + i * 80 + inputIdx * 5.5;
+                            const barWidth = Math.abs(weight) * 40;
+                            const barX = weight >= 0 ? 190 : 190 - barWidth;
                             return (
-                              <g key={`bar-${i}-${inputIdx}`}>
-                                {/* Input value bar */}
-                                <rect
-                                  x={barX}
-                                  y={barY}
-                                  width={Math.abs(inputValue) * 40}
-                                  height="2"
-                                  fill="#3B82F6"
-                                  opacity="0.8"
-                                />
-                                {/* Weight bar */}
-                                <rect
-                                  x={barX}
-                                  y={barY + 3}
-                                  width={Math.abs(weight) * 40}
-                                  height="2"
-                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                  opacity="0.9"
-                                />
-                              </g>
+                              <rect
+                                key={`weight-bar-${i}-${inputIdx}`}
+                                x={barX}
+                                y={barY}
+                                width={barWidth}
+                                height="4"
+                                fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                opacity="0.8"
+                              />
                             );
                           })}
+                          {/* Labels */}
+                          <text x="155" y="88" fontSize="8" fill="#666">-1</text>
+                          <text x="185" y="88" fontSize="8" fill="#666">0</text>
+                          <text x="220" y="88" fontSize="8" fill="#666">+1</text>
                         </g>
                         
                         <circle
@@ -335,35 +350,50 @@ export default function BinaryDigitTrainer() {
                     <text x="420" y="30" fontSize="16" fill="#666" fontWeight="bold">Output (2)</text>
                     {outputActivations.map((activation, i) => (
                       <g key={`output-${i}`}>
-                        {/* Bar graph for this output neuron - 4 bars for 4 hidden inputs */}
-                        <g className="bar-graph">
-                          {hiddenActivations.map((hiddenValue, hiddenIdx) => {
-                            const weight = outputWeights[i][hiddenIdx];
-                            const barY = 140 + i * 120 + hiddenIdx * 12;
-                            const barX = 400; // Directly to the left of neuron
+                        {/* Weight bar graph box for this output neuron */}
+                        <g className="weight-box">
+                          {/* Box border */}
+                          <rect
+                            x="360"
+                            y={140 + i * 120}
+                            width="100"
+                            height="48"
+                            fill="white"
+                            stroke="#9CA3AF"
+                            strokeWidth="1"
+                            opacity="0.9"
+                          />
+                          {/* Zero line in middle */}
+                          <line
+                            x1="410"
+                            y1={140 + i * 120}
+                            x2="410"
+                            y2={188 + i * 120}
+                            stroke="#666"
+                            strokeWidth="1"
+                            opacity="0.5"
+                          />
+                          {/* Weight bars - 4 bars for 4 hidden inputs */}
+                          {outputWeights[i].map((weight, hiddenIdx) => {
+                            const barY = 146 + i * 120 + hiddenIdx * 10;
+                            const barWidth = Math.abs(weight) * 50;
+                            const barX = weight >= 0 ? 410 : 410 - barWidth;
                             return (
-                              <g key={`output-bar-${i}-${hiddenIdx}`}>
-                                {/* Hidden activation value bar */}
-                                <rect
-                                  x={barX}
-                                  y={barY}
-                                  width={Math.abs(hiddenValue) * 60}
-                                  height="4"
-                                  fill="#8B5CF6"
-                                  opacity="0.8"
-                                />
-                                {/* Weight bar */}
-                                <rect
-                                  x={barX}
-                                  y={barY + 6}
-                                  width={Math.abs(weight) * 60}
-                                  height="4"
-                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                  opacity="0.9"
-                                />
-                              </g>
+                              <rect
+                                key={`output-weight-bar-${i}-${hiddenIdx}`}
+                                x={barX}
+                                y={barY}
+                                width={barWidth}
+                                height="6"
+                                fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                opacity="0.8"
+                              />
                             );
                           })}
+                          {/* Labels */}
+                          <text x="365" y="153" fontSize="10" fill="#666">-1</text>
+                          <text x="405" y="153" fontSize="10" fill="#666">0</text>
+                          <text x="445" y="153" fontSize="10" fill="#666">+1</text>
                         </g>
                         
                         <circle
@@ -417,13 +447,12 @@ export default function BinaryDigitTrainer() {
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="30" y="400" fontSize="14" fill="#666" fontWeight="bold">Legend:</text>
-                    <rect x="30" y="415" width="25" height="4" fill="#3B82F6" opacity="0.8"/>
-                    <text x="60" y="420" fontSize="12" fill="#666">Input/Activation Values</text>
-                    <rect x="200" y="415" width="25" height="4" fill="#10B981" opacity="0.9"/>
-                    <text x="230" y="420" fontSize="12" fill="#666">Positive Weights</text>
-                    <rect x="360" y="415" width="25" height="4" fill="#EF4444" opacity="0.9"/>
-                    <text x="390" y="420" fontSize="12" fill="#666">Negative Weights</text>
+                    <text x="30" y="400" fontSize="14" fill="#666" fontWeight="bold">Weight Bar Graphs:</text>
+                    <rect x="30" y="415" width="25" height="4" fill="#10B981" opacity="0.8"/>
+                    <text x="60" y="420" fontSize="12" fill="#666">Positive Weights (extend right from center)</text>
+                    <rect x="280" y="415" width="25" height="4" fill="#EF4444" opacity="0.8"/>
+                    <text x="310" y="420" fontSize="12" fill="#666">Negative Weights (extend left from center)</text>
+                    <text x="30" y="435" fontSize="10" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
                   </g>
                 </svg>
               </div>

@@ -275,7 +275,7 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[480px] bg-gray-50 rounded-lg p-4 overflow-hidden">
+              <div className="relative h-[420px] bg-gray-50 rounded-lg p-4 overflow-hidden">
                 <svg className="w-full h-full" viewBox="0 0 750 563">
                   {/* Input Layer */}
                   <g className="input-layer">
@@ -476,12 +476,12 @@ export default function BinaryDigitTrainer() {
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="38" y="500" fontSize="18" fill="#666" fontWeight="bold">Weight Bar Graphs (click for details):</text>
-                    <rect x="38" y="519" width="31" height="5" fill="#10B981" opacity="0.8"/>
-                    <text x="75" y="525" fontSize="15" fill="#666">Positive Weights (extend right from center)</text>
-                    <rect x="350" y="519" width="31" height="5" fill="#EF4444" opacity="0.8"/>
-                    <text x="387" y="525" fontSize="15" fill="#666">Negative Weights (extend left from center)</text>
-                    <text x="38" y="544" fontSize="12" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
+                    <text x="38" y="520" fontSize="18" fill="#666" fontWeight="bold">Weight Bar Graphs (click for details):</text>
+                    <rect x="38" y="539" width="31" height="5" fill="#10B981" opacity="0.8"/>
+                    <text x="75" y="545" fontSize="15" fill="#666">Positive Weights (extend right from center)</text>
+                    <rect x="350" y="539" width="31" height="5" fill="#EF4444" opacity="0.8"/>
+                    <text x="387" y="545" fontSize="15" fill="#666">Negative Weights (extend left from center)</text>
+                    <text x="38" y="558" fontSize="12" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
                   </g>
                 </svg>
               </div>
@@ -506,59 +506,35 @@ export default function BinaryDigitTrainer() {
 
           {/* Detailed Weight View */}
           {selectedWeightBox && (
-            <Card className="col-span-2">
+            <Card className="col-span-3">
               <CardContent className="p-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  {selectedWeightBox.type === 'hidden' 
-                    ? `Hidden Neuron ${selectedWeightBox.index + 1} Weights (9 input connections)`
-                    : `Output Neuron ${selectedWeightBox.index} Weights (4 hidden connections)`}
-                </h2>
-                
-                {/* Iteration Controls */}
-                <div className="flex items-center gap-4 mb-6">
-                  <Button 
-                    onClick={() => setWeightDialogIteration(Math.max(0, weightDialogIteration - 1))}
-                    disabled={weightDialogIteration === 0}
-                    variant="outline"
-                    size="sm"
-                  >
-                    ← Previous
-                  </Button>
-                  <span className="text-sm font-medium px-4 py-2 bg-gray-100 rounded">
-                    {trainingHistory.length === 0 
-                      ? "Initial Values (before training)" 
-                      : `Iteration ${weightDialogIteration} of ${trainingHistory.length - 1}`}
-                  </span>
-                  <Button 
-                    onClick={() => setWeightDialogIteration(Math.min(trainingHistory.length - 1, weightDialogIteration + 1))}
-                    disabled={weightDialogIteration >= trainingHistory.length - 1 || trainingHistory.length === 0}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next →
-                  </Button>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    {selectedWeightBox.type === 'hidden' 
+                      ? `Hidden Neuron ${selectedWeightBox.index + 1} Weights (9 input connections)`
+                      : `Output Neuron ${selectedWeightBox.index} Weights (4 hidden connections)`}
+                  </h2>
                   <Button 
                     onClick={() => setSelectedWeightBox(null)}
                     variant="outline"
                     size="sm"
-                    className="ml-auto"
                   >
-                    Close
+                    ×
                   </Button>
                 </div>
-
+                
                 {/* Weight Visualization */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <svg width="100%" height="300" viewBox="0 0 600 300">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <svg width="100%" height="220" viewBox="0 0 600 220">
                     {selectedWeightBox.type === 'hidden' && (
                       <g>
                         {/* Large weight box */}
-                        <rect x="50" y="50" width="500" height="200" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                        <line x1="300" y1="50" x2="300" y2="250" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                        <rect x="50" y="30" width="500" height="160" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                        <line x1="300" y1="30" x2="300" y2="190" stroke="#666" strokeWidth="2" opacity="0.5"/>
                         
                         {/* Weight bars */}
                         {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
-                          const barY = 65 + i * 20;
+                          const barY = 45 + i * 16;
                           const barWidth = Math.abs(weight) * 250;
                           const barX = weight >= 0 ? 300 : 300 - barWidth;
                           return (
@@ -567,15 +543,15 @@ export default function BinaryDigitTrainer() {
                                 x={barX}
                                 y={barY}
                                 width={barWidth}
-                                height="15"
+                                height="12"
                                 fill={weight > 0 ? "#10B981" : "#EF4444"}
                                 opacity="0.8"
                               />
-                              <text x="20" y={barY + 12} fontSize="12" fill="#666">
+                              <text x="20" y={barY + 9} fontSize="11" fill="#666">
                                 Input {i + 1}:
                               </text>
-                              <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 12} 
-                                    fontSize="12" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                              <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 9} 
+                                    fontSize="11" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
                                 {weight.toFixed(3)}
                               </text>
                             </g>
@@ -583,21 +559,21 @@ export default function BinaryDigitTrainer() {
                         })}
                         
                         {/* Labels */}
-                        <text x="55" y="265" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="265" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="265" fontSize="12" fill="#666">+1</text>
+                        <text x="55" y="205" fontSize="12" fill="#666">-1</text>
+                        <text x="295" y="205" fontSize="12" fill="#666">0</text>
+                        <text x="535" y="205" fontSize="12" fill="#666">+1</text>
                       </g>
                     )}
 
                     {selectedWeightBox.type === 'output' && (
                       <g>
                         {/* Large weight box */}
-                        <rect x="50" y="50" width="500" height="120" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                        <line x1="300" y1="50" x2="300" y2="170" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                        <rect x="50" y="30" width="500" height="120" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                        <line x1="300" y1="30" x2="300" y2="150" stroke="#666" strokeWidth="2" opacity="0.5"/>
                         
                         {/* Weight bars */}
                         {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
-                          const barY = 65 + i * 25;
+                          const barY = 50 + i * 25;
                           const barWidth = Math.abs(weight) * 250;
                           const barX = weight >= 0 ? 300 : 300 - barWidth;
                           return (
@@ -610,11 +586,11 @@ export default function BinaryDigitTrainer() {
                                 fill={weight > 0 ? "#10B981" : "#EF4444"}
                                 opacity="0.8"
                               />
-                              <text x="20" y={barY + 14} fontSize="12" fill="#666">
+                              <text x="20" y={barY + 14} fontSize="11" fill="#666">
                                 Hidden {i + 1}:
                               </text>
                               <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 14} 
-                                    fontSize="12" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                    fontSize="11" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
                                 {weight.toFixed(3)}
                               </text>
                             </g>
@@ -622,28 +598,12 @@ export default function BinaryDigitTrainer() {
                         })}
                         
                         {/* Labels */}
-                        <text x="55" y="185" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="185" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="185" fontSize="12" fill="#666">+1</text>
+                        <text x="55" y="165" fontSize="12" fill="#666">-1</text>
+                        <text x="295" y="165" fontSize="12" fill="#666">0</text>
+                        <text x="535" y="165" fontSize="12" fill="#666">+1</text>
                       </g>
                     )}
                   </svg>
-                </div>
-
-                {/* Training Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm mt-4">
-                  <div className="bg-blue-50 p-3 rounded">
-                    <div className="font-medium text-blue-900">Loss</div>
-                    <div className="text-blue-700">
-                      {trainingHistory[weightDialogIteration]?.loss.toFixed(4) || loss.toFixed(4)}
-                    </div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded">
-                    <div className="font-medium text-green-900">Status</div>
-                    <div className="text-green-700">
-                      {trainingHistory.length === 0 ? "Initial Values" : `Iteration ${weightDialogIteration}`}
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

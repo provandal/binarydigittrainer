@@ -1,6 +1,6 @@
 # Overview
 
-This is a neural network educational application built as a Binary Digit Trainer. The application allows users to create binary patterns on an 8x8 grid and train a simulated neural network to recognize digits. It features a comprehensive interface with real-time visualization of network training, predictions, metrics, and testing capabilities. The project is built using a modern React frontend with Express.js backend architecture.
+This is a simplified educational Binary Digit Trainer that teaches neural network fundamentals through step-by-step visualization. Users draw binary digits (0 or 1) on a 3×3 pixel canvas where each pixel is a 3×3 grid of sub-pixels. The neural network architecture is 9→4→2 (9 input neurons for pixels, 4 hidden neurons, 2 output neurons for digits 0 and 1). The application demonstrates the complete training cycle: forward pass, loss calculation, and backpropagation with real-time weight and activation updates.
 
 # User Preferences
 
@@ -29,12 +29,12 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Updates**: Live visualization of training progress and network activations
 
 ## Key Features
-- **Interactive Binary Grid**: 8x8 clickable grid for creating digit patterns
-- **Neural Network Visualization**: Real-time display of network layers and activations
-- **Training Controls**: Start/stop training with configurable target labels
-- **Metrics Dashboard**: Live accuracy, loss, and training progress tracking
-- **Testing Interface**: Sample digit loading and prediction testing
-- **Responsive Design**: Mobile-friendly interface with adaptive layouts
+- **Interactive Drawing Canvas**: 3×3 pixel grid where each pixel is a 3×3 sub-pixel grid for realistic drawing
+- **Continuous Pixel Values**: Each pixel value ranges from 0-1 based on filled sub-pixels (e.g., 3/9 = 0.33)
+- **Step-by-Step Training**: 6-stage training cycle with clear visualization of each step
+- **Neural Network Architecture**: Simple 9→4→2 network for binary digit classification (0 vs 1)
+- **Weight Visualization**: Real-time display of connection weights with color coding
+- **Educational Focus**: Designed for learning neural network fundamentals, not performance
 
 ## Database Schema
 - **Users Table**: Basic user management with username/password authentication

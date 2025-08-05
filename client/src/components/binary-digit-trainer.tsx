@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const initialInput = Array(9).fill(0);
+// Each pixel is a 3x3 grid of sub-pixels (9 total per pixel)
+const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9 pixels, each with 9 sub-pixels
 const initialWeights = Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4));
 const initialBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 const initialOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
@@ -21,7 +22,7 @@ const STEP_NAMES = [
 ];
 
 export default function BinaryDigitTrainer() {
-  const [input, setInput] = useState(initialInput);
+  const [pixelGrid, setPixelGrid] = useState(initialPixelGrid);
   const [weights, setWeights] = useState(initialWeights);
   const [biases, setBiases] = useState(initialBiases);
   const [outputWeights, setOutputWeights] = useState(initialOutputWeights);
@@ -33,16 +34,26 @@ export default function BinaryDigitTrainer() {
   const [loss, setLoss] = useState(0);
   const [learningRate] = useState(0.5);
 
-  const toggleInput = (i) => {
-    const newInput = [...input];
-    newInput[i] = newInput[i] === 0 ? 1 : 0;
-    setInput(newInput);
+  // Calculate pixel values (0-1 based on how many sub-pixels are filled)
+  const getPixelValues = () => {
+    return pixelGrid.map(pixel => {
+      const filledSubPixels = pixel.reduce((sum, subPixel) => sum + subPixel, 0);
+      return filledSubPixels / 9; // Convert to 0-1 range
+    });
+  };
+
+  const toggleSubPixel = (pixelIndex, subPixelIndex) => {
+    const newPixelGrid = [...pixelGrid];
+    newPixelGrid[pixelIndex] = [...newPixelGrid[pixelIndex]];
+    newPixelGrid[pixelIndex][subPixelIndex] = newPixelGrid[pixelIndex][subPixelIndex] === 0 ? 1 : 0;
+    setPixelGrid(newPixelGrid);
     setStep(0); // Reset to first step when input changes
   };
 
   const forwardPassHidden = () => {
+    const pixelValues = getPixelValues();
     const newActivations = weights.map((w, i) => {
-      const z = w.reduce((sum, weight, j) => sum + weight * input[j], biases[i]);
+      const z = w.reduce((sum, weight, j) => sum + weight * pixelValues[j], biases[i]);
       return sigmoid(z);
     });
     setHiddenActivations(newActivations);
@@ -83,6 +94,7 @@ export default function BinaryDigitTrainer() {
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
     const outputErrors = outputActivations.map((output, i) => 
       (output - target[i]) * sigmoidDerivative(output));
+    const pixelValues = getPixelValues();
     
     // Calculate hidden errors
     const hiddenErrors = hiddenActivations.map((activation, i) => {
@@ -94,7 +106,7 @@ export default function BinaryDigitTrainer() {
     // Update hidden weights and biases
     const newWeights = weights.map((weights, i) => 
       weights.map((weight, j) => 
-        weight - learningRate * hiddenErrors[i] * input[j]));
+        weight - learningRate * hiddenErrors[i] * pixelValues[j]));
     const newBiases = biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
@@ -128,6 +140,7 @@ export default function BinaryDigitTrainer() {
   };
 
   const resetNetwork = () => {
+    setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
     setWeights(Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4)));
     setBiases(Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2));
     setOutputWeights(Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4)));
@@ -150,22 +163,49 @@ export default function BinaryDigitTrainer() {
           {/* Input Grid */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Input Grid (3×3)</h2>
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {input.map((val, i) => (
-                  <button
-                    key={i}
-                    onClick={() => toggleInput(i)}
-                    className={`w-12 h-12 border-2 rounded-lg font-bold text-lg transition-all duration-200 ${
-                      val ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-800 border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    {val}
-                  </button>
+              <h2 className="text-lg font-semibold mb-4">Drawing Canvas (3×3 pixels)</h2>
+              <div className="grid grid-cols-3 gap-2 mb-4 p-2 bg-gray-100 rounded-lg">
+                {pixelGrid.map((pixel, pixelIndex) => (
+                  <div key={pixelIndex} className="relative">
+                    {/* Pixel with 3x3 sub-pixels */}
+                    <div className="grid grid-cols-3 gap-0.5 w-16 h-16 border-2 border-gray-400 rounded-lg overflow-hidden bg-white">
+                      {pixel.map((subPixel, subPixelIndex) => (
+                        <button
+                          key={subPixelIndex}
+                          onClick={() => toggleSubPixel(pixelIndex, subPixelIndex)}
+                          className={`w-full h-full transition-all duration-150 hover:opacity-70 ${
+                            subPixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {/* Pixel value display */}
+                    <div className="absolute -bottom-6 left-0 right-0 text-center">
+                      <span className="text-xs font-mono bg-white px-1 rounded shadow">
+                        {(pixel.reduce((sum, sub) => sum + sub, 0) / 9).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
               
-              <div className="space-y-3">
+              <div className="mt-8 text-center">
+                <p className="text-xs text-gray-600 mb-2">Click sub-pixels to draw. Each pixel value = filled sub-pixels ÷ 9</p>
+              </div>
+
+              {/* Neural Network Input Values */}
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Neural Network Input</h3>
+                <div className="grid grid-cols-3 gap-1 text-xs">
+                  {getPixelValues().map((value, i) => (
+                    <div key={i} className="text-center p-1 bg-blue-50 rounded font-mono">
+                      {value.toFixed(2)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mt-4 space-y-3">
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
                   <div className="flex gap-2">

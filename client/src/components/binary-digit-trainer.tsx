@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -10,17 +10,158 @@ const initialBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 const initialOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
 const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 
+// Training dataset - 100+ examples each of 0 and 1
+const generateTrainingDataset = () => {
+  const dataset: { pattern: number[][], label: number }[] = [];
+  
+  // Generate 120 examples of digit 0
+  for (let i = 0; i < 120; i++) {
+    const pattern = Array(9).fill(0).map(() => Array(9).fill(0));
+    
+    if (i < 30) {
+      // Hollow rectangles
+      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
+        const filled = Math.floor(Math.random() * 6) + 3; // 3-8 sub-pixels
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    } else if (i < 60) {
+      // Oval patterns
+      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
+        if ([1, 3, 5, 7].includes(idx)) {
+          const filled = Math.floor(Math.random() * 7) + 2;
+          for (let j = 0; j < filled; j++) {
+            pattern[idx][Math.floor(Math.random() * 9)] = 1;
+          }
+        } else {
+          const filled = Math.floor(Math.random() * 5) + 2;
+          for (let j = 0; j < filled; j++) {
+            pattern[idx][Math.floor(Math.random() * 9)] = 1;
+          }
+        }
+      });
+    } else if (i < 90) {
+      // Circle-like patterns
+      [0, 2, 3, 5, 6, 8].forEach(idx => {
+        const filled = Math.floor(Math.random() * 6) + 2;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    } else {
+      // Thick border variations
+      [0, 1, 2, 3, 5, 6, 7, 8].forEach(idx => {
+        const filled = Math.floor(Math.random() * 8) + 1;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    }
+    
+    dataset.push({ pattern, label: 0 });
+  }
+  
+  // Generate 120 examples of digit 1
+  for (let i = 0; i < 120; i++) {
+    const pattern = Array(9).fill(0).map(() => Array(9).fill(0));
+    
+    if (i < 40) {
+      // Vertical line center
+      [1, 4, 7].forEach(idx => {
+        const filled = Math.floor(Math.random() * 8) + 1;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    } else if (i < 80) {
+      // Vertical line right
+      [2, 5, 8].forEach(idx => {
+        const filled = Math.floor(Math.random() * 7) + 2;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    } else if (i < 100) {
+      // L-shape variations
+      [6, 7, 8].forEach(idx => {
+        const filled = Math.floor(Math.random() * 6) + 3;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+      [2, 5].forEach(idx => {
+        const filled = Math.floor(Math.random() * 5) + 2;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    } else {
+      // Diagonal and mixed patterns
+      const positions = [1, 4, 7, 2, 5].slice(0, Math.floor(Math.random() * 3) + 2);
+      positions.forEach(idx => {
+        const filled = Math.floor(Math.random() * 6) + 2;
+        for (let j = 0; j < filled; j++) {
+          pattern[idx][Math.floor(Math.random() * 9)] = 1;
+        }
+      });
+    }
+    
+    dataset.push({ pattern, label: 1 });
+  }
+  
+  // Shuffle dataset
+  for (let i = dataset.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [dataset[i], dataset[j]] = [dataset[j], dataset[i]];
+  }
+  
+  return dataset;
+};
+
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
 const sigmoidDerivative = (x: number) => x * (1 - x);
 
-const STEP_NAMES = [
-  "Ready - Draw your digit",
-  "Forward Pass - Input to Hidden",
-  "Forward Pass - Hidden to Output", 
-  "Calculate Loss",
-  "Backpropagation - Output Layer",
-  "Backpropagation - Hidden Layer"
+const STEP_DESCRIPTIONS = [
+  {
+    name: "Ready - Draw your digit",
+    concept: "The neural network is ready to learn. Draw a digit 0 or 1, or use the training dataset.",
+    formula: "Input preparation: x = [x₁, x₂, ..., x₉] where each xᵢ ∈ [0,1]",
+    activeElements: []
+  },
+  {
+    name: "Forward Pass - Input to Hidden",
+    concept: "Each input pixel is multiplied by connection weights and summed with bias to calculate hidden neuron activations.",
+    formula: "hⱼ = σ(∑ᵢ wᵢⱼ·xᵢ + bⱼ) where σ(z) = 1/(1+e⁻ᶻ)",
+    activeElements: ["input", "hidden", "inputWeights"]
+  },
+  {
+    name: "Forward Pass - Hidden to Output", 
+    concept: "Hidden layer activations are combined using output weights to produce final predictions for digits 0 and 1.",
+    formula: "oₖ = σ(∑ⱼ wⱼₖ·hⱼ + bₖ) for output neurons k ∈ {0,1}",
+    activeElements: ["hidden", "output", "outputWeights"]
+  },
+  {
+    name: "Calculate Loss",
+    concept: "The network's prediction is compared to the target label using Mean Squared Error to measure accuracy.",
+    formula: "Loss = ½∑ₖ(tₖ - oₖ)² where tₖ is target and oₖ is output",
+    activeElements: ["output", "loss"]
+  },
+  {
+    name: "Backpropagation - Output Layer",
+    concept: "Error signals flow backward to adjust output weights. Larger errors cause bigger weight changes.",
+    formula: "δₖ = (tₖ - oₖ)·oₖ·(1-oₖ), Δwⱼₖ = α·δₖ·hⱼ",
+    activeElements: ["output", "outputWeights", "backprop"]
+  },
+  {
+    name: "Backpropagation - Hidden Layer",
+    concept: "Error signals propagate to hidden layer, adjusting input weights based on their contribution to the total error.",
+    formula: "δⱼ = hⱼ·(1-hⱼ)·∑ₖδₖ·wⱼₖ, Δwᵢⱼ = α·δⱼ·xᵢ",
+    activeElements: ["hidden", "inputWeights", "backprop"]
+  }
 ];
+
+const trainingDataset = generateTrainingDataset();
 
 export default function BinaryDigitTrainer() {
   const [pixelGrid, setPixelGrid] = useState(initialPixelGrid);
@@ -39,6 +180,26 @@ export default function BinaryDigitTrainer() {
   const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
   const [weightDialogIteration, setWeightDialogIteration] = useState(0);
   const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
+  
+  // New state for enhanced features
+  const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
+  const [datasetIndex, setDatasetIndex] = useState(0);
+  const [stepHistory, setStepHistory] = useState<any[]>([]);
+  const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
+  const [activeElements, setActiveElements] = useState<string[]>([]);
+
+  // Load dataset example when in dataset mode
+  useEffect(() => {
+    if (trainingMode === 'dataset' && trainingDataset[datasetIndex]) {
+      setPixelGrid(trainingDataset[datasetIndex].pattern);
+      setSelectedLabel(trainingDataset[datasetIndex].label);
+    }
+  }, [trainingMode, datasetIndex]);
+
+  // Update active elements based on current step
+  useEffect(() => {
+    setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
+  }, [step]);
 
   // Calculate pixel values (0-1 based on how many sub-pixels are filled)
   const getPixelValues = () => {
@@ -268,6 +429,18 @@ export default function BinaryDigitTrainer() {
                   </div>
                 </div>
               </div>
+
+              {/* Network Info */}
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
+                <div className="text-xs text-gray-600 space-y-1">
+                  <div>Learning Rate: {learningRate}</div>
+                  <div>Architecture: 9 → 4 → 2</div>
+                  <div>Activation: Sigmoid</div>
+                  <div>Loss: Mean Squared Error</div>
+                  <div>Dataset: {trainingDataset.length} examples</div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -288,8 +461,9 @@ export default function BinaryDigitTrainer() {
                           cy={75 + i * 44}
                           r="19"
                           fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
-                          stroke="#9CA3AF"
-                          strokeWidth="2.5"
+                          stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('input') ? "4" : "2.5"}
+                          className={activeElements.includes('input') ? "animate-pulse" : ""}
                         />
                         <text x="75" y={83 + i * 44} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
                           {value.toFixed(2)}
@@ -308,8 +482,9 @@ export default function BinaryDigitTrainer() {
                           cy={150 + i * 100}
                           r="23"
                           fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
-                          stroke="#9CA3AF"
-                          strokeWidth="2.5"
+                          stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('hidden') ? "4" : "2.5"}
+                          className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
                         <text x="313" y={159 + i * 100} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
@@ -328,8 +503,9 @@ export default function BinaryDigitTrainer() {
                           cy={225 + i * 150}
                           r="28"
                           fill={activation === Math.max(...outputActivations) ? "#10B981" : "#E5E7EB"}
-                          stroke="#9CA3AF"
-                          strokeWidth="3.75"
+                          stroke={activeElements.includes('output') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('output') ? "5" : "3.75"}
+                          className={activeElements.includes('output') ? "animate-pulse" : ""}
                         />
                         <text x="600" y={235 + i * 150} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
@@ -341,7 +517,7 @@ export default function BinaryDigitTrainer() {
                     ))}
                   </g>
 
-                  {/* Connection lines */}
+                  {/* Input to Hidden connections */}
                   {weights.map((hiddenWeights, hiddenIdx) =>
                     hiddenWeights.map((weight, inputIdx) => (
                       <line
@@ -350,13 +526,15 @@ export default function BinaryDigitTrainer() {
                         y1={75 + inputIdx * 44}
                         x2="290"
                         y2={150 + hiddenIdx * 100}
-                        stroke="#9CA3AF"
-                        strokeWidth="1.25"
-                        opacity="0.4"
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
                       />
                     ))
                   )}
 
+                  {/* Hidden to Output connections */}
                   {outputWeights.map((outputWeightArray, outputIdx) =>
                     outputWeightArray.map((weight, hiddenIdx) => (
                       <line
@@ -365,9 +543,10 @@ export default function BinaryDigitTrainer() {
                         y1={150 + hiddenIdx * 100}
                         x2="572"
                         y2={225 + outputIdx * 150}
-                        stroke="#9CA3AF"
-                        strokeWidth="1.25"
-                        opacity="0.4"
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
                       />
                     ))
                   )}
@@ -615,41 +794,107 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
               
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-sm font-medium text-blue-900 mb-1">
-                  Step {step + 1} of 6
+              {/* Training Mode Toggle */}
+              <div className="mb-4 flex gap-2">
+                <Button 
+                  onClick={() => setTrainingMode('manual')}
+                  variant={trainingMode === 'manual' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  Manual Draw
+                </Button>
+                <Button 
+                  onClick={() => setTrainingMode('dataset')}
+                  variant={trainingMode === 'dataset' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  Training Set
+                </Button>
+              </div>
+
+              {/* Current Step Info */}
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                <div className="text-sm font-medium text-blue-900 mb-2">
+                  Step {step + 1} of 6: {STEP_DESCRIPTIONS[step].name}
                 </div>
-                <div className="text-sm text-blue-700">
-                  {STEP_NAMES[step]}
+                
+                {/* Concept Explanation */}
+                <div className="text-sm text-blue-800 mb-3">
+                  <strong>Concept:</strong> {STEP_DESCRIPTIONS[step].concept}
+                </div>
+                
+                {/* Mathematical Formula */}
+                <div className="text-xs text-blue-700 font-mono bg-blue-100 p-2 rounded">
+                  <strong>Formula:</strong> {STEP_DESCRIPTIONS[step].formula}
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <Button 
-                  onClick={nextStep}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Next Step →
-                </Button>
+              {/* Navigation Controls */}
+              <div className="space-y-2 mb-4">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setStep(Math.max(0, step - 1))}
+                    disabled={step === 0}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    ← Previous
+                  </Button>
+                  <Button 
+                    onClick={nextStep}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    Next Step →
+                  </Button>
+                </div>
                 
                 <Button 
                   onClick={resetNetwork}
                   variant="outline"
                   className="w-full"
+                  size="sm"
                 >
                   Reset Network
                 </Button>
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div>Learning Rate: {learningRate}</div>
-                  <div>Architecture: 9 → 4 → 2</div>
-                  <div>Activation: Sigmoid</div>
-                  <div>Loss: Mean Squared Error</div>
+              {/* Dataset Info and Navigation */}
+              {trainingMode === 'dataset' && (
+                <div className="mt-4 space-y-3">
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <div className="text-sm font-medium text-green-900 mb-1">
+                      Training Dataset
+                    </div>
+                    <div className="text-xs text-green-700">
+                      Example {datasetIndex + 1} of {trainingDataset.length} • Target: {trainingDataset[datasetIndex]?.label}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setDatasetIndex(Math.max(0, datasetIndex - 1))}
+                      disabled={datasetIndex === 0}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      ← Prev Example
+                    </Button>
+                    <Button 
+                      onClick={() => setDatasetIndex(Math.min(trainingDataset.length - 1, datasetIndex + 1))}
+                      disabled={datasetIndex === trainingDataset.length - 1}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      Next Example →
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

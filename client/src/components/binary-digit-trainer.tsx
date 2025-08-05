@@ -79,7 +79,7 @@ export default function BinaryDigitTrainer() {
   // Mutations for CRUD operations
   const createExampleMutation = useMutation({
     mutationFn: (example: InsertTrainingExample) => 
-      apiRequest("/api/training-examples", "POST", example),
+      apiRequest("POST", "/api/training-examples", example),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
     },
@@ -87,7 +87,7 @@ export default function BinaryDigitTrainer() {
 
   const updateExampleMutation = useMutation({
     mutationFn: ({ id, example }: { id: number; example: InsertTrainingExample }) =>
-      apiRequest(`/api/training-examples/${id}`, "PUT", example),
+      apiRequest("PUT", `/api/training-examples/${id}`, example),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
     },
@@ -95,7 +95,7 @@ export default function BinaryDigitTrainer() {
 
   const deleteExampleMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/training-examples/${id}`, "DELETE"),
+      apiRequest("DELETE", `/api/training-examples/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
     },
@@ -103,7 +103,7 @@ export default function BinaryDigitTrainer() {
 
   const clearExamplesMutation = useMutation({
     mutationFn: () =>
-      apiRequest("/api/training-examples", "DELETE"),
+      apiRequest("DELETE", "/api/training-examples"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
     },

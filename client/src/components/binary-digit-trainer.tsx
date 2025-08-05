@@ -5,6 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus, Edit3 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 
 // Each pixel is a 3x3 grid of sub-pixels (9 total per pixel)
@@ -64,9 +67,48 @@ const STEP_DESCRIPTIONS = [
   }
 ];
 
-const trainingDataset = generateTrainingDataset();
-
 export default function BinaryDigitTrainer() {
+  const queryClient = useQueryClient();
+  
+  // Fetch training examples from the API
+  const { data: trainingExamples = [], isLoading: loadingExamples } = useQuery<TrainingExample[]>({
+    queryKey: ["/api/training-examples"],
+    queryFn: () => fetch("/api/training-examples").then(res => res.json()),
+  });
+
+  // Mutations for CRUD operations
+  const createExampleMutation = useMutation({
+    mutationFn: (example: InsertTrainingExample) => 
+      apiRequest("/api/training-examples", "POST", example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const updateExampleMutation = useMutation({
+    mutationFn: ({ id, example }: { id: number; example: InsertTrainingExample }) =>
+      apiRequest(`/api/training-examples/${id}`, "PUT", example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const deleteExampleMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiRequest(`/api/training-examples/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const clearExamplesMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("/api/training-examples", "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
   const [pixelGrid, setPixelGrid] = useState(initialPixelGrid);
   const [weights, setWeights] = useState(initialWeights);
   const [biases, setBiases] = useState(initialBiases);
@@ -91,24 +133,15 @@ export default function BinaryDigitTrainer() {
   const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
   const [activeElements, setActiveElements] = useState<string[]>([]);
   const [showDatasetEditor, setShowDatasetEditor] = useState(false);
-  const [editingDataset, setEditingDataset] = useState<Array<{pattern: number[][], label: number}>>([]);
-  const [trainingDataset, setTrainingDataset] = useState(generateTrainingDataset());
   const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
 
   // Load dataset example when in dataset mode
   useEffect(() => {
-    if (trainingMode === 'dataset' && trainingDataset[datasetIndex]) {
-      setPixelGrid(trainingDataset[datasetIndex].pattern);
-      setSelectedLabel(trainingDataset[datasetIndex].label);
+    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+      setPixelGrid(trainingExamples[datasetIndex].pattern as number[][]);
+      setSelectedLabel(trainingExamples[datasetIndex].label);
     }
-  }, [trainingMode, datasetIndex]);
-
-  // Initialize editing dataset
-  useEffect(() => {
-    if (editingDataset.length === 0) {
-      setEditingDataset([...trainingDataset]);
-    }
-  }, [trainingDataset]);
+  }, [trainingMode, datasetIndex, trainingExamples]);
 
   // Update active elements based on current step
   useEffect(() => {
@@ -276,17 +309,24 @@ export default function BinaryDigitTrainer() {
       pattern: Array(9).fill(0).map(() => Array(9).fill(0)),
       label: 0
     };
-    setEditingDataset([...editingDataset, newExample]);
+    createExampleMutation.mutate(newExample);
   };
 
   const removeDatasetExample = (index: number) => {
-    setEditingDataset(editingDataset.filter((_, i) => i !== index));
+    const example = trainingExamples[index];
+    if (example?.id) {
+      deleteExampleMutation.mutate(example.id);
+    }
   };
 
   const updateDatasetExample = (index: number, pattern: number[][], label: number) => {
-    const updated = [...editingDataset];
-    updated[index] = { pattern, label };
-    setEditingDataset(updated);
+    const example = trainingExamples[index];
+    if (example?.id) {
+      updateExampleMutation.mutate({ 
+        id: example.id, 
+        example: { pattern, label } 
+      });
+    }
   };
 
   // Editor drawing functions
@@ -306,16 +346,19 @@ export default function BinaryDigitTrainer() {
   };
 
   const toggleEditorSubPixel = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
-    const newDataset = [...editingDataset];
-    const newPattern = [...newDataset[exampleIndex].pattern];
-    newPattern[pixelIndex] = [...newPattern[pixelIndex]];
-    newPattern[pixelIndex][subPixelIndex] = newPattern[pixelIndex][subPixelIndex] ? 0 : 1;
-    newDataset[exampleIndex] = { ...newDataset[exampleIndex], pattern: newPattern };
-    setEditingDataset(newDataset);
+    const example = trainingExamples[exampleIndex];
+    if (example?.id) {
+      const newPattern = [...(example.pattern as number[][])];
+      newPattern[pixelIndex] = [...newPattern[pixelIndex]];
+      newPattern[pixelIndex][subPixelIndex] = newPattern[pixelIndex][subPixelIndex] ? 0 : 1;
+      updateExampleMutation.mutate({ 
+        id: example.id, 
+        example: { pattern: newPattern, label: example.label } 
+      });
+    }
   };
 
   const saveDataset = () => {
-    setTrainingDataset([...editingDataset]);
     setShowDatasetEditor(false);
     setDatasetIndex(0);
   };
@@ -406,7 +449,7 @@ export default function BinaryDigitTrainer() {
                   <div>Architecture: 9 → 4 → 2</div>
                   <div>Activation: Sigmoid</div>
                   <div>Loss: Mean Squared Error</div>
-                  <div>Dataset: {trainingDataset.length} examples</div>
+                  <div>Dataset: {trainingExamples.length} examples</div>
                 </div>
               </div>
             </CardContent>
@@ -743,7 +786,7 @@ export default function BinaryDigitTrainer() {
                       Training Dataset
                     </div>
                     <div className="text-xs text-green-700">
-                      Example {datasetIndex + 1} of {trainingDataset.length} • Target: {trainingDataset[datasetIndex]?.label}
+                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {trainingExamples[datasetIndex]?.label}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -757,8 +800,8 @@ export default function BinaryDigitTrainer() {
                       ← Prev Example
                     </Button>
                     <Button 
-                      onClick={() => setDatasetIndex(Math.min(trainingDataset.length - 1, datasetIndex + 1))}
-                      disabled={datasetIndex === trainingDataset.length - 1}
+                      onClick={() => setDatasetIndex(Math.min(trainingExamples.length - 1, datasetIndex + 1))}
+                      disabled={datasetIndex === trainingExamples.length - 1}
                       variant="outline"
                       size="sm"
                       className="flex-1"
@@ -904,8 +947,8 @@ export default function BinaryDigitTrainer() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-600">
-                  {editingDataset.length} examples total • 
-                  {editingDataset.filter(ex => ex.label === 0).length} zeros, {editingDataset.filter(ex => ex.label === 1).length} ones
+                  {trainingExamples.length} examples total • 
+                  {trainingExamples.filter((ex: TrainingExample) => ex.label === 0).length} zeros, {trainingExamples.filter((ex: TrainingExample) => ex.label === 1).length} ones
                 </p>
                 <Button onClick={addDatasetExample} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
@@ -914,10 +957,10 @@ export default function BinaryDigitTrainer() {
               </div>
 
               <div className="grid gap-4 max-h-96 overflow-y-auto">
-                {editingDataset.map((example, index) => {
-                  const pixelValues = getPatternPreview(example.pattern);
+                {trainingExamples.map((example: TrainingExample, index: number) => {
+                  const pixelValues = getPatternPreview(example.pattern as number[][]);
                   return (
-                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                    <div key={example.id || index} className="border rounded-lg p-4 bg-gray-50">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-medium">Example {index + 1}</span>
@@ -926,7 +969,7 @@ export default function BinaryDigitTrainer() {
                             <select
                               id={`label-${index}`}
                               value={example.label}
-                              onChange={(e) => updateDatasetExample(index, example.pattern, parseInt(e.target.value))}
+                              onChange={(e) => updateDatasetExample(index, example.pattern as number[][], parseInt(e.target.value))}
                               className="px-2 py-1 border rounded text-sm"
                             >
                               <option value={0}>0</option>
@@ -947,14 +990,14 @@ export default function BinaryDigitTrainer() {
                       <div className="flex items-center gap-4">
                         {/* Full 3x3 pixel grid with 3x3 sub-pixels each */}
                         <div className="grid grid-cols-3 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
-                          {example.pattern.map((pixel, pixelIndex) => (
+                          {(example.pattern as number[][]).map((pixel: number[], pixelIndex: number) => (
                             <div 
                               key={pixelIndex} 
                               className="relative border border-gray-300"
                             >
                               {/* Each pixel contains 3x3 sub-pixels */}
                               <div className="grid grid-cols-3 gap-0 w-full h-full">
-                                {pixel.map((subPixel, subPixelIndex) => (
+                                {pixel.map((subPixel: number, subPixelIndex: number) => (
                                   <div
                                     key={subPixelIndex}
                                     className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
@@ -986,7 +1029,6 @@ export default function BinaryDigitTrainer() {
                 </Button>
                 <Button 
                   onClick={() => {
-                    setEditingDataset([...trainingDataset]);
                     setShowDatasetEditor(false);
                   }}
                   variant="outline"

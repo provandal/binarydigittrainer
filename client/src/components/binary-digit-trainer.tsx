@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Trash2, Plus, Edit3 } from "lucide-react";
 
 
 // Each pixel is a 3x3 grid of sub-pixels (9 total per pixel)
@@ -187,6 +191,9 @@ export default function BinaryDigitTrainer() {
   const [stepHistory, setStepHistory] = useState<any[]>([]);
   const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
   const [activeElements, setActiveElements] = useState<string[]>([]);
+  const [showDatasetEditor, setShowDatasetEditor] = useState(false);
+  const [editingDataset, setEditingDataset] = useState<Array<{pattern: number[][], label: number}>>([]);
+  const [trainingDataset, setTrainingDataset] = useState(generateTrainingDataset());
 
   // Load dataset example when in dataset mode
   useEffect(() => {
@@ -195,6 +202,13 @@ export default function BinaryDigitTrainer() {
       setSelectedLabel(trainingDataset[datasetIndex].label);
     }
   }, [trainingMode, datasetIndex]);
+
+  // Initialize editing dataset
+  useEffect(() => {
+    if (editingDataset.length === 0) {
+      setEditingDataset([...trainingDataset]);
+    }
+  }, [trainingDataset]);
 
   // Update active elements based on current step
   useEffect(() => {
@@ -356,6 +370,35 @@ export default function BinaryDigitTrainer() {
     setWeightDialogIteration(0);
   };
 
+  // Dataset editor functions
+  const addDatasetExample = () => {
+    const newExample = {
+      pattern: Array(9).fill(0).map(() => Array(9).fill(0)),
+      label: 0
+    };
+    setEditingDataset([...editingDataset, newExample]);
+  };
+
+  const removeDatasetExample = (index: number) => {
+    setEditingDataset(editingDataset.filter((_, i) => i !== index));
+  };
+
+  const updateDatasetExample = (index: number, pattern: number[][], label: number) => {
+    const updated = [...editingDataset];
+    updated[index] = { pattern, label };
+    setEditingDataset(updated);
+  };
+
+  const saveDataset = () => {
+    setTrainingDataset([...editingDataset]);
+    setShowDatasetEditor(false);
+    setDatasetIndex(0);
+  };
+
+  const getPatternPreview = (pattern: number[][]) => {
+    return pattern.map(row => row.reduce((sum, val) => sum + val, 0) / 9);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
@@ -364,7 +407,7 @@ export default function BinaryDigitTrainer() {
           <p className="text-gray-600">Step-by-step Neural Network Learning Simulator</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Drawing Canvas */}
           <Card>
             <CardContent className="p-6">
@@ -656,12 +699,12 @@ export default function BinaryDigitTrainer() {
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="38" y="520" fontSize="18" fill="#666" fontWeight="bold">Weight Bar Graphs (click for details):</text>
-                    <rect x="38" y="539" width="31" height="5" fill="#10B981" opacity="0.8"/>
-                    <text x="75" y="545" fontSize="15" fill="#666">Positive Weights (extend right from center)</text>
-                    <rect x="350" y="539" width="31" height="5" fill="#EF4444" opacity="0.8"/>
-                    <text x="387" y="545" fontSize="15" fill="#666">Negative Weights (extend left from center)</text>
-                    <text x="38" y="558" fontSize="12" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
+                    <text x="38" y="520" fontSize="16" fill="#666" fontWeight="bold">Weight Bar Graphs (click for details):</text>
+                    <rect x="38" y="535" width="28" height="4" fill="#10B981" opacity="0.8"/>
+                    <text x="72" y="541" fontSize="13" fill="#666">Positive Weights (extend right from center)</text>
+                    <rect x="38" y="550" width="28" height="4" fill="#EF4444" opacity="0.8"/>
+                    <text x="72" y="556" fontSize="13" fill="#666">Negative Weights (extend left from center)</text>
+                    <text x="38" y="572" fontSize="11" fill="#999">Center line = 0, Right edge = +1, Left edge = -1</text>
                   </g>
                 </svg>
               </div>
@@ -789,8 +832,8 @@ export default function BinaryDigitTrainer() {
             </Card>
           )}
 
-          {/* Controls */}
-          <Card>
+          {/* Controls - Made 50% wider */}
+          <Card className="lg:col-span-1 lg:w-[150%]">
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
               
@@ -860,6 +903,16 @@ export default function BinaryDigitTrainer() {
                 >
                   Reset Network
                 </Button>
+                
+                <Button 
+                  onClick={() => setShowDatasetEditor(true)}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Edit3 className="w-4 h-4 mr-2" />
+                  Edit Training Set
+                </Button>
               </div>
 
               {/* Dataset Info and Navigation */}
@@ -898,9 +951,108 @@ export default function BinaryDigitTrainer() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Dataset Editor Dialog */}
+        <Dialog open={showDatasetEditor} onOpenChange={setShowDatasetEditor}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Training Dataset</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600">
+                  {editingDataset.length} examples total • 
+                  {editingDataset.filter(ex => ex.label === 0).length} zeros, {editingDataset.filter(ex => ex.label === 1).length} ones
+                </p>
+                <Button onClick={addDatasetExample} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Example
+                </Button>
+              </div>
+
+              <div className="grid gap-4 max-h-96 overflow-y-auto">
+                {editingDataset.map((example, index) => {
+                  const pixelValues = getPatternPreview(example.pattern);
+                  return (
+                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium">Example {index + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor={`label-${index}`} className="text-sm">Label:</Label>
+                            <select
+                              id={`label-${index}`}
+                              value={example.label}
+                              onChange={(e) => updateDatasetExample(index, example.pattern, parseInt(e.target.value))}
+                              className="px-2 py-1 border rounded text-sm"
+                            >
+                              <option value={0}>0</option>
+                              <option value={1}>1</option>
+                            </select>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => removeDatasetExample(index)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        {/* Preview of pattern */}
+                        <div className="grid grid-cols-3 gap-1 w-20 h-20 border-2 border-gray-300">
+                          {pixelValues.map((value, pixelIndex) => (
+                            <div
+                              key={pixelIndex}
+                              className="border border-gray-200 cursor-pointer"
+                              style={{
+                                backgroundColor: value > 0.5 ? '#374151' : '#F9FAFB'
+                              }}
+                              onClick={() => {
+                                const newPattern = [...example.pattern];
+                                // Toggle pixel (simplified - fill/clear entire pixel)
+                                const currentValue = pixelValues[pixelIndex];
+                                const newValue = currentValue > 0.5 ? 0 : 1;
+                                newPattern[pixelIndex] = Array(9).fill(newValue);
+                                updateDatasetExample(index, newPattern, example.label);
+                              }}
+                            />
+                          ))}
+                        </div>
+                        
+                        <div className="text-xs text-gray-600">
+                          <div>Pattern: [{pixelValues.map(v => v.toFixed(2)).join(', ')}]</div>
+                          <div className="mt-1">Click pixels to toggle. Target: {example.label}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Button onClick={saveDataset} className="flex-1">
+                  Save Changes
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setEditingDataset([...trainingDataset]);
+                    setShowDatasetEditor(false);
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
-
-
     </div>
   );
 }

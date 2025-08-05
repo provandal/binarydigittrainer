@@ -1020,30 +1020,38 @@ export default function BinaryDigitTrainer() {
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        {/* Preview of pattern */}
-                        <div className="grid grid-cols-3 gap-1 w-20 h-20 border-2 border-gray-300">
-                          {pixelValues.map((value, pixelIndex) => (
-                            <div
-                              key={pixelIndex}
-                              className="border border-gray-200 cursor-pointer"
-                              style={{
-                                backgroundColor: value > 0.5 ? '#374151' : '#F9FAFB'
-                              }}
-                              onClick={() => {
-                                const newPattern = [...example.pattern];
-                                // Toggle pixel (simplified - fill/clear entire pixel)
-                                const currentValue = pixelValues[pixelIndex];
-                                const newValue = currentValue > 0.5 ? 0 : 1;
-                                newPattern[pixelIndex] = Array(9).fill(newValue);
-                                updateDatasetExample(index, newPattern, example.label);
-                              }}
-                            />
+                        {/* Full 3x3 pixel grid with 3x3 sub-pixels each */}
+                        <div className="grid grid-cols-3 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
+                          {example.pattern.map((pixel, pixelIndex) => (
+                            <div 
+                              key={pixelIndex} 
+                              className="relative border border-gray-300"
+                            >
+                              {/* Each pixel contains 3x3 sub-pixels */}
+                              <div className="grid grid-cols-3 gap-0 w-full h-full">
+                                {pixel.map((subPixel, subPixelIndex) => (
+                                  <div
+                                    key={subPixelIndex}
+                                    className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                                      subPixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                                    }`}
+                                    onClick={() => {
+                                      const newPattern = [...example.pattern];
+                                      newPattern[pixelIndex] = [...pixel];
+                                      newPattern[pixelIndex][subPixelIndex] = subPixel ? 0 : 1;
+                                      updateDatasetExample(index, newPattern, example.label);
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            </div>
                           ))}
                         </div>
                         
                         <div className="text-xs text-gray-600">
                           <div>Pattern: [{pixelValues.map(v => v.toFixed(2)).join(', ')}]</div>
-                          <div className="mt-1">Click pixels to toggle. Target: {example.label}</div>
+                          <div className="mt-1">Click sub-pixels to toggle. Target: {example.label}</div>
+                          <div className="mt-1">Each pixel value = filled sub-pixels / 9</div>
                         </div>
                       </div>
                     </div>

@@ -376,7 +376,7 @@ export default function BinaryDigitTrainer() {
                   {hiddenActivations.map((activation, i) => (
                     <g key={`hidden-weight-box-${i}`} className="weight-box cursor-pointer" onClick={() => {
                       setSelectedWeightBox({type: 'hidden', index: i});
-                      setWeightDialogIteration(Math.max(0, trainingHistory.length - 1));
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
                     }}>
                       {/* Box border - centered on neuron */}
                       <rect
@@ -427,7 +427,7 @@ export default function BinaryDigitTrainer() {
                   {outputActivations.map((activation, i) => (
                     <g key={`output-weight-box-${i}`} className="weight-box cursor-pointer" onClick={() => {
                       setSelectedWeightBox({type: 'output', index: i});
-                      setWeightDialogIteration(Math.max(0, trainingHistory.length - 1));
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
                     }}>
                       {/* Box border - centered on neuron */}
                       <rect
@@ -578,7 +578,9 @@ export default function BinaryDigitTrainer() {
                   ← Previous
                 </Button>
                 <span className="text-sm font-medium px-4 py-2 bg-gray-100 rounded">
-                  Iteration {weightDialogIteration} of {trainingHistory.length - 1}
+                  {trainingHistory.length === 0 
+                    ? "Initial Values (before training)" 
+                    : `Iteration ${weightDialogIteration} of ${trainingHistory.length - 1}`}
                 </span>
                 <Button 
                   onClick={() => setWeightDialogIteration(Math.min(trainingHistory.length - 1, weightDialogIteration + 1))}
@@ -593,7 +595,7 @@ export default function BinaryDigitTrainer() {
               {/* Large Weight Visualization */}
               <div className="bg-gray-50 p-6 rounded-lg">
                 <svg width="600" height="300" viewBox="0 0 600 300">
-                  {selectedWeightBox.type === 'hidden' && trainingHistory[weightDialogIteration] && (
+                  {selectedWeightBox.type === 'hidden' && (
                     <g>
                       <text x="20" y="30" fontSize="16" fill="#666" fontWeight="bold">
                         Hidden Neuron {selectedWeightBox.index + 1} Weights (9 input connections)
@@ -604,7 +606,7 @@ export default function BinaryDigitTrainer() {
                       <line x1="300" y1="50" x2="300" y2="250" stroke="#666" strokeWidth="2" opacity="0.5"/>
                       
                       {/* Weight bars */}
-                      {trainingHistory[weightDialogIteration].weights[selectedWeightBox.index].map((weight: number, i: number) => {
+                      {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
                         const barY = 65 + i * 20;
                         const barWidth = Math.abs(weight) * 250;
                         const barX = weight >= 0 ? 300 : 300 - barWidth;
@@ -636,7 +638,7 @@ export default function BinaryDigitTrainer() {
                     </g>
                   )}
 
-                  {selectedWeightBox.type === 'output' && trainingHistory[weightDialogIteration] && (
+                  {selectedWeightBox.type === 'output' && (
                     <g>
                       <text x="20" y="30" fontSize="16" fill="#666" fontWeight="bold">
                         Output Neuron {selectedWeightBox.index} Weights (4 hidden connections)
@@ -647,7 +649,7 @@ export default function BinaryDigitTrainer() {
                       <line x1="300" y1="50" x2="300" y2="170" stroke="#666" strokeWidth="2" opacity="0.5"/>
                       
                       {/* Weight bars */}
-                      {trainingHistory[weightDialogIteration].outputWeights[selectedWeightBox.index].map((weight: number, i: number) => {
+                      {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
                         const barY = 65 + i * 25;
                         const barWidth = Math.abs(weight) * 250;
                         const barX = weight >= 0 ? 300 : 300 - barWidth;
@@ -682,24 +684,20 @@ export default function BinaryDigitTrainer() {
               </div>
 
               {/* Training Info */}
-              {trainingHistory[weightDialogIteration] && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-blue-50 p-3 rounded">
-                    <div className="font-medium text-blue-900">Loss</div>
-                    <div className="text-blue-700">{trainingHistory[weightDialogIteration].loss.toFixed(4)}</div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded">
-                    <div className="font-medium text-green-900">Iteration</div>
-                    <div className="text-green-700">{weightDialogIteration}</div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-blue-50 p-3 rounded">
+                  <div className="font-medium text-blue-900">Loss</div>
+                  <div className="text-blue-700">
+                    {trainingHistory[weightDialogIteration]?.loss.toFixed(4) || loss.toFixed(4)}
                   </div>
                 </div>
-              )}
-              
-              {trainingHistory.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No training history available. Complete at least one training cycle to see weight evolution.
+                <div className="bg-green-50 p-3 rounded">
+                  <div className="font-medium text-green-900">Status</div>
+                  <div className="text-green-700">
+                    {trainingHistory.length === 0 ? "Initial Values" : `Iteration ${weightDialogIteration}`}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </DialogContent>

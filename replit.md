@@ -34,6 +34,10 @@ Preferred communication style: Simple, everyday language.
 - **Step-by-Step Training**: 6-stage training cycle with clear visualization of each step
 - **Neural Network Architecture**: Simple 9→4→2 network for binary digit classification (0 vs 1)
 - **Weight Visualization**: Real-time display of connection weights with color coding
+- **Database Persistence**: PostgreSQL storage for training examples with full CRUD operations
+- **Automated Training**: "Run to Next Sample" button cycles through all training examples automatically
+- **Inference Mode**: Real-time prediction mode where users draw digits and get instant predictions
+- **Dataset Editor**: Comprehensive editor for creating, editing, and managing training examples
 - **Educational Focus**: Designed for learning neural network fundamentals, not performance
 
 ## Database Schema

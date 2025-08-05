@@ -31,7 +31,7 @@ const sigmoidDerivative = (x: number) => x * (1 - x);
 const STEP_DESCRIPTIONS = [
   {
     name: "Ready - Draw your digit",
-    concept: "The neural network is ready to learn. Draw a digit 0 or 1, or use the training dataset.",
+    concept: "The neural network is ready. In Training mode: draw and train step-by-step. In Predict mode: draw and get instant predictions.",
     formula: "Input preparation: x = [x₁, x₂, ..., x₉] where each xᵢ ∈ [0,1]",
     activeElements: []
   },
@@ -134,6 +134,13 @@ export default function BinaryDigitTrainer() {
   const [activeElements, setActiveElements] = useState<string[]>([]);
   const [showDatasetEditor, setShowDatasetEditor] = useState(false);
   const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
+  
+  // New state for automated training and inference mode
+  const [mode, setMode] = useState<'training' | 'inference'>('training');
+  const [isAutoTraining, setIsAutoTraining] = useState(false);
+  const [currentTrainingIndex, setCurrentTrainingIndex] = useState(0);
+  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(1000); // ms between steps
+  const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
 
   // Load dataset example when in dataset mode
   useEffect(() => {
@@ -367,6 +374,91 @@ export default function BinaryDigitTrainer() {
     return pattern.map(row => row.reduce((sum, val) => sum + val, 0) / 9);
   };
 
+  // Automated training functions
+  const runToNextSample = () => {
+    if (trainingExamples.length === 0) return;
+    
+    setIsAutoTraining(true);
+    
+    // Load current training example
+    const currentExample = trainingExamples[currentTrainingIndex];
+    setPixelGrid(currentExample.pattern as number[][]);
+    setSelectedLabel(currentExample.label);
+    
+    // Run through all 6 steps automatically
+    let currentStep = 1;
+    const interval = setInterval(() => {
+      if (currentStep <= 6) {
+        setStep(currentStep);
+        
+        // Trigger the actual training logic for each step
+        if (currentStep === 1) {
+          // Forward pass input to hidden - this will be handled by nextStep()
+          nextStep();
+        } else if (currentStep === 2) {
+          // Forward pass hidden to output
+          nextStep();
+        } else if (currentStep === 3) {
+          // Calculate loss
+          nextStep();
+        } else if (currentStep === 4) {
+          // Backprop output layer
+          nextStep();
+        } else if (currentStep === 5) {
+          // Backprop hidden layer
+          nextStep();
+        } else if (currentStep === 6) {
+          // Final step, move to next example
+          nextStep();
+          setTimeout(() => {
+            const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
+            setCurrentTrainingIndex(nextIndex);
+            setStep(0);
+            setIsAutoTraining(false);
+          }, autoTrainingSpeed);
+        }
+        currentStep++;
+      } else {
+        clearInterval(interval);
+      }
+    }, autoTrainingSpeed);
+  };
+
+  // Inference mode function
+  const runInference = () => {
+    if (mode !== 'inference') return;
+    
+    const inputs = getPixelValues();
+    
+    // Forward pass only (no training)
+    const hiddenSums = weights.map((neuronWeights, i) => 
+      inputs.reduce((sum, input, j) => sum + input * neuronWeights[j], 0) + biases[i]
+    );
+    const hiddenOutputs = hiddenSums.map(sigmoid);
+    
+    const outputSums = outputWeights.map((neuronWeights, i) => 
+      hiddenOutputs.reduce((sum, hidden, j) => sum + hidden * neuronWeights[j], 0) + outputBiases[i]
+    );
+    const outputs = outputSums.map(sigmoid);
+    
+    // Update activations for visualization
+    setHiddenActivations(hiddenOutputs);
+    setOutputActivations(outputs);
+    
+    // Determine prediction (higher output wins)
+    const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
+    const confidence = Math.max(...outputs);
+    
+    setPrediction({ digit: predictedDigit, confidence });
+  };
+
+  // Auto-run inference when in inference mode and canvas changes
+  useEffect(() => {
+    if (mode === 'inference') {
+      runInference();
+    }
+  }, [mode, pixelGrid]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
@@ -439,6 +531,68 @@ export default function BinaryDigitTrainer() {
                     ))}
                   </div>
                 </div>
+
+                {/* Mode Selection */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Mode</h3>
+                  <div className="flex gap-2 justify-center">
+                    {[
+                      { value: 'training', label: 'Training' },
+                      { value: 'inference', label: 'Predict' }
+                    ].map((modeOption) => (
+                      <label key={modeOption.value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="mode"
+                          value={modeOption.value}
+                          checked={mode === modeOption.value}
+                          onChange={() => {
+                            setMode(modeOption.value as 'training' | 'inference');
+                            if (modeOption.value === 'inference') {
+                              setStep(0);
+                              setPrediction(null);
+                            }
+                          }}
+                          className="text-blue-600"
+                        />
+                        <span>{modeOption.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prediction Display (Inference Mode) */}
+                {mode === 'inference' && prediction && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-green-800 mb-1">Prediction</h4>
+                    <div className="text-2xl font-bold text-green-700">
+                      Digit: {prediction.digit}
+                    </div>
+                    <div className="text-xs text-green-600">
+                      Confidence: {(prediction.confidence * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                )}
+
+                {/* Automated Training Controls (Training Mode) */}
+                {mode === 'training' && trainingExamples.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">Auto Training</h4>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={runToNextSample}
+                        disabled={isAutoTraining}
+                        size="sm"
+                        className="w-full"
+                      >
+                        {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
+                      </Button>
+                      <div className="text-xs text-blue-600">
+                        Sample {currentTrainingIndex + 1} of {trainingExamples.length}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Network Info */}

@@ -28,6 +28,19 @@ const generateTrainingDataset = () => {
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
 const sigmoidDerivative = (x: number) => x * (1 - x);
 
+// Helper functions to convert between flat array and 2D array formats
+const flatToGrid = (flatArray: number[]): number[][] => {
+  const grid: number[][] = [];
+  for (let i = 0; i < 9; i++) {
+    grid.push(flatArray.slice(i * 9, (i + 1) * 9));
+  }
+  return grid;
+};
+
+const gridToFlat = (grid: number[][]): number[] => {
+  return grid.flat();
+};
+
 const STEP_DESCRIPTIONS = [
   {
     name: "Ready - Draw your digit",
@@ -177,7 +190,10 @@ export default function BinaryDigitTrainer() {
   // Load dataset example when in dataset mode
   useEffect(() => {
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      setPixelGrid(trainingExamples[datasetIndex].pattern as number[][]);
+      const pattern = trainingExamples[datasetIndex].pattern as number[][] | number[];
+      // Convert flat array to 2D grid if needed
+      const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+      setPixelGrid(grid);
       setSelectedLabel(trainingExamples[datasetIndex].label);
     }
   }, [trainingMode, datasetIndex, trainingExamples]);
@@ -429,7 +445,7 @@ export default function BinaryDigitTrainer() {
     }
   };
 
-  const updateDatasetExample = (index: number, pattern: number[][], label: number) => {
+  const updateDatasetExample = (index: number, pattern: number[][] | number[], label: number) => {
     const example = trainingExamples[index];
     if (example?.id) {
       updateExampleMutation.mutate({ 
@@ -458,9 +474,23 @@ export default function BinaryDigitTrainer() {
   const toggleEditorPixel = (exampleIndex: number, rowIndex: number, colIndex: number) => {
     const example = trainingExamples[exampleIndex];
     if (example?.id) {
-      const newPattern = [...(example.pattern as number[][])];
-      newPattern[rowIndex] = [...newPattern[rowIndex]];
-      newPattern[rowIndex][colIndex] = newPattern[rowIndex][colIndex] ? 0 : 1;
+      const pattern = example.pattern as number[][] | number[];
+      let newPattern;
+      
+      if (Array.isArray(pattern[0])) {
+        // 2D array format
+        const grid = [...(pattern as number[][])];
+        grid[rowIndex] = [...grid[rowIndex]];
+        grid[rowIndex][colIndex] = grid[rowIndex][colIndex] ? 0 : 1;
+        newPattern = grid;
+      } else {
+        // Flat array format
+        const flatArray = [...(pattern as number[])];
+        const flatIndex = rowIndex * 9 + colIndex;
+        flatArray[flatIndex] = flatArray[flatIndex] ? 0 : 1;
+        newPattern = flatArray;
+      }
+      
       updateExampleMutation.mutate({ 
         id: example.id, 
         example: { pattern: newPattern, label: example.label } 
@@ -475,8 +505,21 @@ export default function BinaryDigitTrainer() {
     setDatasetIndex(0);
   };
 
-  const getPatternPreview = (pattern: number[][]) => {
-    return pattern.map(row => row.reduce((sum, val) => sum + val, 0) / 9);
+  const getPatternPreview = (pattern: number[][] | number[]) => {
+    // Handle both 2D array (9x9) and flat array (81 elements) formats
+    if (Array.isArray(pattern[0])) {
+      // 2D array format
+      return (pattern as number[][]).map(row => row.reduce((sum, val) => sum + val, 0) / 9);
+    } else {
+      // Flat array format - convert to 2D preview
+      const flatPattern = pattern as number[];
+      const preview = [];
+      for (let i = 0; i < 9; i++) {
+        const rowSum = flatPattern.slice(i * 9, (i + 1) * 9).reduce((sum, val) => sum + val, 0);
+        preview.push(rowSum / 9);
+      }
+      return preview;
+    }
   };
 
   // File upload function
@@ -524,7 +567,10 @@ export default function BinaryDigitTrainer() {
     // Load current training example
     const currentExample = trainingExamples[currentTrainingIndex];
     console.log('Loading example for runToNextSample:', currentExample.label);
-    setPixelGrid(currentExample.pattern as number[][]);
+    const pattern = currentExample.pattern as number[][] | number[];
+    // Convert flat array to 2D grid if needed
+    const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+    setPixelGrid(grid);
     setSelectedLabel(currentExample.label);
     setStep(0); // Start at step 0
     
@@ -1392,7 +1438,7 @@ export default function BinaryDigitTrainer() {
                             <select
                               id={`label-${index}`}
                               value={example.label}
-                              onChange={(e) => updateDatasetExample(index, example.pattern as number[][], parseInt(e.target.value))}
+                              onChange={(e) => updateDatasetExample(index, example.pattern as number[][] | number[], parseInt(e.target.value))}
                               className="px-2 py-1 border rounded text-sm"
                             >
                               <option value={0}>0</option>
@@ -1413,18 +1459,22 @@ export default function BinaryDigitTrainer() {
                       <div className="flex items-center gap-4">
                         {/* 9x9 pixel grid */}
                         <div className="grid grid-cols-9 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
-                          {(example.pattern as number[][]).map((row: number[], rowIndex: number) => 
-                            row.map((pixel: number, colIndex: number) => (
-                              <div
-                                key={`${rowIndex}-${colIndex}`}
-                                className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
-                                  pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
-                                }`}
-                                onMouseDown={() => handleEditorMouseDown(index, rowIndex, colIndex)}
-                                onMouseEnter={() => handleEditorMouseEnter(index, rowIndex, colIndex)}
-                              />
-                            ))
-                          )}
+                          {(() => {
+                            const pattern = example.pattern as number[][] | number[];
+                            const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+                            return grid.map((row: number[], rowIndex: number) => 
+                              row.map((pixel: number, colIndex: number) => (
+                                <div
+                                  key={`${rowIndex}-${colIndex}`}
+                                  className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                                    pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                                  }`}
+                                  onMouseDown={() => handleEditorMouseDown(index, rowIndex, colIndex)}
+                                  onMouseEnter={() => handleEditorMouseEnter(index, rowIndex, colIndex)}
+                                />
+                              ))
+                            );
+                          })()}
                         </div>
                         
                         <div className="text-xs text-gray-600">

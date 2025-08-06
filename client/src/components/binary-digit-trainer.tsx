@@ -442,30 +442,45 @@ export default function BinaryDigitTrainer() {
     setIsAutoTraining(true);
     setCurrentTrainingIndex(0);
     
-    const processAllExamples = async () => {
-      for (let exampleIndex = 0; exampleIndex < trainingExamples.length; exampleIndex++) {
-        // Load the current example
-        const currentExample = trainingExamples[exampleIndex];
-        setPixelGrid(currentExample.pattern as number[][]);
-        setSelectedLabel(currentExample.label);
-        setCurrentTrainingIndex(exampleIndex);
+    let currentExampleIndex = 0;
+    let currentStep = 0;
+    
+    const runNextStepInSet = () => {
+      if (currentExampleIndex >= trainingExamples.length) {
+        // Finished all examples
+        setIsAutoTraining(false);
         setStep(0);
-        
-        // Run all 6 training steps for this example
-        for (let stepCount = 0; stepCount < 6; stepCount++) {
-          await new Promise(resolve => setTimeout(resolve, autoTrainingSpeed / 3));
-          nextStep();
-        }
-        
-        // Brief pause between examples
-        await new Promise(resolve => setTimeout(resolve, autoTrainingSpeed / 4));
+        return;
       }
       
-      setIsAutoTraining(false);
-      setStep(0);
+      // Load current example if starting new example
+      if (currentStep === 0) {
+        const currentExample = trainingExamples[currentExampleIndex];
+        setPixelGrid(currentExample.pattern as number[][]);
+        setSelectedLabel(currentExample.label);
+        setCurrentTrainingIndex(currentExampleIndex);
+        setStep(0);
+      }
+      
+      // Run next step
+      nextStep();
+      currentStep++;
+      
+      // Check if we completed all 6 steps for this example
+      if (currentStep >= 6) {
+        currentStep = 0;
+        currentExampleIndex++;
+        
+        // Pause briefly between examples, then continue
+        setTimeout(runNextStepInSet, autoTrainingSpeed / 2);
+      } else {
+        // Continue with next step
+        setTimeout(runNextStepInSet, autoTrainingSpeed / 3);
+      }
     };
     
-    processAllExamples();
+    // Start the process
+    runNextStepInSet();
   };
 
   // Inference mode function

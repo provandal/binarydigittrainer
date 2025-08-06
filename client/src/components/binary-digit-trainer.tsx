@@ -106,6 +106,8 @@ export default function BinaryDigitTrainer() {
       apiRequest("DELETE", "/api/training-examples"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      // Also clear any cached data to prevent stale ID issues
+      queryClient.removeQueries({ queryKey: ["/api/training-examples"] });
     },
   });
 
@@ -362,6 +364,8 @@ export default function BinaryDigitTrainer() {
         id: example.id, 
         example: { pattern: newPattern, label: example.label } 
       });
+    } else {
+      console.warn(`No valid example found at index ${exampleIndex}`, { example, trainingExamples });
     }
   };
 

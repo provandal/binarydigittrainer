@@ -296,12 +296,15 @@ export default function BinaryDigitTrainer() {
 
 
 
-  const nextStep = () => {
+  const nextStep = (forceStep?: number) => {
     let currentLoss = loss;
     let currentHiddenActivations = hiddenActivations;
     let currentOutputActivations = outputActivations;
     
-    switch (step) {
+    const currentStep = forceStep !== undefined ? forceStep : step;
+    console.log('nextStep executing step:', currentStep);
+    
+    switch (currentStep) {
       case 0:
         forwardPassHidden();
         break;
@@ -351,7 +354,11 @@ export default function BinaryDigitTrainer() {
         setStep(-1);
         break;
     }
-    setStep((prev) => (prev + 1) % 6);
+    
+    // Only update React step state if not using forceStep
+    if (forceStep === undefined) {
+      setStep((prev) => (prev + 1) % 6);
+    }
   };
 
   const resetNetwork = () => {
@@ -469,21 +476,22 @@ export default function BinaryDigitTrainer() {
     setSelectedLabel(currentExample.label);
     setStep(0); // Start at step 0
     
-    // Run through all 6 steps automatically using nextStep()
+    // Run through all 6 steps automatically using nextStep() with forced step numbers
     let stepCount = 0;
     const interval = setInterval(() => {
       if (stepCount < 6) {
-        console.log('runToNextSample - calling nextStep(), step:', stepCount, 'current React step state:', step);
-        nextStep(); // This will properly advance through steps 1-6
+        console.log('runToNextSample - calling nextStep(), step:', stepCount);
+        nextStep(stepCount); // Force the step number to avoid React state timing issues
         stepCount++;
       } else {
         clearInterval(interval);
         console.log('runToNextSample completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
+        // Update React step state to final step and then complete
+        setStep(0);
         // After completing all steps, move to next example
         setTimeout(() => {
           const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
           setCurrentTrainingIndex(nextIndex);
-          setStep(0);
           setIsAutoTraining(false);
         }, autoTrainingSpeed / 2);
       }
@@ -521,12 +529,12 @@ export default function BinaryDigitTrainer() {
       setSelectedLabel(currentExample.label);
       setStep(0);
       
-      // Run through all 6 steps using nextStep()
+      // Run through all 6 steps using nextStep() with forced step numbers
       let stepCount = 0;
       const interval = setInterval(() => {
         if (stepCount < 6) {
-          console.log('Process training set - running step', stepCount + 1, 'for example', currentExampleIndex + 1);
-          nextStep();
+          console.log('Process training set - running step', stepCount, 'for example', currentExampleIndex + 1);
+          nextStep(stepCount); // Force the step number
           stepCount++;
         } else {
           clearInterval(interval);

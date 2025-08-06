@@ -725,7 +725,7 @@ export default function BinaryDigitTrainer() {
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
               <div className="relative h-[550px] bg-gray-50 rounded-lg p-1 overflow-auto">
-                <svg className="w-full" viewBox="0 0 750 2000" style={{ minHeight: '2000px' }}>
+                <svg className="w-full" viewBox="0 0 750 1300" style={{ minHeight: '1300px' }}>
                   {/* Input Layer */}
                   <g className="input-layer">
                     <text x="38" y="10" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
@@ -905,11 +905,11 @@ export default function BinaryDigitTrainer() {
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="38" y="1850" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
-                    <circle cx="50" cy="1870" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
-                    <line x1="46" y1="1870" x2="54" y2="1870" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="50" y1="1866" x2="50" y2="1874" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <text x="65" y="1875" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
+                    <text x="38" y="1200" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
+                    <circle cx="50" cy="1220" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
+                    <line x1="46" y1="1220" x2="54" y2="1220" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="50" y1="1216" x2="50" y2="1224" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <text x="65" y="1225" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
                   </g>
                 </svg>
               </div>

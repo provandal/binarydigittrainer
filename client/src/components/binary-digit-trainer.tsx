@@ -141,10 +141,11 @@ export default function BinaryDigitTrainer() {
   const [mode, setMode] = useState<'training' | 'inference'>('training');
   const [isAutoTraining, setIsAutoTraining] = useState(false);
   const [currentTrainingIndex, setCurrentTrainingIndex] = useState(0);
-  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(1000); // ms between steps
+  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(50); // ms between steps - much faster for automated training
   const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
   const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
   const [numberOfEpochs, setNumberOfEpochs] = useState(1);
+  const [currentEpoch, setCurrentEpoch] = useState(0);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -518,26 +519,28 @@ export default function BinaryDigitTrainer() {
     setCurrentTrainingIndex(0);
     setIsEpochDialogOpen(false);
     
-    let currentEpoch = 0;
+    let epochCount = 0;
     let currentExampleIndex = 0;
+    setCurrentEpoch(0);
     
     const processNextExample = () => {
       if (currentExampleIndex >= trainingExamples.length) {
         // Finished one epoch
-        currentEpoch++;
+        epochCount++;
         currentExampleIndex = 0;
+        setCurrentEpoch(epochCount);
         
-        if (currentEpoch >= numberOfEpochs) {
+        if (epochCount >= numberOfEpochs) {
           console.log(`Finished processing ${numberOfEpochs} epoch(s). Training history length:`, trainingHistoryStore.current.length);
           setIsAutoTraining(false);
           setStep(0);
           return;
         }
         
-        console.log(`Starting epoch ${currentEpoch + 1} of ${numberOfEpochs}`);
+        console.log(`Starting epoch ${epochCount + 1} of ${numberOfEpochs}`);
       }
       
-      console.log(`Epoch ${currentEpoch + 1}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
+      console.log(`Epoch ${epochCount + 1}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
       
       // Set the current training index and run to next sample
       setCurrentTrainingIndex(currentExampleIndex);
@@ -556,11 +559,9 @@ export default function BinaryDigitTrainer() {
           stepCount++;
         } else {
           clearInterval(interval);
-          // Move to next example
+          // Move to next example immediately (no delay between examples)
           currentExampleIndex++;
-          setTimeout(() => {
-            processNextExample();
-          }, autoTrainingSpeed / 2);
+          processNextExample();
         }
       }, autoTrainingSpeed);
     };
@@ -1003,22 +1004,59 @@ export default function BinaryDigitTrainer() {
                 </Button>
               </div>
 
-              {/* Current Step Info */}
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <div className="text-sm font-medium text-blue-900 mb-2">
-                  Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
+              {/* Current Step Info - Show detailed info only when not auto-training */}
+              {!isAutoTraining ? (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="text-sm font-medium text-blue-900 mb-2">
+                    Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
+                  </div>
+                  
+                  {/* Concept Explanation */}
+                  <div className="text-sm text-blue-800 mb-3">
+                    <strong>Concept:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].concept : 'Ready to begin training'}
+                  </div>
+                  
+                  {/* Mathematical Formula */}
+                  <div className="text-xs text-blue-700 font-mono bg-blue-100 p-2 rounded">
+                    <strong>Formula:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].formula : 'Click Next Step to begin'}
+                  </div>
                 </div>
-                
-                {/* Concept Explanation */}
-                <div className="text-sm text-blue-800 mb-3">
-                  <strong>Concept:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].concept : 'Ready to begin training'}
+              ) : (
+                <div className="mb-4 p-4 bg-purple-50 rounded-lg">
+                  <div className="text-sm font-medium text-purple-900 mb-2">
+                    Automated Training in Progress
+                  </div>
+                  <div className="text-sm text-purple-800 mb-2">
+                    {numberOfEpochs > 1 ? `Epoch ${currentEpoch + 1} of ${numberOfEpochs}` : 'Processing training examples automatically'}
+                  </div>
+                  
+                  {/* Epoch Progress Bar (only show if multiple epochs) */}
+                  {numberOfEpochs > 1 && (
+                    <div className="mb-3">
+                      <div className="w-full bg-purple-300 rounded-full h-1.5">
+                        <div 
+                          className="bg-purple-700 h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${((currentEpoch + 1) / numberOfEpochs) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Sample Progress Bar */}
+                  <div className="w-full bg-purple-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${trainingExamples.length > 0 ? ((currentTrainingIndex + 1) / trainingExamples.length) * 100 : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-purple-700 mt-2 text-center">
+                    Sample {currentTrainingIndex + 1} of {trainingExamples.length}
+                    {numberOfEpochs > 1 && ` • Epoch ${currentEpoch + 1}/${numberOfEpochs}`}
+                  </div>
                 </div>
-                
-                {/* Mathematical Formula */}
-                <div className="text-xs text-blue-700 font-mono bg-blue-100 p-2 rounded">
-                  <strong>Formula:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].formula : 'Click Next Step to begin'}
-                </div>
-              </div>
+              )}
 
               {/* Navigation Controls */}
               <div className="space-y-2 mb-4">

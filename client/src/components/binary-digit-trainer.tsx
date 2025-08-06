@@ -891,6 +891,9 @@ export default function BinaryDigitTrainer() {
                         <text x="638" y={73 + i * 120} fontSize="15" fill="#666" fontWeight="bold">
                           {i}: {(activation * 100).toFixed(0)}%
                         </text>
+                        <text x="638" y={95 + i * 120} fontSize="12" fill="#555" fontWeight="bold">
+                          bias: {outputBiases[i].toFixed(3)}
+                        </text>
                       </g>
                     ))}
                   </g>

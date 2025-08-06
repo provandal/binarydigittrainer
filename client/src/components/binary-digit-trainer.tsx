@@ -728,19 +728,19 @@ export default function BinaryDigitTrainer() {
                 <svg className="w-full" viewBox="0 0 750 1300" style={{ minHeight: '1300px' }}>
                   {/* Input Layer */}
                   <g className="input-layer">
-                    <text x="38" y="10" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
+                    <text x="38" y="5" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
                     {getPixelValues().map((value, i) => (
                       <g key={`input-${i}`}>
                         <circle
                           cx="75"
-                          cy={25 + i * 20}
+                          cy={20 + i * 20}
                           r="12"
                           fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
                           stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
                           strokeWidth={activeElements.includes('input') ? "2" : "1"}
                           className={activeElements.includes('input') ? "animate-pulse" : ""}
                         />
-                        <text x="75" y={28 + i * 20} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="75" y={23 + i * 20} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
                           {value}
                         </text>
                       </g>
@@ -749,19 +749,19 @@ export default function BinaryDigitTrainer() {
 
                   {/* Hidden Layer */}
                   <g className="hidden-layer">
-                    <text x="250" y="10" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
+                    <text x="250" y="5" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
                         <circle
                           cx="313"
-                          cy={25 + i * 22}
+                          cy={20 + i * 22}
                           r="12"
                           fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
                           stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
                           strokeWidth={activeElements.includes('hidden') ? "2" : "1"}
                           className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
-                        <text x="313" y={29 + i * 22} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="313" y={24 + i * 22} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
                       </g>
@@ -770,22 +770,22 @@ export default function BinaryDigitTrainer() {
 
                   {/* Output Layer */}
                   <g className="output-layer">
-                    <text x="525" y="10" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
+                    <text x="525" y="5" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
                     {outputActivations.map((activation, i) => (
                       <g key={`output-${i}`}>
                         <circle
                           cx="600"
-                          cy={70 + i * 120}
+                          cy={65 + i * 120}
                           r="25"
                           fill={activation === Math.max(...outputActivations) ? "#10B981" : "#E5E7EB"}
                           stroke={activeElements.includes('output') ? "#F59E0B" : "#9CA3AF"}
                           strokeWidth={activeElements.includes('output') ? "5" : "3.75"}
                           className={activeElements.includes('output') ? "animate-pulse" : ""}
                         />
-                        <text x="600" y={77 + i * 120} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="600" y={72 + i * 120} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
-                        <text x="638" y={73 + i * 120} fontSize="15" fill="#666" fontWeight="bold">
+                        <text x="638" y={68 + i * 120} fontSize="15" fill="#666" fontWeight="bold">
                           {i}: {(activation * 100).toFixed(0)}%
                         </text>
                       </g>
@@ -798,9 +798,9 @@ export default function BinaryDigitTrainer() {
                       <line
                         key={`line-ih-${hiddenIdx}-${inputIdx}`}
                         x1="87"
-                        y1={25 + inputIdx * 20}
+                        y1={20 + inputIdx * 20}
                         x2="301"
-                        y2={25 + hiddenIdx * 22}
+                        y2={20 + hiddenIdx * 22}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
                         strokeWidth={activeElements.includes('connections') ? "1" : "0.3"}
                         opacity={activeElements.includes('connections') ? "0.8" : "0.2"}
@@ -815,9 +815,9 @@ export default function BinaryDigitTrainer() {
                       <line
                         key={`line-ho-${outputIdx}-${hiddenIdx}`}
                         x1="325"
-                        y1={25 + hiddenIdx * 22}
+                        y1={20 + hiddenIdx * 22}
                         x2="572"
-                        y2={70 + outputIdx * 120}
+                        y2={65 + outputIdx * 120}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
                         strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
                         opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
@@ -836,7 +836,7 @@ export default function BinaryDigitTrainer() {
                       {/* Green circle */}
                       <circle
                         cx="280"
-                        cy={25 + i * 22}
+                        cy={20 + i * 22}
                         r="10"
                         fill="#10B981"
                         stroke="#059669"
@@ -846,18 +846,18 @@ export default function BinaryDigitTrainer() {
                       {/* Plus symbol */}
                       <line
                         x1="275"
-                        y1={25 + i * 22}
+                        y1={20 + i * 22}
                         x2="285"
-                        y2={25 + i * 22}
+                        y2={20 + i * 22}
                         stroke="white"
                         strokeWidth="2"
                         strokeLinecap="round"
                       />
                       <line
                         x1="280"
-                        y1={20 + i * 22}
+                        y1={15 + i * 22}
                         x2="280"
-                        y2={30 + i * 22}
+                        y2={25 + i * 22}
                         stroke="white"
                         strokeWidth="2"
                         strokeLinecap="round"
@@ -874,7 +874,7 @@ export default function BinaryDigitTrainer() {
                       {/* Green circle */}
                       <circle
                         cx="540"
-                        cy={70 + i * 120}
+                        cy={65 + i * 120}
                         r="12"
                         fill="#10B981"
                         stroke="#059669"
@@ -884,18 +884,18 @@ export default function BinaryDigitTrainer() {
                       {/* Plus symbol */}
                       <line
                         x1="534"
-                        y1={70 + i * 120}
+                        y1={65 + i * 120}
                         x2="546"
-                        y2={70 + i * 120}
+                        y2={65 + i * 120}
                         stroke="white"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                       />
                       <line
                         x1="540"
-                        y1={64 + i * 120}
+                        y1={59 + i * 120}
                         x2="540"
-                        y2={76 + i * 120}
+                        y2={71 + i * 120}
                         stroke="white"
                         strokeWidth="2.5"
                         strokeLinecap="round"

@@ -249,39 +249,16 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationOutput = () => {
-    console.log('=== BACKPROP OUTPUT DEBUG ===');
-    console.log('Learning rate:', learningRate);
-    console.log('Selected label:', selectedLabel);
-    
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    console.log('Target:', target);
-    console.log('Current output activations:', currentNetworkState.current.outputActivations);
-    
     const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
       (output - target[i]) * sigmoidDerivative(output));
-    console.log('Output errors:', outputErrors);
-    console.log('Hidden activations for weight update:', currentNetworkState.current.hiddenActivations);
-    
-    console.log('BEFORE - Output weights:', currentNetworkState.current.outputWeights.map(w => w.slice()));
-    console.log('BEFORE - Output biases:', [...currentNetworkState.current.outputBiases]);
     
     // Update output weights and biases
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
-      weights.map((weight, j) => {
-        const delta = learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j];
-        const newWeight = weight - delta;
-        console.log(`Output weight[${i}][${j}]: ${weight} - ${delta} = ${newWeight}`);
-        return newWeight;
-      }));
-    const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => {
-      const delta = learningRate * outputErrors[i];
-      const newBias = bias - delta;
-      console.log(`Output bias[${i}]: ${bias} - ${delta} = ${newBias}`);
-      return newBias;
-    });
-    
-    console.log('AFTER - Output weights:', newOutputWeights.map(w => w.slice()));
-    console.log('AFTER - Output biases:', [...newOutputBiases]);
+      weights.map((weight, j) => 
+        weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
+    const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
+      bias - learningRate * outputErrors[i]);
     
     // Update persistent store
     currentNetworkState.current.outputWeights = newOutputWeights;
@@ -293,47 +270,24 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationHidden = () => {
-    console.log('=== BACKPROP HIDDEN DEBUG ===');
-    console.log('Learning rate:', learningRate);
-    
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
     const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
       (output - target[i]) * sigmoidDerivative(output));
     const pixelValues = getPixelValues();
     
-    console.log('Output errors for hidden backprop:', outputErrors);
-    console.log('Pixel values:', pixelValues);
-    console.log('Current output weights for error calculation:', currentNetworkState.current.outputWeights.map(w => w.slice()));
-    
     // Calculate hidden errors
     const hiddenErrors = currentNetworkState.current.hiddenActivations.map((activation, i) => {
       const error = outputErrors.reduce((sum, outputError, j) => 
         sum + outputError * currentNetworkState.current.outputWeights[j][i], 0);
-      const finalError = error * sigmoidDerivative(activation);
-      console.log(`Hidden error[${i}]: ${error} * sigmoid'(${activation}) = ${finalError}`);
-      return finalError;
+      return error * sigmoidDerivative(activation);
     });
-    
-    console.log('BEFORE - Hidden weights:', currentNetworkState.current.weights.map(w => w.slice()));
-    console.log('BEFORE - Hidden biases:', [...currentNetworkState.current.biases]);
     
     // Update hidden weights and biases
     const newWeights = currentNetworkState.current.weights.map((weights, i) => 
-      weights.map((weight, j) => {
-        const delta = learningRate * hiddenErrors[i] * pixelValues[j];
-        const newWeight = weight - delta;
-        console.log(`Hidden weight[${i}][${j}]: ${weight} - ${delta} = ${newWeight}`);
-        return newWeight;
-      }));
-    const newBiases = currentNetworkState.current.biases.map((bias, i) => {
-      const delta = learningRate * hiddenErrors[i];
-      const newBias = bias - delta;
-      console.log(`Hidden bias[${i}]: ${bias} - ${delta} = ${newBias}`);
-      return newBias;
-    });
-    
-    console.log('AFTER - Hidden weights:', newWeights.map(w => w.slice()));
-    console.log('AFTER - Hidden biases:', [...newBiases]);
+      weights.map((weight, j) => 
+        weight - learningRate * hiddenErrors[i] * pixelValues[j]));
+    const newBiases = currentNetworkState.current.biases.map((bias, i) => 
+      bias - learningRate * hiddenErrors[i]);
     
     // Update persistent store
     currentNetworkState.current.weights = newWeights;

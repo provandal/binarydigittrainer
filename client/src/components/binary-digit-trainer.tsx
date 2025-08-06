@@ -168,7 +168,11 @@ export default function BinaryDigitTrainer() {
 
   // Update active elements based on current step
   useEffect(() => {
-    setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
+    if (STEP_DESCRIPTIONS[step]) {
+      setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
+    } else {
+      setActiveElements([]);
+    }
   }, [step]);
 
   // Update weight dialog iteration to show latest when training history changes

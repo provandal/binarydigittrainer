@@ -137,7 +137,16 @@ export default function BinaryDigitTrainer() {
     },
   });
 
-  const [pixelGrid, setPixelGrid] = useState(initialPixelGrid);
+  const [pixelGrid, setPixelGridState] = useState(initialPixelGrid);
+  
+  // Safe setter that ensures pixelGrid is always a 2D array
+  const setPixelGrid = (grid: number[][] | number[]) => {
+    if (Array.isArray(grid[0])) {
+      setPixelGridState(grid as number[][]);
+    } else {
+      setPixelGridState(flatToGrid(grid as number[]));
+    }
+  };
   const [weights, setWeights] = useState(initialWeights);
   const [biases, setBiases] = useState(initialBiases);
   const [outputWeights, setOutputWeights] = useState(initialOutputWeights);
@@ -716,7 +725,7 @@ export default function BinaryDigitTrainer() {
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
               >
-                {pixelGrid.map((row, rowIndex) => 
+                {(Array.isArray(pixelGrid[0]) ? pixelGrid : flatToGrid(pixelGrid as any)).map((row, rowIndex) => 
                   row.map((pixel, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}

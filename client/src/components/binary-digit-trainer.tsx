@@ -294,6 +294,8 @@ export default function BinaryDigitTrainer() {
     setBiases(newBiases);
   };
 
+
+
   const nextStep = () => {
     let currentLoss = loss;
     let currentHiddenActivations = hiddenActivations;
@@ -485,7 +487,7 @@ export default function BinaryDigitTrainer() {
     }, autoTrainingSpeed);
   };
 
-  // Process entire training set
+  // Process entire training set - direct execution without relying on React state
   const processTrainingSet = () => {
     if (trainingExamples.length === 0) return;
     
@@ -495,50 +497,79 @@ export default function BinaryDigitTrainer() {
     setCurrentTrainingIndex(0);
     
     let currentExampleIndex = 0;
-    let currentStep = 0;
     
-    const runNextStepInSet = () => {
-      console.log('runNextStepInSet:', {currentExampleIndex, currentStep, totalExamples: trainingExamples.length});
-      
+    const processNextExample = () => {
       if (currentExampleIndex >= trainingExamples.length) {
         // Finished all examples
         console.log('Finished processing all examples. Training history length:', trainingHistoryStore.current.length);
         setIsAutoTraining(false);
         setStep(0);
+        setTrainingHistory([...trainingHistoryStore.current]); // Sync React state
         return;
       }
       
-      // Load current example if starting new example
-      if (currentStep === 0) {
-        const currentExample = trainingExamples[currentExampleIndex];
-        console.log('Loading example', currentExampleIndex + 1, 'label:', currentExample.label);
-        setPixelGrid(currentExample.pattern as number[][]);
-        setSelectedLabel(currentExample.label);
-        setCurrentTrainingIndex(currentExampleIndex);
-        setStep(0);
-      }
+      const currentExample = trainingExamples[currentExampleIndex];
+      console.log('Processing example', currentExampleIndex + 1, 'label:', currentExample.label);
       
-      // Run next step
-      console.log('Running step', currentStep + 1, 'for example', currentExampleIndex + 1);
-      nextStep();
-      currentStep++;
+      // Load example data
+      setPixelGrid(currentExample.pattern as number[][]);
+      setSelectedLabel(currentExample.label);
+      setCurrentTrainingIndex(currentExampleIndex);
       
-      // Check if we completed all 6 steps for this example
-      if (currentStep >= 6) {
-        console.log('Completed all 6 steps for example', currentExampleIndex + 1);
-        currentStep = 0;
-        currentExampleIndex++;
+      // Execute all 6 training steps directly
+      setTimeout(() => {
+        console.log('Step 1: Forward pass hidden');
+        forwardPassHidden();
         
-        // Pause briefly between examples, then continue
-        setTimeout(runNextStepInSet, autoTrainingSpeed / 2);
-      } else {
-        // Continue with next step
-        setTimeout(runNextStepInSet, autoTrainingSpeed / 3);
-      }
+        setTimeout(() => {
+          console.log('Step 2: Forward pass output');  
+          forwardPassOutput();
+          
+          setTimeout(() => {
+            console.log('Step 3: Calculate loss');
+            calculateLoss();
+            
+            setTimeout(() => {
+              console.log('Step 4: Backpropagation output');
+              backpropagationOutput();
+              
+              setTimeout(() => {
+                console.log('Step 5: Backpropagation hidden + capture history');
+                backpropagationHidden();
+                
+                // Capture training history directly
+                const historySnapshot = {
+                  iteration: trainingHistoryStore.current.length,
+                  weights: currentNetworkState.current.weights.map((w: number[]) => [...w]),
+                  outputWeights: currentNetworkState.current.outputWeights.map((w: number[]) => [...w]),
+                  biases: [...currentNetworkState.current.biases],
+                  outputBiases: [...currentNetworkState.current.outputBiases],
+                  loss: currentNetworkState.current.loss,
+                  hiddenActivations: [...currentNetworkState.current.hiddenActivations],
+                  outputActivations: [...currentNetworkState.current.outputActivations]
+                };
+                
+                trainingHistoryStore.current.push(historySnapshot);
+                console.log('Captured training history:', {
+                  iteration: trainingHistoryStore.current.length,
+                  loss: currentNetworkState.current.loss,
+                  totalSnapshots: trainingHistoryStore.current.length
+                });
+                
+                setTimeout(() => {
+                  console.log('Step 6: Complete cycle');
+                  currentExampleIndex++;
+                  processNextExample(); // Continue with next example
+                }, autoTrainingSpeed / 6);
+              }, autoTrainingSpeed / 6);
+            }, autoTrainingSpeed / 6);
+          }, autoTrainingSpeed / 6);
+        }, autoTrainingSpeed / 6);
+      }, autoTrainingSpeed / 6);
     };
     
-    // Start the process
-    runNextStepInSet();
+    // Start processing
+    processNextExample();
   };
 
   // Inference mode function

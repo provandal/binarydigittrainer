@@ -1,0 +1,284 @@
+chunk-WERSD76P.js?v=1da9a504:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+binary-digit-trainer.tsx:492 Starting processTrainingSet with 20 examples
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 1 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 0, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 1
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 1
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 2 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 1, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 2
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 2
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 3 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 2, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 3
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 3
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 4 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 3, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 4
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 4
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 5 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 4, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 5
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 5
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 6 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 5, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 6
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 6
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 7 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 6, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 7
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 7
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 8 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 7, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 8
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 8
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 9 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 8, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 9
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 9
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 10 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 9, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 10
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 10
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 11 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 10, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 11
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 11
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 12 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 11, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 12
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 12
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 13 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 12, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 13
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 13
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 14 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 13, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 14
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 14
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 15 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 14, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 15
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 15
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 16 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 15, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 16
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 16
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 17 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 16, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 17
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 17
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 18 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 17, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 18
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 18
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 19 label: 0
+binary-digit-trainer.tsx:522 Running step 1 for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 18, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 19
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 19
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:514 Loading example 20 label: 1
+binary-digit-trainer.tsx:522 Running step 1 for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 1, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 2 for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 2, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 3 for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 3, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 4 for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 4, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 5 for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 19, currentStep: 5, totalExamples: 20}
+binary-digit-trainer.tsx:522 Running step 6 for example 20
+binary-digit-trainer.tsx:528 Completed all 6 steps for example 20
+binary-digit-trainer.tsx:501 runNextStepInSet: {currentExampleIndex: 20, currentStep: 0, totalExamples: 20}
+binary-digit-trainer.tsx:505 Finished processing all examples. Training history length: 0

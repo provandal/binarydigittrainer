@@ -309,11 +309,8 @@ export default function BinaryDigitTrainer() {
         forwardPassOutput();
         break;
       case 2:
-        // Calculate loss and capture it immediately
-        const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-        currentLoss = outputActivations.reduce((sum, output, i) => 
-          sum + Math.pow(output - target[i], 2), 0) / 2;
-        setLoss(currentLoss);
+        // Calculate loss using persistent store
+        calculateLoss();
         break;
       case 3:
         backpropagationOutput();
@@ -460,10 +457,12 @@ export default function BinaryDigitTrainer() {
   const runToNextSample = () => {
     if (trainingExamples.length === 0) return;
     
+    console.log('Starting runToNextSample for training index:', currentTrainingIndex);
     setIsAutoTraining(true);
     
     // Load current training example
     const currentExample = trainingExamples[currentTrainingIndex];
+    console.log('Loading example for runToNextSample:', currentExample.label);
     setPixelGrid(currentExample.pattern as number[][]);
     setSelectedLabel(currentExample.label);
     setStep(0); // Start at step 0
@@ -472,10 +471,12 @@ export default function BinaryDigitTrainer() {
     let stepCount = 0;
     const interval = setInterval(() => {
       if (stepCount < 6) {
+        console.log('runToNextSample - calling nextStep(), step:', stepCount, 'current React step state:', step);
         nextStep(); // This will properly advance through steps 1-6
         stepCount++;
       } else {
         clearInterval(interval);
+        console.log('runToNextSample completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
         // After completing all steps, move to next example
         setTimeout(() => {
           const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
@@ -487,7 +488,7 @@ export default function BinaryDigitTrainer() {
     }, autoTrainingSpeed);
   };
 
-  // Process entire training set - direct execution without relying on React state
+  // Process entire training set by calling runToNextSample() multiple times
   const processTrainingSet = () => {
     if (trainingExamples.length === 0) return;
     
@@ -504,68 +505,36 @@ export default function BinaryDigitTrainer() {
         console.log('Finished processing all examples. Training history length:', trainingHistoryStore.current.length);
         setIsAutoTraining(false);
         setStep(0);
-        setTrainingHistory([...trainingHistoryStore.current]); // Sync React state
         return;
       }
       
-      const currentExample = trainingExamples[currentExampleIndex];
-      console.log('Processing example', currentExampleIndex + 1, 'label:', currentExample.label);
+      console.log('Processing example', currentExampleIndex + 1, 'of', trainingExamples.length);
       
-      // Load example data
-      setPixelGrid(currentExample.pattern as number[][]);
-      setSelectedLabel(currentExample.label);
+      // Set the current training index and run to next sample
       setCurrentTrainingIndex(currentExampleIndex);
       
-      // Execute all 6 training steps directly
-      setTimeout(() => {
-        console.log('Step 1: Forward pass hidden');
-        forwardPassHidden();
-        
-        setTimeout(() => {
-          console.log('Step 2: Forward pass output');  
-          forwardPassOutput();
-          
+      // Use the same logic as runToNextSample but continue to next example when done
+      const currentExample = trainingExamples[currentExampleIndex];
+      setPixelGrid(currentExample.pattern as number[][]);
+      setSelectedLabel(currentExample.label);
+      setStep(0);
+      
+      // Run through all 6 steps using nextStep()
+      let stepCount = 0;
+      const interval = setInterval(() => {
+        if (stepCount < 6) {
+          console.log('Process training set - running step', stepCount + 1, 'for example', currentExampleIndex + 1);
+          nextStep();
+          stepCount++;
+        } else {
+          clearInterval(interval);
+          // Move to next example
+          currentExampleIndex++;
           setTimeout(() => {
-            console.log('Step 3: Calculate loss');
-            calculateLoss();
-            
-            setTimeout(() => {
-              console.log('Step 4: Backpropagation output');
-              backpropagationOutput();
-              
-              setTimeout(() => {
-                console.log('Step 5: Backpropagation hidden + capture history');
-                backpropagationHidden();
-                
-                // Capture training history directly
-                const historySnapshot = {
-                  iteration: trainingHistoryStore.current.length,
-                  weights: currentNetworkState.current.weights.map((w: number[]) => [...w]),
-                  outputWeights: currentNetworkState.current.outputWeights.map((w: number[]) => [...w]),
-                  biases: [...currentNetworkState.current.biases],
-                  outputBiases: [...currentNetworkState.current.outputBiases],
-                  loss: currentNetworkState.current.loss,
-                  hiddenActivations: [...currentNetworkState.current.hiddenActivations],
-                  outputActivations: [...currentNetworkState.current.outputActivations]
-                };
-                
-                trainingHistoryStore.current.push(historySnapshot);
-                console.log('Captured training history:', {
-                  iteration: trainingHistoryStore.current.length,
-                  loss: currentNetworkState.current.loss,
-                  totalSnapshots: trainingHistoryStore.current.length
-                });
-                
-                setTimeout(() => {
-                  console.log('Step 6: Complete cycle');
-                  currentExampleIndex++;
-                  processNextExample(); // Continue with next example
-                }, autoTrainingSpeed / 6);
-              }, autoTrainingSpeed / 6);
-            }, autoTrainingSpeed / 6);
-          }, autoTrainingSpeed / 6);
-        }, autoTrainingSpeed / 6);
-      }, autoTrainingSpeed / 6);
+            processNextExample();
+          }, autoTrainingSpeed / 2);
+        }
+      }, autoTrainingSpeed);
     };
     
     // Start processing

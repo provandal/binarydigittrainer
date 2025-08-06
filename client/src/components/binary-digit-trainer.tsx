@@ -238,6 +238,9 @@ export default function BinaryDigitTrainer() {
     const newOutputBiases = outputBiases.map((bias, i) => 
       bias - learningRate * outputErrors[i]);
     
+    console.log('Output weights before update:', outputWeights[0]);
+    console.log('Output weights after calculation:', newOutputWeights[0]);
+    
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
     
@@ -266,6 +269,9 @@ export default function BinaryDigitTrainer() {
     const newBiases = biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
+    console.log('Hidden weights before update (neuron 1):', weights[0]);
+    console.log('Hidden weights after calculation (neuron 1):', newWeights[0]);
+    
     setWeights(newWeights);
     setBiases(newBiases);
     
@@ -291,6 +297,9 @@ export default function BinaryDigitTrainer() {
       case 4:
         backpropagationHidden();
         // Save training history snapshot after all weight updates are complete
+        console.log('Saving training history. Current weights (neuron 1):', weights[0]);
+        console.log('Latest weights ref (neuron 1):', latestWeightsRef.current[0]);
+        
         const historySnapshot = {
           iteration: trainingHistory.length,
           weights: (latestWeightsRef.current || weights).map((w: number[]) => [...w]),
@@ -301,6 +310,7 @@ export default function BinaryDigitTrainer() {
           hiddenActivations: [...hiddenActivations],
           outputActivations: [...outputActivations]
         };
+        console.log('History snapshot weights (neuron 1):', historySnapshot.weights[0]);
         setTrainingHistory(prev => [...prev, historySnapshot]);
         break;
       case 5:

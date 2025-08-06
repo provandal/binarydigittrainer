@@ -488,6 +488,8 @@ export default function BinaryDigitTrainer() {
   const processTrainingSet = () => {
     if (trainingExamples.length === 0) return;
     
+    console.log('Starting processTrainingSet with', trainingExamples.length, 'examples');
+    
     setIsAutoTraining(true);
     setCurrentTrainingIndex(0);
     
@@ -495,8 +497,11 @@ export default function BinaryDigitTrainer() {
     let currentStep = 0;
     
     const runNextStepInSet = () => {
+      console.log('runNextStepInSet:', {currentExampleIndex, currentStep, totalExamples: trainingExamples.length});
+      
       if (currentExampleIndex >= trainingExamples.length) {
         // Finished all examples
+        console.log('Finished processing all examples. Training history length:', trainingHistoryStore.current.length);
         setIsAutoTraining(false);
         setStep(0);
         return;
@@ -505,6 +510,7 @@ export default function BinaryDigitTrainer() {
       // Load current example if starting new example
       if (currentStep === 0) {
         const currentExample = trainingExamples[currentExampleIndex];
+        console.log('Loading example', currentExampleIndex + 1, 'label:', currentExample.label);
         setPixelGrid(currentExample.pattern as number[][]);
         setSelectedLabel(currentExample.label);
         setCurrentTrainingIndex(currentExampleIndex);
@@ -512,11 +518,13 @@ export default function BinaryDigitTrainer() {
       }
       
       // Run next step
+      console.log('Running step', currentStep + 1, 'for example', currentExampleIndex + 1);
       nextStep();
       currentStep++;
       
       // Check if we completed all 6 steps for this example
       if (currentStep >= 6) {
+        console.log('Completed all 6 steps for example', currentExampleIndex + 1);
         currentStep = 0;
         currentExampleIndex++;
         

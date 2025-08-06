@@ -1,7 +1,7 @@
 import { type User, type InsertUser, type TrainingExample, type InsertTrainingExample, users, trainingExamples } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, sql } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -131,6 +131,8 @@ export class DatabaseStorage implements IStorage {
 
   async clearTrainingExamples(): Promise<void> {
     await db.delete(trainingExamples);
+    // Reset the sequence to start from 1
+    await db.execute(sql`SELECT setval('training_examples_id_seq', 1, false)`);
   }
 }
 

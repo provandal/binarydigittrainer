@@ -144,11 +144,19 @@ export default function BinaryDigitTrainer() {
   const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(1000); // ms between steps
   const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
 
-  // Refs to store latest weight values for training history
-  const latestWeightsRef = useRef<number[][]>(weights);
-  const latestBiasesRef = useRef<number[]>(biases);
-  const latestOutputWeightsRef = useRef<number[][]>(outputWeights);
-  const latestOutputBiasesRef = useRef<number[]>(outputBiases);
+  // Persistent training history store - independent of React state
+  const trainingHistoryStore = useRef<any[]>([]);
+  
+  // Current network state that gets updated during training
+  const currentNetworkState = useRef({
+    weights: initialWeights.map(w => [...w]),
+    biases: [...initialBiases],
+    outputWeights: initialOutputWeights.map(w => [...w]),
+    outputBiases: [...initialOutputBiases],
+    hiddenActivations: Array(4).fill(0),
+    outputActivations: Array(2).fill(0),
+    loss: 0
+  });
 
   // Load dataset example when in dataset mode
   useEffect(() => {
@@ -211,78 +219,79 @@ export default function BinaryDigitTrainer() {
 
   const forwardPassHidden = () => {
     const pixelValues = getPixelValues();
-    const newActivations = weights.map((w, i) => {
-      const z = w.reduce((sum, weight, j) => sum + weight * pixelValues[j], biases[i]);
+    const newActivations = currentNetworkState.current.weights.map((w, i) => {
+      const z = w.reduce((sum, weight, j) => sum + weight * pixelValues[j], currentNetworkState.current.biases[i]);
       return sigmoid(z);
     });
+    currentNetworkState.current.hiddenActivations = newActivations;
     setHiddenActivations(newActivations);
   };
 
   const forwardPassOutput = () => {
-    const newOutputActivations = outputWeights.map((w, i) => {
-      const z = w.reduce((sum, weight, j) => sum + weight * hiddenActivations[j], outputBiases[i]);
+    const newOutputActivations = currentNetworkState.current.outputWeights.map((w, i) => {
+      const z = w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i]);
       return sigmoid(z);
     });
+    currentNetworkState.current.outputActivations = newOutputActivations;
     setOutputActivations(newOutputActivations);
   };
 
   const calculateLoss = () => {
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    const mse = outputActivations.reduce((sum, output, i) => 
+    const mse = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
       sum + Math.pow(output - target[i], 2), 0) / 2;
+    currentNetworkState.current.loss = mse;
     setLoss(mse);
   };
 
   const backpropagationOutput = () => {
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    const outputErrors = outputActivations.map((output, i) => 
+    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
       (output - target[i]) * sigmoidDerivative(output));
     
     // Update output weights and biases
-    const newOutputWeights = outputWeights.map((weights, i) => 
+    const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
       weights.map((weight, j) => 
-        weight - learningRate * outputErrors[i] * hiddenActivations[j]));
-    const newOutputBiases = outputBiases.map((bias, i) => 
+        weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
+    const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
       bias - learningRate * outputErrors[i]);
     
-
+    // Update persistent store
+    currentNetworkState.current.outputWeights = newOutputWeights;
+    currentNetworkState.current.outputBiases = newOutputBiases;
     
+    // Update React state for display
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
-    
-    // Store updated values for history snapshot in a ref
-    latestOutputWeightsRef.current = newOutputWeights;
-    latestOutputBiasesRef.current = newOutputBiases;
   };
 
   const backpropagationHidden = () => {
     const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    const outputErrors = outputActivations.map((output, i) => 
+    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
       (output - target[i]) * sigmoidDerivative(output));
     const pixelValues = getPixelValues();
     
     // Calculate hidden errors
-    const hiddenErrors = hiddenActivations.map((activation, i) => {
+    const hiddenErrors = currentNetworkState.current.hiddenActivations.map((activation, i) => {
       const error = outputErrors.reduce((sum, outputError, j) => 
-        sum + outputError * outputWeights[j][i], 0);
+        sum + outputError * currentNetworkState.current.outputWeights[j][i], 0);
       return error * sigmoidDerivative(activation);
     });
     
     // Update hidden weights and biases
-    const newWeights = weights.map((weights, i) => 
+    const newWeights = currentNetworkState.current.weights.map((weights, i) => 
       weights.map((weight, j) => 
         weight - learningRate * hiddenErrors[i] * pixelValues[j]));
-    const newBiases = biases.map((bias, i) => 
+    const newBiases = currentNetworkState.current.biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
-
+    // Update persistent store
+    currentNetworkState.current.weights = newWeights;
+    currentNetworkState.current.biases = newBiases;
     
+    // Update React state for display
     setWeights(newWeights);
     setBiases(newBiases);
-    
-    // Store updated values for history snapshot in a ref
-    latestWeightsRef.current = newWeights;
-    latestBiasesRef.current = newBiases;
   };
 
   const nextStep = () => {
@@ -309,27 +318,30 @@ export default function BinaryDigitTrainer() {
         break;
       case 4:
         backpropagationHidden();
-        // Save training history snapshot after all weight updates are complete
+        // Capture training history directly from persistent store
         const historySnapshot = {
-          iteration: trainingHistory.length,
-          weights: (latestWeightsRef.current || weights).map((w: number[]) => [...w]),
-          outputWeights: (latestOutputWeightsRef.current || outputWeights).map((w: number[]) => [...w]),
-          biases: [...(latestBiasesRef.current || biases)],
-          outputBiases: [...(latestOutputBiasesRef.current || outputBiases)],
-          loss: currentLoss,
-          hiddenActivations: [...hiddenActivations],
-          outputActivations: [...outputActivations]
+          iteration: trainingHistoryStore.current.length,
+          weights: currentNetworkState.current.weights.map((w: number[]) => [...w]),
+          outputWeights: currentNetworkState.current.outputWeights.map((w: number[]) => [...w]),
+          biases: [...currentNetworkState.current.biases],
+          outputBiases: [...currentNetworkState.current.outputBiases],
+          loss: currentNetworkState.current.loss,
+          hiddenActivations: [...currentNetworkState.current.hiddenActivations],
+          outputActivations: [...currentNetworkState.current.outputActivations]
         };
         
-        // Debug: Log when capturing training history
-        console.log('Capturing training history:', {
-          iteration: trainingHistory.length,
-          currentLoss,
-          weightsRef: latestWeightsRef.current?.[0]?.[0],
-          outputWeightsRef: latestOutputWeightsRef.current?.[0]?.[0]
-        });
+        // Store in persistent history
+        trainingHistoryStore.current.push(historySnapshot);
         
-        setTrainingHistory(prev => [...prev, historySnapshot]);
+        // Update React state for display
+        setTrainingHistory([...trainingHistoryStore.current]);
+        
+        console.log('Captured training history:', {
+          iteration: trainingHistoryStore.current.length,
+          totalSnapshots: trainingHistoryStore.current.length,
+          loss: currentNetworkState.current.loss,
+          firstWeight: currentNetworkState.current.weights[0][0]
+        });
         break;
       case 5:
         // Complete cycle, start over - clear the canvas for next digit
@@ -341,11 +353,31 @@ export default function BinaryDigitTrainer() {
   };
 
   const resetNetwork = () => {
+    const newWeights = Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    const newBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    const newOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    
+    // Update persistent state
+    currentNetworkState.current = {
+      weights: newWeights,
+      biases: newBiases,
+      outputWeights: newOutputWeights,
+      outputBiases: newOutputBiases,
+      hiddenActivations: Array(4).fill(0),
+      outputActivations: Array(2).fill(0),
+      loss: 0
+    };
+    
+    // Clear training history
+    trainingHistoryStore.current = [];
+    
+    // Update React state
     setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
-    setWeights(Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4)));
-    setBiases(Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2));
-    setOutputWeights(Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4)));
-    setOutputBiases(Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2));
+    setWeights(newWeights);
+    setBiases(newBiases);
+    setOutputWeights(newOutputWeights);
+    setOutputBiases(newOutputBiases);
     setHiddenActivations(Array(4).fill(0));
     setOutputActivations(Array(2).fill(0));
     setLoss(0);

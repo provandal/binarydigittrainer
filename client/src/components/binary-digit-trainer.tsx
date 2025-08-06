@@ -460,6 +460,14 @@ export default function BinaryDigitTrainer() {
     const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
     const confidence = Math.max(...outputs);
     
+    // Debug: log the outputs to understand predictions
+    console.log('Inference outputs:', { 
+      digit0: outputs[0].toFixed(3), 
+      digit1: outputs[1].toFixed(3), 
+      predicted: predictedDigit,
+      confidence: confidence.toFixed(3)
+    });
+    
     setPrediction({ digit: predictedDigit, confidence });
   };
 
@@ -562,6 +570,8 @@ export default function BinaryDigitTrainer() {
                             if (modeOption.value === 'inference') {
                               setStep(0);
                               setPrediction(null);
+                              // Clear canvas for fresh drawing in inference mode
+                              setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
                             }
                           }}
                           className="text-blue-600"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -144,6 +144,12 @@ export default function BinaryDigitTrainer() {
   const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(1000); // ms between steps
   const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
 
+  // Refs to store latest weight values for training history
+  const latestWeightsRef = useRef<number[][]>(weights);
+  const latestBiasesRef = useRef<number[]>(biases);
+  const latestOutputWeightsRef = useRef<number[][]>(outputWeights);
+  const latestOutputBiasesRef = useRef<number[]>(outputBiases);
+
   // Load dataset example when in dataset mode
   useEffect(() => {
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
@@ -234,6 +240,10 @@ export default function BinaryDigitTrainer() {
     
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
+    
+    // Store updated values for history snapshot in a ref
+    latestOutputWeightsRef.current = newOutputWeights;
+    latestOutputBiasesRef.current = newOutputBiases;
   };
 
   const backpropagationHidden = () => {
@@ -256,19 +266,12 @@ export default function BinaryDigitTrainer() {
     const newBiases = biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
-    // Save training history snapshot
-    const historySnapshot = {
-      iteration: trainingHistory.length,
-      weights: newWeights.map(w => [...w]),
-      outputWeights: outputWeights.map(w => [...w]),
-      loss: loss,
-      hiddenActivations: [...hiddenActivations],
-      outputActivations: [...outputActivations]
-    };
-    setTrainingHistory(prev => [...prev, historySnapshot]);
-    
     setWeights(newWeights);
     setBiases(newBiases);
+    
+    // Store updated values for history snapshot in a ref
+    latestWeightsRef.current = newWeights;
+    latestBiasesRef.current = newBiases;
   };
 
   const nextStep = () => {
@@ -287,6 +290,18 @@ export default function BinaryDigitTrainer() {
         break;
       case 4:
         backpropagationHidden();
+        // Save training history snapshot after all weight updates are complete
+        const historySnapshot = {
+          iteration: trainingHistory.length,
+          weights: (latestWeightsRef.current || weights).map((w: number[]) => [...w]),
+          outputWeights: (latestOutputWeightsRef.current || outputWeights).map((w: number[]) => [...w]),
+          biases: [...(latestBiasesRef.current || biases)],
+          outputBiases: [...(latestOutputBiasesRef.current || outputBiases)],
+          loss: loss,
+          hiddenActivations: [...hiddenActivations],
+          outputActivations: [...outputActivations]
+        };
+        setTrainingHistory(prev => [...prev, historySnapshot]);
         break;
       case 5:
         // Complete cycle, start over - clear the canvas for next digit

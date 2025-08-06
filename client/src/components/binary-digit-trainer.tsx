@@ -384,42 +384,23 @@ export default function BinaryDigitTrainer() {
     const currentExample = trainingExamples[currentTrainingIndex];
     setPixelGrid(currentExample.pattern as number[][]);
     setSelectedLabel(currentExample.label);
+    setStep(0); // Start at step 0
     
-    // Run through all 6 steps automatically
-    let currentStep = 1;
+    // Run through all 6 steps automatically using nextStep()
+    let stepCount = 0;
     const interval = setInterval(() => {
-      if (currentStep <= 6) {
-        setStep(currentStep);
-        
-        // Trigger the actual training logic for each step
-        if (currentStep === 1) {
-          // Forward pass input to hidden - this will be handled by nextStep()
-          nextStep();
-        } else if (currentStep === 2) {
-          // Forward pass hidden to output
-          nextStep();
-        } else if (currentStep === 3) {
-          // Calculate loss
-          nextStep();
-        } else if (currentStep === 4) {
-          // Backprop output layer
-          nextStep();
-        } else if (currentStep === 5) {
-          // Backprop hidden layer
-          nextStep();
-        } else if (currentStep === 6) {
-          // Final step, move to next example
-          nextStep();
-          setTimeout(() => {
-            const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
-            setCurrentTrainingIndex(nextIndex);
-            setStep(0);
-            setIsAutoTraining(false);
-          }, autoTrainingSpeed);
-        }
-        currentStep++;
+      if (stepCount < 6) {
+        nextStep(); // This will properly advance through steps 1-6
+        stepCount++;
       } else {
         clearInterval(interval);
+        // After completing all steps, move to next example
+        setTimeout(() => {
+          const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
+          setCurrentTrainingIndex(nextIndex);
+          setStep(0);
+          setIsAutoTraining(false);
+        }, autoTrainingSpeed / 2);
       }
     }, autoTrainingSpeed);
   };
@@ -1039,6 +1020,33 @@ export default function BinaryDigitTrainer() {
                           );
                         })}
                         
+                        {/* Bias visualization */}
+                        {(() => {
+                          const bias = biases[selectedWeightBox.index];
+                          const biasY = 45 + 9 * 16;
+                          const biasWidth = Math.abs(bias) * 250;
+                          const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                          return (
+                            <g>
+                              <rect
+                                x={biasX}
+                                y={biasY}
+                                width={biasWidth}
+                                height="12"
+                                fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                opacity="0.8"
+                              />
+                              <text x="20" y={biasY + 9} fontSize="11" fill="#666" fontWeight="bold">
+                                Bias:
+                              </text>
+                              <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
+                                    fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                {bias.toFixed(3)}
+                              </text>
+                            </g>
+                          );
+                        })()}
+                        
                         {/* Labels */}
                         <text x="55" y="205" fontSize="12" fill="#666">-1</text>
                         <text x="295" y="205" fontSize="12" fill="#666">0</text>
@@ -1078,10 +1086,37 @@ export default function BinaryDigitTrainer() {
                           );
                         })}
                         
+                        {/* Bias visualization */}
+                        {(() => {
+                          const bias = outputBiases[selectedWeightBox.index];
+                          const biasY = 50 + 4 * 25;
+                          const biasWidth = Math.abs(bias) * 250;
+                          const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                          return (
+                            <g>
+                              <rect
+                                x={biasX}
+                                y={biasY}
+                                width={biasWidth}
+                                height="18"
+                                fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                opacity="0.8"
+                              />
+                              <text x="20" y={biasY + 14} fontSize="11" fill="#666" fontWeight="bold">
+                                Bias:
+                              </text>
+                              <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 14} 
+                                    fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                {bias.toFixed(3)}
+                              </text>
+                            </g>
+                          );
+                        })()}
+                        
                         {/* Labels */}
-                        <text x="55" y="165" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="165" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="165" fontSize="12" fill="#666">+1</text>
+                        <text x="55" y="185" fontSize="12" fill="#666">-1</text>
+                        <text x="295" y="185" fontSize="12" fill="#666">0</text>
+                        <text x="535" y="185" fontSize="12" fill="#666">+1</text>
                       </g>
                     )}
                   </svg>

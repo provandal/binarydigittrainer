@@ -286,6 +286,10 @@ export default function BinaryDigitTrainer() {
   };
 
   const nextStep = () => {
+    let currentLoss = loss;
+    let currentHiddenActivations = hiddenActivations;
+    let currentOutputActivations = outputActivations;
+    
     switch (step) {
       case 0:
         forwardPassHidden();
@@ -294,7 +298,11 @@ export default function BinaryDigitTrainer() {
         forwardPassOutput();
         break;
       case 2:
-        calculateLoss();
+        // Calculate loss and capture it immediately
+        const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
+        currentLoss = outputActivations.reduce((sum, output, i) => 
+          sum + Math.pow(output - target[i], 2), 0) / 2;
+        setLoss(currentLoss);
         break;
       case 3:
         backpropagationOutput();
@@ -308,10 +316,19 @@ export default function BinaryDigitTrainer() {
           outputWeights: (latestOutputWeightsRef.current || outputWeights).map((w: number[]) => [...w]),
           biases: [...(latestBiasesRef.current || biases)],
           outputBiases: [...(latestOutputBiasesRef.current || outputBiases)],
-          loss: loss,
+          loss: currentLoss,
           hiddenActivations: [...hiddenActivations],
           outputActivations: [...outputActivations]
         };
+        
+        // Debug: Log when capturing training history
+        console.log('Capturing training history:', {
+          iteration: trainingHistory.length,
+          currentLoss,
+          weightsRef: latestWeightsRef.current?.[0]?.[0],
+          outputWeightsRef: latestOutputWeightsRef.current?.[0]?.[0]
+        });
+        
         setTrainingHistory(prev => [...prev, historySnapshot]);
         break;
       case 5:

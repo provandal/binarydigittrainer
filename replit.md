@@ -6,6 +6,8 @@ This is a simplified educational Binary Digit Trainer that teaches neural networ
 
 Preferred communication style: Simple, everyday language.
 
+**Data Protection Policy**: Never reset the database or delete entries without explicit user discussion and approval first. User training data is valuable and must be preserved.
+
 # System Architecture
 
 ## Frontend Architecture

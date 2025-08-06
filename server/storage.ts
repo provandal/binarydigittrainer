@@ -1,7 +1,7 @@
 import { type User, type InsertUser, type TrainingExample, type InsertTrainingExample, users, trainingExamples } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -101,7 +101,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTrainingExamples(): Promise<TrainingExample[]> {
-    return await db.select().from(trainingExamples);
+    return await db.select().from(trainingExamples).orderBy(asc(trainingExamples.id));
   }
 
   async createTrainingExample(example: InsertTrainingExample): Promise<TrainingExample> {

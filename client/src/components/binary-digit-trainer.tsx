@@ -1149,10 +1149,10 @@ export default function BinaryDigitTrainer() {
                 {trainingExamples.map((example: TrainingExample, index: number) => {
                   const pixelValues = getPatternPreview(example.pattern as number[][]);
                   return (
-                    <div key={example.id || index} className="border rounded-lg p-4 bg-gray-50">
+                    <div key={example.id} className="border rounded-lg p-4 bg-gray-50">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium">Example {index + 1}</span>
+                          <span className="text-sm font-medium">Example {example.id}</span>
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`label-${index}`} className="text-sm">Label:</Label>
                             <select

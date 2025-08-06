@@ -435,6 +435,39 @@ export default function BinaryDigitTrainer() {
     }, autoTrainingSpeed);
   };
 
+  // Process entire training set
+  const processTrainingSet = () => {
+    if (trainingExamples.length === 0) return;
+    
+    setIsAutoTraining(true);
+    setCurrentTrainingIndex(0);
+    
+    const processAllExamples = async () => {
+      for (let exampleIndex = 0; exampleIndex < trainingExamples.length; exampleIndex++) {
+        // Load the current example
+        const currentExample = trainingExamples[exampleIndex];
+        setPixelGrid(currentExample.pattern as number[][]);
+        setSelectedLabel(currentExample.label);
+        setCurrentTrainingIndex(exampleIndex);
+        setStep(0);
+        
+        // Run all 6 training steps for this example
+        for (let stepCount = 0; stepCount < 6; stepCount++) {
+          await new Promise(resolve => setTimeout(resolve, autoTrainingSpeed / 3));
+          nextStep();
+        }
+        
+        // Brief pause between examples
+        await new Promise(resolve => setTimeout(resolve, autoTrainingSpeed / 4));
+      }
+      
+      setIsAutoTraining(false);
+      setStep(0);
+    };
+    
+    processAllExamples();
+  };
+
   // Inference mode function
   const runInference = () => {
     if (mode !== 'inference') return;
@@ -460,13 +493,7 @@ export default function BinaryDigitTrainer() {
     const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
     const confidence = Math.max(...outputs);
     
-    // Debug: log the outputs to understand predictions
-    console.log('Inference outputs:', { 
-      digit0: outputs[0].toFixed(3), 
-      digit1: outputs[1].toFixed(3), 
-      predicted: predictedDigit,
-      confidence: confidence.toFixed(3)
-    });
+
     
     setPrediction({ digit: predictedDigit, confidence });
   };
@@ -591,26 +618,6 @@ export default function BinaryDigitTrainer() {
                     </div>
                     <div className="text-xs text-green-600">
                       Confidence: {(prediction.confidence * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                )}
-
-                {/* Automated Training Controls (Training Mode) */}
-                {mode === 'training' && trainingExamples.length > 0 && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">Auto Training</h4>
-                    <div className="space-y-2">
-                      <Button 
-                        onClick={runToNextSample}
-                        disabled={isAutoTraining}
-                        size="sm"
-                        className="w-full"
-                      >
-                        {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
-                      </Button>
-                      <div className="text-xs text-blue-600">
-                        Sample {currentTrainingIndex + 1} of {trainingExamples.length}
-                      </div>
                     </div>
                   </div>
                 )}
@@ -952,6 +959,32 @@ export default function BinaryDigitTrainer() {
                   Edit Training Set
                 </Button>
               </div>
+
+              {/* Automated Training Controls - Only in Training Mode */}
+              {mode === 'training' && trainingMode === 'dataset' && trainingExamples.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Automated Training</div>
+                  <Button 
+                    onClick={runToNextSample}
+                    disabled={isAutoTraining}
+                    size="sm"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
+                  </Button>
+                  <Button 
+                    onClick={processTrainingSet}
+                    disabled={isAutoTraining}
+                    size="sm"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {isAutoTraining ? 'Processing Set...' : 'Process Training Set'}
+                  </Button>
+                  <div className="text-xs text-gray-600 text-center">
+                    Sample {currentTrainingIndex + 1} of {trainingExamples.length} • Speed: {autoTrainingSpeed}ms
+                  </div>
+                </div>
+              )}
 
               {/* Dataset Info and Navigation */}
               {trainingMode === 'dataset' && (

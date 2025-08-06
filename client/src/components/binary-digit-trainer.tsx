@@ -724,8 +724,8 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[700px] bg-gray-50 rounded-lg p-1 overflow-auto">
-                <svg className="w-full" viewBox="0 0 750 900" style={{ minHeight: '900px' }}>
+              <div className="relative h-[800px] bg-gray-50 rounded-lg p-1 overflow-auto">
+                <svg className="w-full" viewBox="0 0 750 2000" style={{ minHeight: '2000px' }}>
                   {/* Input Layer */}
                   <g className="input-layer">
                     <text x="38" y="10" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
@@ -733,14 +733,14 @@ export default function BinaryDigitTrainer() {
                       <g key={`input-${i}`}>
                         <circle
                           cx="75"
-                          cy={25 + i * 22}
+                          cy={25 + i * 20}
                           r="12"
                           fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
                           stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
                           strokeWidth={activeElements.includes('input') ? "2" : "1"}
                           className={activeElements.includes('input') ? "animate-pulse" : ""}
                         />
-                        <text x="75" y={28 + i * 22} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="75" y={28 + i * 20} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
                           {value}
                         </text>
                       </g>
@@ -754,14 +754,14 @@ export default function BinaryDigitTrainer() {
                       <g key={`hidden-${i}`}>
                         <circle
                           cx="313"
-                          cy={25 + i * 25}
+                          cy={25 + i * 22}
                           r="12"
                           fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
                           stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
                           strokeWidth={activeElements.includes('hidden') ? "2" : "1"}
                           className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
-                        <text x="313" y={29 + i * 25} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="313" y={29 + i * 22} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
                       </g>
@@ -798,9 +798,9 @@ export default function BinaryDigitTrainer() {
                       <line
                         key={`line-ih-${hiddenIdx}-${inputIdx}`}
                         x1="87"
-                        y1={25 + inputIdx * 22}
+                        y1={25 + inputIdx * 20}
                         x2="301"
-                        y2={25 + hiddenIdx * 25}
+                        y2={25 + hiddenIdx * 22}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
                         strokeWidth={activeElements.includes('connections') ? "1" : "0.3"}
                         opacity={activeElements.includes('connections') ? "0.8" : "0.2"}
@@ -815,7 +815,7 @@ export default function BinaryDigitTrainer() {
                       <line
                         key={`line-ho-${outputIdx}-${hiddenIdx}`}
                         x1="325"
-                        y1={25 + hiddenIdx * 25}
+                        y1={25 + hiddenIdx * 22}
                         x2="572"
                         y2={70 + outputIdx * 120}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
@@ -836,7 +836,7 @@ export default function BinaryDigitTrainer() {
                       {/* Green circle */}
                       <circle
                         cx="280"
-                        cy={25 + i * 25}
+                        cy={25 + i * 22}
                         r="10"
                         fill="#10B981"
                         stroke="#059669"
@@ -846,18 +846,18 @@ export default function BinaryDigitTrainer() {
                       {/* Plus symbol */}
                       <line
                         x1="275"
-                        y1={25 + i * 25}
+                        y1={25 + i * 22}
                         x2="285"
-                        y2={25 + i * 25}
+                        y2={25 + i * 22}
                         stroke="white"
                         strokeWidth="2"
                         strokeLinecap="round"
                       />
                       <line
                         x1="280"
-                        y1={20 + i * 25}
+                        y1={20 + i * 22}
                         x2="280"
-                        y2={30 + i * 25}
+                        y2={30 + i * 22}
                         stroke="white"
                         strokeWidth="2"
                         strokeLinecap="round"
@@ -905,11 +905,11 @@ export default function BinaryDigitTrainer() {
 
                   {/* Legend */}
                   <g className="legend">
-                    <text x="38" y="650" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
-                    <circle cx="50" cy="670" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
-                    <line x1="46" y1="670" x2="54" y2="670" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="50" y1="666" x2="50" y2="674" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <text x="65" y="675" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
+                    <text x="38" y="1850" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
+                    <circle cx="50" cy="1870" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
+                    <line x1="46" y1="1870" x2="54" y2="1870" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="50" y1="1866" x2="50" y2="1874" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <text x="65" y="1875" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
                   </g>
                 </svg>
               </div>

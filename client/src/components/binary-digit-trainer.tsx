@@ -722,7 +722,7 @@ export default function BinaryDigitTrainer() {
           {/* Neural Network Diagram */}
           <Card className="col-span-2">
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
+              <h2 className="text-lg font-semibold mb-4">🔥 TESTING CHANGES 🔥 Neural Network Diagram</h2>
               
               <div className="relative h-[550px] bg-gray-50 rounded-lg p-1 overflow-auto">
                 <svg className="w-full" viewBox="0 5 750 1320" style={{ minHeight: '1320px' }}>

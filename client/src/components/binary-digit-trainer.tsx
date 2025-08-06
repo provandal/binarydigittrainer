@@ -316,9 +316,10 @@ export default function BinaryDigitTrainer() {
         backpropagationOutput();
         break;
       case 4:
-        console.log('Executing case 4 - backpropagation hidden and history capture');
+        console.log('Executing case 4 - backpropagation hidden (input→hidden weights)');
         backpropagationHidden();
-        // Capture training history directly from persistent store
+        
+        // Capture training history AFTER both weight updates are complete
         const historySnapshot = {
           iteration: trainingHistoryStore.current.length,
           weights: currentNetworkState.current.weights.map((w: number[]) => [...w]),
@@ -336,11 +337,12 @@ export default function BinaryDigitTrainer() {
         // Update React state for display
         setTrainingHistory([...trainingHistoryStore.current]);
         
-        console.log('Captured training history:', {
+        console.log('Captured training history after both backprop steps:', {
           iteration: trainingHistoryStore.current.length,
           totalSnapshots: trainingHistoryStore.current.length,
           loss: currentNetworkState.current.loss,
-          firstWeight: currentNetworkState.current.weights[0][0]
+          hiddenWeight: currentNetworkState.current.weights[0][0],
+          outputWeight: currentNetworkState.current.outputWeights[0][0]
         });
         break;
       case 5:

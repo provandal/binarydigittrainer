@@ -15,6 +15,7 @@ export interface IStorage {
   updateTrainingExample(id: number, example: InsertTrainingExample): Promise<TrainingExample | undefined>;
   deleteTrainingExample(id: number): Promise<boolean>;
   clearTrainingExamples(): Promise<void>;
+  bulkCreateTrainingExamples(examples: InsertTrainingExample[]): Promise<TrainingExample[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -79,6 +80,15 @@ export class MemStorage implements IStorage {
     this.trainingExamples.clear();
     this.nextExampleId = 1;
   }
+
+  async bulkCreateTrainingExamples(examples: InsertTrainingExample[]): Promise<TrainingExample[]> {
+    const results: TrainingExample[] = [];
+    for (const example of examples) {
+      const result = await this.createTrainingExample(example);
+      results.push(result);
+    }
+    return results;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -133,6 +143,14 @@ export class DatabaseStorage implements IStorage {
     await db.delete(trainingExamples);
     // Reset the sequence to start from 1
     await db.execute(sql`SELECT setval('training_examples_id_seq', 1, false)`);
+  }
+
+  async bulkCreateTrainingExamples(examples: InsertTrainingExample[]): Promise<TrainingExample[]> {
+    const results = await db
+      .insert(trainingExamples)
+      .values(examples)
+      .returning();
+    return results;
   }
 }
 

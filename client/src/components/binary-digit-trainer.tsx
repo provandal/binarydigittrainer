@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Edit3 } from "lucide-react";
+import { Trash2, Plus, Edit3, Upload } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -99,6 +99,19 @@ export default function BinaryDigitTrainer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
     },
+  });
+
+  const bulkUploadMutation = useMutation({
+    mutationFn: (data: { input: number[]; target: number[] }[]) =>
+      apiRequest("POST", "/api/training-examples/bulk-upload", data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      alert(`Successfully uploaded ${data.count} training examples!`);
+    },
+    onError: (error) => {
+      console.error("Bulk upload error:", error);
+      alert("Failed to upload training data. Please check the file format.");
+    }
   });
 
   const clearExamplesMutation = useMutation({
@@ -464,6 +477,41 @@ export default function BinaryDigitTrainer() {
 
   const getPatternPreview = (pattern: number[][]) => {
     return pattern.map(row => row.reduce((sum, val) => sum + val, 0) / 9);
+  };
+
+  // File upload function
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const jsonData = JSON.parse(content);
+        
+        // Validate that it's an array of objects with input and target fields
+        if (Array.isArray(jsonData) && jsonData.length > 0) {
+          const firstItem = jsonData[0];
+          if (firstItem.input && firstItem.target && 
+              Array.isArray(firstItem.input) && firstItem.input.length === 81 &&
+              Array.isArray(firstItem.target) && firstItem.target.length === 2) {
+            bulkUploadMutation.mutate(jsonData);
+          } else {
+            alert("Invalid file format. Expected array of objects with 'input' (81 numbers) and 'target' (2 numbers) fields.");
+          }
+        } else {
+          alert("Invalid file format. Expected a JSON array.");
+        }
+      } catch (error) {
+        alert("Error reading file. Please make sure it's a valid JSON file.");
+        console.error("File parsing error:", error);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
   };
 
   // Automated training functions
@@ -1050,6 +1098,25 @@ export default function BinaryDigitTrainer() {
                   <Edit3 className="w-4 h-4 mr-2" />
                   Edit Training Set
                 </Button>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    id="bulk-upload-input"
+                  />
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                    disabled={bulkUploadMutation.isPending}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Training Set'}
+                  </Button>
+                </div>
               </div>
 
               {/* Automated Training Controls - Only in Training Mode */}

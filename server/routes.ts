@@ -25,7 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertTrainingExampleSchema.parse(req.body);
       const example = await storage.createTrainingExample(validatedData);
       res.status(201).json(example);
-      // Backup after response to avoid slowing down the UI
+      // Backup when creating new examples
       setImmediate(() => autoBackup());
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -50,8 +50,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(example);
-      // Backup after response to avoid slowing down the UI
-      setImmediate(() => autoBackup());
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid data", details: error.errors });
@@ -74,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(204).send();
-      // Backup after response to avoid slowing down the UI
+      // Backup when deleting examples
       setImmediate(() => autoBackup());
     } catch (error) {
       console.error("Error deleting training example:", error);
@@ -87,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.clearTrainingExamples();
       res.status(204).send();
-      // Backup after response to avoid slowing down the UI
+      // Backup when clearing all examples
       setImmediate(() => autoBackup());
     } catch (error) {
       console.error("Error clearing training examples:", error);

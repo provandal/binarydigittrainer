@@ -1,6 +1,6 @@
 # Overview
 
-This is a simplified educational Binary Digit Trainer that teaches neural network fundamentals through step-by-step visualization. Users draw binary digits (0 or 1) on a 3×3 pixel canvas where each pixel is a 3×3 grid of sub-pixels. The neural network architecture is 9→4→2 (9 input neurons for pixels, 4 hidden neurons, 2 output neurons for digits 0 and 1). The application demonstrates the complete training cycle: forward pass, loss calculation, and backpropagation with real-time weight and activation updates.
+This is a comprehensive educational Binary Digit Trainer that teaches neural network fundamentals through step-by-step visualization. Users draw binary digits (0 or 1) on a 9×9 pixel canvas with direct binary pixels. The neural network architecture is 81→24→2 (81 input neurons for pixels, 24 hidden neurons, 2 output neurons for digits 0 and 1). The application demonstrates the complete training cycle: forward pass, loss calculation, and backpropagation with real-time weight and activation updates.
 
 # User Preferences
 
@@ -31,10 +31,10 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Updates**: Live visualization of training progress and network activations
 
 ## Key Features
-- **Interactive Drawing Canvas**: 3×3 pixel grid where each pixel is a 3×3 sub-pixel grid for realistic drawing
-- **Continuous Pixel Values**: Each pixel value ranges from 0-1 based on filled sub-pixels (e.g., 3/9 = 0.33)
+- **Interactive Drawing Canvas**: 9×9 pixel grid with direct binary pixel values for high-resolution drawing
+- **Binary Pixel Values**: Each pixel value is 0 (white) or 1 (black) for direct neural network input
 - **Step-by-Step Training**: 6-stage training cycle with clear visualization of each step
-- **Neural Network Architecture**: Simple 9→4→2 network for binary digit classification (0 vs 1)
+- **Neural Network Architecture**: Scaled 81→24→2 network for improved binary digit classification (0 vs 1)
 - **Weight Visualization**: Real-time display of connection weights with color coding
 - **Database Persistence**: PostgreSQL storage for training examples with full CRUD operations
 - **Automated Training**: "Run to Next Sample" button cycles through all training examples automatically

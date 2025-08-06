@@ -10,11 +10,11 @@ import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
 
-// Each pixel is a 3x3 grid of sub-pixels (9 total per pixel)
-const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9 pixels, each with 9 sub-pixels
-const initialWeights = Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4));
-const initialBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
-const initialOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+// 9x9 pixel grid (81 pixels total, each pixel is 0 or 1)
+const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9x9 grid of pixels
+const initialWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+const initialBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+const initialOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.4));
 const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 
 // Training dataset - 100+ examples each of 0 and 1
@@ -32,7 +32,7 @@ const STEP_DESCRIPTIONS = [
   {
     name: "Ready - Draw your digit",
     concept: "The neural network is ready. In Training mode: draw and train step-by-step. In Predict mode: draw and get instant predictions.",
-    formula: "Input preparation: x = [x₁, x₂, ..., x₉] where each xᵢ ∈ [0,1]",
+    formula: "Input preparation: x = [x₁, x₂, ..., x₈₁] where each xᵢ ∈ [0,1]",
     activeElements: []
   },
   {
@@ -185,30 +185,27 @@ export default function BinaryDigitTrainer() {
     }
   }, [trainingHistory.length]);
 
-  // Calculate pixel values (0-1 based on how many sub-pixels are filled)
+  // Calculate pixel values - flatten 9x9 grid to 81 inputs (each pixel is 0 or 1)
   const getPixelValues = () => {
-    return pixelGrid.map(pixel => {
-      const filledSubPixels = pixel.reduce((sum, subPixel) => sum + subPixel, 0);
-      return filledSubPixels / 9; // Convert to 0-1 range
-    });
+    return pixelGrid.flat(); // Flatten 9x9 grid to 81 inputs
   };
 
-  const toggleSubPixel = (pixelIndex: number, subPixelIndex: number) => {
+  const togglePixel = (rowIndex: number, colIndex: number) => {
     const newPixelGrid = [...pixelGrid];
-    newPixelGrid[pixelIndex] = [...newPixelGrid[pixelIndex]];
-    newPixelGrid[pixelIndex][subPixelIndex] = newPixelGrid[pixelIndex][subPixelIndex] === 0 ? 1 : 0;
+    newPixelGrid[rowIndex] = [...newPixelGrid[rowIndex]];
+    newPixelGrid[rowIndex][colIndex] = newPixelGrid[rowIndex][colIndex] === 0 ? 1 : 0;
     setPixelGrid(newPixelGrid);
     setStep(0); // Reset to first step when input changes
   };
 
-  const handleMouseDown = (pixelIndex: number, subPixelIndex: number) => {
+  const handleMouseDown = (rowIndex: number, colIndex: number) => {
     setIsDrawing(true);
-    toggleSubPixel(pixelIndex, subPixelIndex);
+    togglePixel(rowIndex, colIndex);
   };
 
-  const handleMouseEnter = (pixelIndex: number, subPixelIndex: number) => {
+  const handleMouseEnter = (rowIndex: number, colIndex: number) => {
     if (isDrawing) {
-      toggleSubPixel(pixelIndex, subPixelIndex);
+      togglePixel(rowIndex, colIndex);
     }
   };
 
@@ -430,14 +427,14 @@ export default function BinaryDigitTrainer() {
   };
 
   // Editor drawing functions
-  const handleEditorMouseDown = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+  const handleEditorMouseDown = (exampleIndex: number, rowIndex: number, colIndex: number) => {
     setIsDrawingInEditor(true);
-    toggleEditorSubPixel(exampleIndex, pixelIndex, subPixelIndex);
+    toggleEditorPixel(exampleIndex, rowIndex, colIndex);
   };
 
-  const handleEditorMouseEnter = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+  const handleEditorMouseEnter = (exampleIndex: number, rowIndex: number, colIndex: number) => {
     if (isDrawingInEditor) {
-      toggleEditorSubPixel(exampleIndex, pixelIndex, subPixelIndex);
+      toggleEditorPixel(exampleIndex, rowIndex, colIndex);
     }
   };
 
@@ -445,12 +442,12 @@ export default function BinaryDigitTrainer() {
     setIsDrawingInEditor(false);
   };
 
-  const toggleEditorSubPixel = (exampleIndex: number, pixelIndex: number, subPixelIndex: number) => {
+  const toggleEditorPixel = (exampleIndex: number, rowIndex: number, colIndex: number) => {
     const example = trainingExamples[exampleIndex];
     if (example?.id) {
       const newPattern = [...(example.pattern as number[][])];
-      newPattern[pixelIndex] = [...newPattern[pixelIndex]];
-      newPattern[pixelIndex][subPixelIndex] = newPattern[pixelIndex][subPixelIndex] ? 0 : 1;
+      newPattern[rowIndex] = [...newPattern[rowIndex]];
+      newPattern[rowIndex][colIndex] = newPattern[rowIndex][colIndex] ? 0 : 1;
       updateExampleMutation.mutate({ 
         id: example.id, 
         example: { pattern: newPattern, label: example.label } 
@@ -619,41 +616,24 @@ export default function BinaryDigitTrainer() {
           {/* Drawing Canvas */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Drawing Canvas (3×3 pixels)</h2>
+              <h2 className="text-lg font-semibold mb-4">Drawing Canvas (9×9 pixels)</h2>
               <div 
-                className="grid grid-cols-3 gap-0 mb-4 w-48 h-48 mx-auto border-2 border-gray-400 bg-gray-100"
+                className="grid grid-cols-9 gap-0 mb-4 w-48 h-48 mx-auto border-2 border-gray-400 bg-gray-100"
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
               >
-                {pixelGrid.map((pixel, pixelIndex) => (
-                  <div 
-                    key={pixelIndex} 
-                    className="relative border border-gray-300"
-                    onMouseEnter={() => handlePixelHover(pixelIndex)}
-                    onMouseLeave={handlePixelLeave}
-                  >
-                    {/* Pixel with 3x3 sub-pixels */}
-                    <div className="grid grid-cols-3 gap-0 w-full h-full">
-                      {pixel.map((subPixel, subPixelIndex) => (
-                        <div
-                          key={subPixelIndex}
-                          onMouseDown={() => handleMouseDown(pixelIndex, subPixelIndex)}
-                          onMouseEnter={() => handleMouseEnter(pixelIndex, subPixelIndex)}
-                          className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
-                            subPixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    
-                    {/* Hover tooltip */}
-                    {hoveredPixel === pixelIndex && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white px-2 py-1 rounded text-xs font-mono whitespace-nowrap z-10">
-                        Pixel {pixelIndex + 1}: {(pixel.reduce((sum, sub) => sum + sub, 0) / 9).toFixed(2)}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {pixelGrid.map((row, rowIndex) => 
+                  row.map((pixel, colIndex) => (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+                      onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                      className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                        pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                      }`}
+                    />
+                  ))
+                )}
               </div>
               
               <div className="text-center">
@@ -730,7 +710,7 @@ export default function BinaryDigitTrainer() {
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
                 <div className="text-xs text-gray-600 space-y-1">
                   <div>Learning Rate: {learningRate}</div>
-                  <div>Architecture: 9 → 4 → 2</div>
+                  <div>Architecture: 81 → 24 → 2</div>
                   <div>Activation: Sigmoid</div>
                   <div>Loss: Mean Squared Error</div>
                   <div>Dataset: {trainingExamples.length} examples</div>
@@ -744,24 +724,24 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[420px] bg-gray-50 rounded-lg p-4 overflow-hidden">
-                <svg className="w-full h-full" viewBox="0 0 750 563">
+              <div className="relative h-[420px] bg-gray-50 rounded-lg p-4 overflow-auto">
+                <svg className="w-full" viewBox="0 0 750 2000" style={{ minHeight: '2000px' }}>
                   {/* Input Layer */}
                   <g className="input-layer">
-                    <text x="38" y="38" fontSize="20" fill="#666" fontWeight="bold">Input (9)</text>
+                    <text x="38" y="38" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
                     {getPixelValues().map((value, i) => (
                       <g key={`input-${i}`}>
                         <circle
                           cx="75"
-                          cy={75 + i * 44}
-                          r="19"
+                          cy={75 + i * 22}
+                          r="8"
                           fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
                           stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
-                          strokeWidth={activeElements.includes('input') ? "4" : "2.5"}
+                          strokeWidth={activeElements.includes('input') ? "2" : "1"}
                           className={activeElements.includes('input') ? "animate-pulse" : ""}
                         />
-                        <text x="75" y={83 + i * 44} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
-                          {value.toFixed(2)}
+                        <text x="75" y={78 + i * 22} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {value}
                         </text>
                       </g>
                     ))}
@@ -769,19 +749,19 @@ export default function BinaryDigitTrainer() {
 
                   {/* Hidden Layer */}
                   <g className="hidden-layer">
-                    <text x="250" y="38" fontSize="20" fill="#666" fontWeight="bold">Hidden (4)</text>
+                    <text x="250" y="38" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
                         <circle
                           cx="313"
-                          cy={150 + i * 100}
-                          r="23"
+                          cy={75 + i * 75}
+                          r="12"
                           fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
                           stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
-                          strokeWidth={activeElements.includes('hidden') ? "4" : "2.5"}
+                          strokeWidth={activeElements.includes('hidden') ? "2" : "1"}
                           className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
-                        <text x="313" y={159 + i * 100} fontSize="12" fill="#000" textAnchor="middle" fontWeight="bold">
+                        <text x="313" y={79 + i * 75} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
                           {activation.toFixed(2)}
                         </text>
                       </g>
@@ -817,13 +797,13 @@ export default function BinaryDigitTrainer() {
                     hiddenWeights.map((weight, inputIdx) => (
                       <line
                         key={`line-ih-${hiddenIdx}-${inputIdx}`}
-                        x1="94"
-                        y1={75 + inputIdx * 44}
-                        x2="290"
-                        y2={150 + hiddenIdx * 100}
+                        x1="83"
+                        y1={75 + inputIdx * 22}
+                        x2="301"
+                        y2={75 + hiddenIdx * 75}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
-                        strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
-                        opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
+                        strokeWidth={activeElements.includes('connections') ? "1" : "0.3"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.2"}
                         className={activeElements.includes('connections') ? "animate-pulse" : ""}
                       />
                     ))
@@ -834,8 +814,8 @@ export default function BinaryDigitTrainer() {
                     outputWeightArray.map((weight, hiddenIdx) => (
                       <line
                         key={`line-ho-${outputIdx}-${hiddenIdx}`}
-                        x1="336"
-                        y1={150 + hiddenIdx * 100}
+                        x1="325"
+                        y1={75 + hiddenIdx * 75}
                         x2="572"
                         y2={225 + outputIdx * 150}
                         stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
@@ -1170,8 +1150,8 @@ export default function BinaryDigitTrainer() {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">
                     {selectedWeightBox.type === 'hidden' 
-                      ? `Hidden Neuron ${selectedWeightBox.index + 1} Weights (9 input connections)`
-                      : `Output Neuron ${selectedWeightBox.index} Weights (4 hidden connections)`}
+                      ? `Hidden Neuron ${selectedWeightBox.index + 1} Weights (81 input connections)`
+                      : `Output Neuron ${selectedWeightBox.index} Weights (24 hidden connections)`}
                   </h2>
                   <Button 
                     onClick={() => setSelectedWeightBox(null)}
@@ -1199,78 +1179,80 @@ export default function BinaryDigitTrainer() {
                 
                 {/* Weight Visualization */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <svg width="100%" height="220" viewBox="0 0 600 220">
-                    {selectedWeightBox.type === 'hidden' && (
-                      <g>
-                        {/* Large weight box */}
-                        <rect x="50" y="30" width="500" height="160" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                        <line x1="300" y1="30" x2="300" y2="190" stroke="#666" strokeWidth="2" opacity="0.5"/>
-                        
-                        {/* Weight bars */}
-                        {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
-                          const barY = 45 + i * 16;
-                          const barWidth = Math.abs(weight) * 250;
-                          const barX = weight >= 0 ? 300 : 300 - barWidth;
-                          return (
-                            <g key={i}>
-                              <rect
-                                x={barX}
-                                y={barY}
-                                width={barWidth}
-                                height="12"
-                                fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                opacity="0.8"
-                              />
-                              <text x="20" y={barY + 9} fontSize="11" fill="#666">
-                                Input {i + 1}:
-                              </text>
-                              <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 9} 
-                                    fontSize="11" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
-                                {weight.toFixed(3)}
-                              </text>
-                            </g>
-                          );
-                        })}
-                        
-                        {/* Bias visualization */}
-                        {(() => {
-                          const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
-                          const biasY = 45 + 9 * 16;
-                          const biasWidth = Math.abs(bias) * 250;
-                          const biasX = bias >= 0 ? 300 : 300 - biasWidth;
-                          return (
-                            <g>
-                              <rect
-                                x={biasX}
-                                y={biasY}
-                                width={biasWidth}
-                                height="12"
-                                fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
-                                opacity="0.8"
-                              />
-                              <text x="20" y={biasY + 9} fontSize="11" fill="#666" fontWeight="bold">
-                                Bias:
-                              </text>
-                              <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
-                                    fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
-                                {bias.toFixed(3)}
-                              </text>
-                            </g>
-                          );
-                        })()}
-                        
-                        {/* Labels */}
-                        <text x="55" y="205" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="205" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="205" fontSize="12" fill="#666">+1</text>
-                      </g>
-                    )}
+                  {selectedWeightBox.type === 'hidden' && (
+                    <div className="h-[400px] overflow-auto">
+                      <svg viewBox="0 0 600 2050" className="w-full" style={{ minHeight: '2050px' }}>
+                          {/* Background */}
+                          <rect x="50" y="30" width="500" height="2000" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                          <line x1="300" y1="30" x2="300" y2="2030" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                          
+                          {/* Weight bars */}
+                          {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                            const barY = 45 + i * 24;
+                            const barWidth = Math.abs(weight) * 250;
+                            const barX = weight >= 0 ? 300 : 300 - barWidth;
+                            return (
+                              <g key={i}>
+                                <rect
+                                  x={barX}
+                                  y={barY}
+                                  width={barWidth}
+                                  height="10"
+                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={barY + 8} fontSize="8" fill="#666">
+                                  Input {i + 1}:
+                                </text>
+                                <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 8} 
+                                      fontSize="8" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                  {weight.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Bias visualization */}
+                          {(() => {
+                            const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
+                            const biasY = 45 + 81 * 24;
+                            const biasWidth = Math.abs(bias) * 250;
+                            const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                            return (
+                              <g>
+                                <rect
+                                  x={biasX}
+                                  y={biasY}
+                                  width={biasWidth}
+                                  height="12"
+                                  fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
+                                  Bias:
+                                </text>
+                                <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
+                                      fontSize="10" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                  {bias.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })()}
+                          
+                          {/* Labels */}
+                          <text x="55" y="2045" fontSize="12" fill="#666">-1</text>
+                          <text x="295" y="2045" fontSize="12" fill="#666">0</text>
+                          <text x="535" y="2045" fontSize="12" fill="#666">+1</text>
+                      </svg>
+                    </div>
+                  )}
 
-                    {selectedWeightBox.type === 'output' && (
+                  {selectedWeightBox.type === 'output' && (
+                    <svg width="100%" height="650" viewBox="0 0 600 650">
                       <g>
                         {/* Large weight box */}
-                        <rect x="50" y="30" width="500" height="120" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                        <line x1="300" y1="30" x2="300" y2="150" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                        <rect x="50" y="30" width="500" height="620" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                        <line x1="300" y1="30" x2="300" y2="650" stroke="#666" strokeWidth="2" opacity="0.5"/>
                         
                         {/* Weight bars */}
                         {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
@@ -1301,7 +1283,7 @@ export default function BinaryDigitTrainer() {
                         {/* Bias visualization */}
                         {(() => {
                           const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
-                          const biasY = 50 + 4 * 25;
+                          const biasY = 50 + 24 * 25;
                           const biasWidth = Math.abs(bias) * 250;
                           const biasX = bias >= 0 ? 300 : 300 - biasWidth;
                           return (
@@ -1326,12 +1308,12 @@ export default function BinaryDigitTrainer() {
                         })()}
                         
                         {/* Labels */}
-                        <text x="55" y="185" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="185" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="185" fontSize="12" fill="#666">+1</text>
+                        <text x="55" y="640" fontSize="12" fill="#666">-1</text>
+                        <text x="295" y="640" fontSize="12" fill="#666">0</text>
+                        <text x="535" y="640" fontSize="12" fill="#666">+1</text>
                       </g>
-                    )}
-                  </svg>
+                    </svg>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1389,34 +1371,26 @@ export default function BinaryDigitTrainer() {
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        {/* Full 3x3 pixel grid with 3x3 sub-pixels each */}
-                        <div className="grid grid-cols-3 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
-                          {(example.pattern as number[][]).map((pixel: number[], pixelIndex: number) => (
-                            <div 
-                              key={pixelIndex} 
-                              className="relative border border-gray-300"
-                            >
-                              {/* Each pixel contains 3x3 sub-pixels */}
-                              <div className="grid grid-cols-3 gap-0 w-full h-full">
-                                {pixel.map((subPixel: number, subPixelIndex: number) => (
-                                  <div
-                                    key={subPixelIndex}
-                                    className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
-                                      subPixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
-                                    }`}
-                                    onMouseDown={() => handleEditorMouseDown(index, pixelIndex, subPixelIndex)}
-                                    onMouseEnter={() => handleEditorMouseEnter(index, pixelIndex, subPixelIndex)}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          ))}
+                        {/* 9x9 pixel grid */}
+                        <div className="grid grid-cols-9 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
+                          {(example.pattern as number[][]).map((row: number[], rowIndex: number) => 
+                            row.map((pixel: number, colIndex: number) => (
+                              <div
+                                key={`${rowIndex}-${colIndex}`}
+                                className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                                  pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                                }`}
+                                onMouseDown={() => handleEditorMouseDown(index, rowIndex, colIndex)}
+                                onMouseEnter={() => handleEditorMouseEnter(index, rowIndex, colIndex)}
+                              />
+                            ))
+                          )}
                         </div>
                         
                         <div className="text-xs text-gray-600">
-                          <div>Pattern: [{pixelValues.map(v => v.toFixed(2)).join(', ')}]</div>
-                          <div className="mt-1">Click sub-pixels to toggle. Target: {example.label}</div>
-                          <div className="mt-1">Each pixel value = filled sub-pixels / 9</div>
+                          <div>Pattern: [{pixelValues.map(v => v.toString()).join(', ')}]</div>
+                          <div className="mt-1">Click pixels to toggle. Target: {example.label}</div>
+                          <div className="mt-1">Each pixel is 0 (white) or 1 (black)</div>
                         </div>
                       </div>
                     </div>

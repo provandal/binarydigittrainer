@@ -163,6 +163,13 @@ export default function BinaryDigitTrainer() {
     setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
   }, [step]);
 
+  // Update weight dialog iteration to show latest when training history changes
+  useEffect(() => {
+    if (trainingHistory.length > 0) {
+      setWeightDialogIteration(trainingHistory.length - 1);
+    }
+  }, [trainingHistory.length]);
+
   // Calculate pixel values (0-1 based on how many sub-pixels are filled)
   const getPixelValues = () => {
     return pixelGrid.map(pixel => {
@@ -238,8 +245,7 @@ export default function BinaryDigitTrainer() {
     const newOutputBiases = outputBiases.map((bias, i) => 
       bias - learningRate * outputErrors[i]);
     
-    console.log('Output weights before update:', outputWeights[0]);
-    console.log('Output weights after calculation:', newOutputWeights[0]);
+
     
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
@@ -269,8 +275,7 @@ export default function BinaryDigitTrainer() {
     const newBiases = biases.map((bias, i) => 
       bias - learningRate * hiddenErrors[i]);
     
-    console.log('Hidden weights before update (neuron 1):', weights[0]);
-    console.log('Hidden weights after calculation (neuron 1):', newWeights[0]);
+
     
     setWeights(newWeights);
     setBiases(newBiases);
@@ -297,9 +302,6 @@ export default function BinaryDigitTrainer() {
       case 4:
         backpropagationHidden();
         // Save training history snapshot after all weight updates are complete
-        console.log('Saving training history. Current weights (neuron 1):', weights[0]);
-        console.log('Latest weights ref (neuron 1):', latestWeightsRef.current[0]);
-        
         const historySnapshot = {
           iteration: trainingHistory.length,
           weights: (latestWeightsRef.current || weights).map((w: number[]) => [...w]),
@@ -310,7 +312,6 @@ export default function BinaryDigitTrainer() {
           hiddenActivations: [...hiddenActivations],
           outputActivations: [...outputActivations]
         };
-        console.log('History snapshot weights (neuron 1):', historySnapshot.weights[0]);
         setTrainingHistory(prev => [...prev, historySnapshot]);
         break;
       case 5:
@@ -1051,7 +1052,7 @@ export default function BinaryDigitTrainer() {
                         
                         {/* Bias visualization */}
                         {(() => {
-                          const bias = biases[selectedWeightBox.index];
+                          const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
                           const biasY = 45 + 9 * 16;
                           const biasWidth = Math.abs(bias) * 250;
                           const biasX = bias >= 0 ? 300 : 300 - biasWidth;
@@ -1117,7 +1118,7 @@ export default function BinaryDigitTrainer() {
                         
                         {/* Bias visualization */}
                         {(() => {
-                          const bias = outputBiases[selectedWeightBox.index];
+                          const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
                           const biasY = 50 + 4 * 25;
                           const biasWidth = Math.abs(bias) * 250;
                           const biasX = bias >= 0 ? 300 : 300 - biasWidth;

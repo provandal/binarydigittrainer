@@ -1,5 +1,7 @@
-import { type User, type InsertUser, type TrainingExample, type InsertTrainingExample } from "@shared/schema";
+import { type User, type InsertUser, type TrainingExample, type InsertTrainingExample, users, trainingExamples } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -79,4 +81,57 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getTrainingExamples(): Promise<TrainingExample[]> {
+    return await db.select().from(trainingExamples);
+  }
+
+  async createTrainingExample(example: InsertTrainingExample): Promise<TrainingExample> {
+    const [trainingExample] = await db
+      .insert(trainingExamples)
+      .values(example)
+      .returning();
+    return trainingExample;
+  }
+
+  async updateTrainingExample(id: number, example: InsertTrainingExample): Promise<TrainingExample | undefined> {
+    const [updated] = await db
+      .update(trainingExamples)
+      .set(example)
+      .where(eq(trainingExamples.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteTrainingExample(id: number): Promise<boolean> {
+    const result = await db
+      .delete(trainingExamples)
+      .where(eq(trainingExamples.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async clearTrainingExamples(): Promise<void> {
+    await db.delete(trainingExamples);
+  }
+}
+
+export const storage = new DatabaseStorage();

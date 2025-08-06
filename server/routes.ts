@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertTrainingExampleSchema } from "@shared/schema";
 import { z } from "zod";
+import { autoBackup, restoreTrainingExamples } from "./backup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Training examples API routes
@@ -23,6 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTrainingExampleSchema.parse(req.body);
       const example = await storage.createTrainingExample(validatedData);
+      await autoBackup(); // Auto-backup after creating
       res.status(201).json(example);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -46,6 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
+      await autoBackup(); // Auto-backup after updating
       res.json(example);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -68,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
+      await autoBackup(); // Auto-backup after deleting
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting training example:", error);
@@ -79,10 +83,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/training-examples", async (req, res) => {
     try {
       await storage.clearTrainingExamples();
+      await autoBackup(); // Auto-backup after clearing
       res.status(204).send();
     } catch (error) {
       console.error("Error clearing training examples:", error);
       res.status(500).json({ error: "Failed to clear training examples" });
+    }
+  });
+
+  // Restore training examples from backup
+  app.post("/api/training-examples/restore", async (req, res) => {
+    try {
+      const count = await restoreTrainingExamples();
+      res.json({ message: `Restored ${count} training examples from backup` });
+    } catch (error) {
+      console.error("Error restoring training examples:", error);
+      res.status(500).json({ error: "Failed to restore training examples" });
     }
   });
 

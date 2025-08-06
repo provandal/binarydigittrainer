@@ -116,7 +116,7 @@ export default function BinaryDigitTrainer() {
   const [biases, setBiases] = useState(initialBiases);
   const [outputWeights, setOutputWeights] = useState(initialOutputWeights);
   const [outputBiases, setOutputBiases] = useState(initialOutputBiases);
-  const [hiddenActivations, setHiddenActivations] = useState(Array(4).fill(0));
+  const [hiddenActivations, setHiddenActivations] = useState(Array(24).fill(0));
   const [outputActivations, setOutputActivations] = useState(Array(2).fill(0));
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [step, setStep] = useState(0);
@@ -156,7 +156,7 @@ export default function BinaryDigitTrainer() {
     biases: [...initialBiases],
     outputWeights: initialOutputWeights.map(w => [...w]),
     outputBiases: [...initialOutputBiases],
-    hiddenActivations: Array(4).fill(0),
+    hiddenActivations: Array(24).fill(0),
     outputActivations: Array(2).fill(0),
     loss: 0
   });
@@ -377,7 +377,7 @@ export default function BinaryDigitTrainer() {
       biases: newBiases,
       outputWeights: newOutputWeights,
       outputBiases: newOutputBiases,
-      hiddenActivations: Array(4).fill(0),
+      hiddenActivations: Array(24).fill(0),
       outputActivations: Array(2).fill(0),
       loss: 0
     };

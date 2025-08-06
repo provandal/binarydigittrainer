@@ -724,11 +724,11 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[550px] bg-gray-50 rounded-lg p-1 overflow-auto">
-                <svg className="w-full" viewBox="0 8 750 1320" style={{ minHeight: '1320px' }}>
+              <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto">
+                <svg className="w-full" viewBox="0 0 750 1320" style={{ minHeight: '1320px', paddingTop: '0', marginTop: '0' }}>
                   {/* Input Layer */}
                   <g className="input-layer">
-                    <text x="38" y="10" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
+                    <text x="38" y="15" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
                     {getPixelValues().map((value, i) => (
                       <g key={`input-${i}`}>
                         <circle
@@ -749,7 +749,7 @@ export default function BinaryDigitTrainer() {
 
                   {/* Hidden Layer */}
                   <g className="hidden-layer">
-                    <text x="250" y="10" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
+                    <text x="250" y="15" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
                     {hiddenActivations.map((activation, i) => (
                       <g key={`hidden-${i}`}>
                         <circle
@@ -770,7 +770,7 @@ export default function BinaryDigitTrainer() {
 
                   {/* Output Layer */}
                   <g className="output-layer">
-                    <text x="525" y="10" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
+                    <text x="525" y="15" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
                     {outputActivations.map((activation, i) => (
                       <g key={`output-${i}`}>
                         <circle

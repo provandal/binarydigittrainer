@@ -143,6 +143,8 @@ export default function BinaryDigitTrainer() {
   const [currentTrainingIndex, setCurrentTrainingIndex] = useState(0);
   const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(1000); // ms between steps
   const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
+  const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
+  const [numberOfEpochs, setNumberOfEpochs] = useState(1);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -504,25 +506,38 @@ export default function BinaryDigitTrainer() {
 
   // Process entire training set by calling runToNextSample() multiple times
   const processTrainingSet = () => {
+    setIsEpochDialogOpen(true);
+  };
+
+  const startMultiEpochTraining = () => {
     if (trainingExamples.length === 0) return;
     
-    console.log('Starting processTrainingSet with', trainingExamples.length, 'examples');
+    console.log(`Starting processTrainingSet for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
     setIsAutoTraining(true);
     setCurrentTrainingIndex(0);
+    setIsEpochDialogOpen(false);
     
+    let currentEpoch = 0;
     let currentExampleIndex = 0;
     
     const processNextExample = () => {
       if (currentExampleIndex >= trainingExamples.length) {
-        // Finished all examples
-        console.log('Finished processing all examples. Training history length:', trainingHistoryStore.current.length);
-        setIsAutoTraining(false);
-        setStep(0);
-        return;
+        // Finished one epoch
+        currentEpoch++;
+        currentExampleIndex = 0;
+        
+        if (currentEpoch >= numberOfEpochs) {
+          console.log(`Finished processing ${numberOfEpochs} epoch(s). Training history length:`, trainingHistoryStore.current.length);
+          setIsAutoTraining(false);
+          setStep(0);
+          return;
+        }
+        
+        console.log(`Starting epoch ${currentEpoch + 1} of ${numberOfEpochs}`);
       }
       
-      console.log('Processing example', currentExampleIndex + 1, 'of', trainingExamples.length);
+      console.log(`Epoch ${currentEpoch + 1}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
       
       // Set the current training index and run to next sample
       setCurrentTrainingIndex(currentExampleIndex);
@@ -537,7 +552,6 @@ export default function BinaryDigitTrainer() {
       let stepCount = 0;
       const interval = setInterval(() => {
         if (stepCount < 6) {
-          console.log('Process training set - running step', stepCount, 'for example', currentExampleIndex + 1);
           nextStep(stepCount); // Force the step number
           stepCount++;
         } else {
@@ -1380,6 +1394,54 @@ export default function BinaryDigitTrainer() {
                   onClick={() => {
                     setShowDatasetEditor(false);
                   }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Epoch Selection Dialog */}
+        <Dialog open={isEpochDialogOpen} onOpenChange={setIsEpochDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Select Number of Epochs</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                An epoch is one complete pass through all {trainingExamples.length} training examples.
+                Multiple epochs help the neural network learn patterns better.
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="epochs">Number of Epochs:</Label>
+                <Input
+                  id="epochs"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={numberOfEpochs}
+                  onChange={(e) => setNumberOfEpochs(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="text-xs text-gray-500">
+                Total training steps: {numberOfEpochs} × {trainingExamples.length} = {numberOfEpochs * trainingExamples.length}
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={startMultiEpochTraining}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                >
+                  Start Training
+                </Button>
+                <Button 
+                  onClick={() => setIsEpochDialogOpen(false)}
                   variant="outline"
                   className="flex-1"
                 >

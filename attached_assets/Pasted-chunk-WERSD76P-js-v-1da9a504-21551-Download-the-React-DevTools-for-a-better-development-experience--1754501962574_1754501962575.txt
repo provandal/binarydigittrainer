@@ -1,0 +1,92 @@
+chunk-WERSD76P.js?v=1da9a504:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+binary-digit-trainer.tsx:519 Starting runToNextSample for training index: 0
+binary-digit-trainer.tsx:524 Loading example for runToNextSample: 0
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 0
+binary-digit-trainer.tsx:355 nextStep executing step: 0
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 1
+binary-digit-trainer.tsx:355 nextStep executing step: 1
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 2
+binary-digit-trainer.tsx:355 nextStep executing step: 2
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 3
+binary-digit-trainer.tsx:355 nextStep executing step: 3
+binary-digit-trainer.tsx:252 === BACKPROP OUTPUT DEBUG ===
+binary-digit-trainer.tsx:253 Learning rate: 0.5
+binary-digit-trainer.tsx:254 Selected label: 0
+binary-digit-trainer.tsx:257 Target: (2) [1, 0]
+binary-digit-trainer.tsx:258 Current output activations: (2) [0.49122463275279515, 0.48069317677974244]
+binary-digit-trainer.tsx:262 Output errors: (2) [-0.12715466251131682, 0.11999411416794634]
+binary-digit-trainer.tsx:263 Hidden activations for weight update: (4) [0.4608488263256139, 0.5584896083991523, 0.44082237024798676, 0.49692295691614013]
+binary-digit-trainer.tsx:265 BEFORE - Output weights: (2) [Array(4), Array(4)]
+binary-digit-trainer.tsx:266 BEFORE - Output biases: (2) [-0.048651220877882186, 0.045115254725358156]
+binary-digit-trainer.tsx:273 Output weight[0][0]: 0.019528550596580364 - -0.02929953849008495 = 0.04882808908666531
+binary-digit-trainer.tsx:273 Output weight[0][1]: -0.020526636046737726 - -0.035507278836035855 = 0.01498064278929813
+binary-digit-trainer.tsx:273 Output weight[0][2]: -0.013390706144096855 - -0.028026309858160754 = 0.014635603714063899
+binary-digit-trainer.tsx:273 Output weight[0][3]: 0.04409792899093819 - -0.031593035440398716 = 0.07569096443133691
+binary-digit-trainer.tsx:273 Output weight[1][0]: 0.03538734874653451 - 0.027649573340139896 = 0.007737775406394611
+binary-digit-trainer.tsx:273 Output weight[1][1]: -0.16498541292670954 - 0.03350773291592976 = -0.1984931458426393
+binary-digit-trainer.tsx:273 Output weight[1][2]: 0.07938567139488772 - 0.026448044911660817 = 0.052937626483226904
+binary-digit-trainer.tsx:273 Output weight[1][3]: -0.16409288898789423 - 0.0298139150124344 = -0.19390680400032864
+binary-digit-trainer.tsx:279 Output bias[0]: -0.048651220877882186 - -0.06357733125565841 = 0.014926110377776226
+binary-digit-trainer.tsx:279 Output bias[1]: 0.045115254725358156 - 0.05999705708397317 = -0.014881802358615012
+binary-digit-trainer.tsx:283 AFTER - Output weights: (2) [Array(4), Array(4)]
+binary-digit-trainer.tsx:284 AFTER - Output biases: (2) [0.014926110377776226, -0.014881802358615012]
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 4
+binary-digit-trainer.tsx:355 nextStep executing step: 4
+binary-digit-trainer.tsx:372 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:296 === BACKPROP HIDDEN DEBUG ===
+binary-digit-trainer.tsx:297 Learning rate: 0.5
+binary-digit-trainer.tsx:304 Output errors for hidden backprop: (2) [-0.12715466251131682, 0.11999411416794634]
+binary-digit-trainer.tsx:305 Pixel values: (9) [0.1111111111111111, 0.3333333333333333, 0.1111111111111111, 0.3333333333333333, 0, 0.3333333333333333, 0.1111111111111111, 0.3333333333333333, 0.1111111111111111]
+binary-digit-trainer.tsx:306 Current output weights for error calculation: (2) [Array(4), Array(4)]
+binary-digit-trainer.tsx:313 Hidden error[0]: -0.0052802316833665975 * sigmoid'(0.4608488263256139) = -0.0013119643056816164
+binary-digit-trainer.tsx:313 Hidden error[1]: -0.02572286778187228 * sigmoid'(0.5584896083991523) = -0.0063427181327314975
+binary-digit-trainer.tsx:313 Hidden error[2]: 0.004491218345097259 * sigmoid'(0.44082237024798676) = 0.0011070763761745297
+binary-digit-trainer.tsx:313 Hidden error[3]: -0.03289213421457976 * sigmoid'(0.49692295691614013) = -0.008222722124532518
+binary-digit-trainer.tsx:317 BEFORE - Hidden weights: (4) [Array(9), Array(9), Array(9), Array(9)]0: (9) [0.0620743266683375, -0.10331693051294306, -0.14335294997177803, -0.09650190554335501, 0.18105400011699488, 0.02776876094810934, -0.09917411159467515, 0.011637989839340702, -0.06841513742462531]0: 0.06207432666833751: -0.103316930512943062: -0.143352949971778033: -0.096501905543355014: 0.181054000116994885: 0.027768760948109346: -0.099174111594675157: 0.0116379898393407028: -0.06841513742462531length: 9[[Prototype]]: Array(0)1: (9) [0.006227508321264308, 0.13599066748452132, 0.1109211240033738, 0.16857271084380754, -0.03128388991624744, 0.014213897474154136, 0.0781764658012532, 0.08058378854940434, 0.050721723199626645]2: (9) [-0.10128387570636672, -0.08393216932646777, -0.17118056284609906, -0.0856183020302201, 0.10510724037986399, -0.16157009249393686, 0.023725573150845003, -0.10137597757153248, -0.008594427573534435]3: (9) [0.03780068705095179, -0.02426926750238172, 0.18587618445997867, -0.18488475993620607, -0.07686568766974938, -0.13015973943935527, -0.042324875558743584, 0.1316969208555856, -0.14369613739487344]length: 4[[Prototype]]: Array(0)
+binary-digit-trainer.tsx:318 BEFORE - Hidden biases: (4) [-0.07580325764379853, 0.07457556477926951, -0.06506707843124782, 0.05271330333611615]
+binary-digit-trainer.tsx:325 Hidden weight[0][0]: 0.0620743266683375 - -0.0000728869058712009 = 0.0621472135742087
+binary-digit-trainer.tsx:325 Hidden weight[0][1]: -0.10331693051294306 - -0.00021866071761360273 = -0.10309826979532946
+binary-digit-trainer.tsx:325 Hidden weight[0][2]: -0.14335294997177803 - -0.0000728869058712009 = -0.14328006306590682
+binary-digit-trainer.tsx:325 Hidden weight[0][3]: -0.09650190554335501 - -0.00021866071761360273 = -0.09628324482574141
+binary-digit-trainer.tsx:325 Hidden weight[0][4]: 0.18105400011699488 - 0 = 0.18105400011699488
+binary-digit-trainer.tsx:325 Hidden weight[0][5]: 0.02776876094810934 - -0.00021866071761360273 = 0.027987421665722944
+binary-digit-trainer.tsx:325 Hidden weight[0][6]: -0.09917411159467515 - -0.0000728869058712009 = -0.09910122468880395
+binary-digit-trainer.tsx:325 Hidden weight[0][7]: 0.011637989839340702 - -0.00021866071761360273 = 0.011856650556954305
+binary-digit-trainer.tsx:325 Hidden weight[0][8]: -0.06841513742462531 - -0.0000728869058712009 = -0.0683422505187541
+binary-digit-trainer.tsx:325 Hidden weight[1][0]: 0.006227508321264308 - -0.0003523732295961943 = 0.006579881550860502
+binary-digit-trainer.tsx:325 Hidden weight[1][1]: 0.13599066748452132 - -0.0010571196887885828 = 0.1370477871733099
+binary-digit-trainer.tsx:325 Hidden weight[1][2]: 0.1109211240033738 - -0.0003523732295961943 = 0.11127349723296999
+binary-digit-trainer.tsx:325 Hidden weight[1][3]: 0.16857271084380754 - -0.0010571196887885828 = 0.16962983053259612
+binary-digit-trainer.tsx:325 Hidden weight[1][4]: -0.03128388991624744 - 0 = -0.03128388991624744
+binary-digit-trainer.tsx:325 Hidden weight[1][5]: 0.014213897474154136 - -0.0010571196887885828 = 0.015271017162942718
+binary-digit-trainer.tsx:325 Hidden weight[1][6]: 0.0781764658012532 - -0.0003523732295961943 = 0.0785288390308494
+binary-digit-trainer.tsx:325 Hidden weight[1][7]: 0.08058378854940434 - -0.0010571196887885828 = 0.08164090823819292
+binary-digit-trainer.tsx:325 Hidden weight[1][8]: 0.050721723199626645 - -0.0003523732295961943 = 0.05107409642922284
+binary-digit-trainer.tsx:325 Hidden weight[2][0]: -0.10128387570636672 - 0.0000615042431208072 = -0.10134537994948753
+binary-digit-trainer.tsx:325 Hidden weight[2][1]: -0.08393216932646777 - 0.0001845127293624216 = -0.08411668205583019
+binary-digit-trainer.tsx:325 Hidden weight[2][2]: -0.17118056284609906 - 0.0000615042431208072 = -0.17124206708921988
+binary-digit-trainer.tsx:325 Hidden weight[2][3]: -0.0856183020302201 - 0.0001845127293624216 = -0.08580281475958251
+binary-digit-trainer.tsx:325 Hidden weight[2][4]: 0.10510724037986399 - 0 = 0.10510724037986399
+binary-digit-trainer.tsx:325 Hidden weight[2][5]: -0.16157009249393686 - 0.0001845127293624216 = -0.1617546052232993
+binary-digit-trainer.tsx:325 Hidden weight[2][6]: 0.023725573150845003 - 0.0000615042431208072 = 0.023664068907724194
+binary-digit-trainer.tsx:325 Hidden weight[2][7]: -0.10137597757153248 - 0.0001845127293624216 = -0.1015604903008949
+binary-digit-trainer.tsx:325 Hidden weight[2][8]: -0.008594427573534435 - 0.0000615042431208072 = -0.008655931816655242
+binary-digit-trainer.tsx:325 Hidden weight[3][0]: 0.03780068705095179 - -0.0004568178958073621 = 0.038257504946759155
+binary-digit-trainer.tsx:325 Hidden weight[3][1]: -0.02426926750238172 - -0.0013704536874220863 = -0.022898813814959635
+binary-digit-trainer.tsx:325 Hidden weight[3][2]: 0.18587618445997867 - -0.0004568178958073621 = 0.18633300235578604
+binary-digit-trainer.tsx:325 Hidden weight[3][3]: -0.18488475993620607 - -0.0013704536874220863 = -0.18351430624878398
+binary-digit-trainer.tsx:325 Hidden weight[3][4]: -0.07686568766974938 - 0 = -0.07686568766974938
+binary-digit-trainer.tsx:325 Hidden weight[3][5]: -0.13015973943935527 - -0.0013704536874220863 = -0.12878928575193319
+binary-digit-trainer.tsx:325 Hidden weight[3][6]: -0.042324875558743584 - -0.0004568178958073621 = -0.04186805766293622
+binary-digit-trainer.tsx:325 Hidden weight[3][7]: 0.1316969208555856 - -0.0013704536874220863 = 0.13306737454300768
+binary-digit-trainer.tsx:325 Hidden weight[3][8]: -0.14369613739487344 - -0.0004568178958073621 = -0.14323931949906607
+binary-digit-trainer.tsx:331 Hidden bias[0]: -0.07580325764379853 - -0.0006559821528408082 = -0.07514727549095772
+binary-digit-trainer.tsx:331 Hidden bias[1]: 0.07457556477926951 - -0.0031713590663657487 = 0.07774692384563525
+binary-digit-trainer.tsx:331 Hidden bias[2]: -0.06506707843124782 - 0.0005535381880872649 = -0.06562061661933508
+binary-digit-trainer.tsx:331 Hidden bias[3]: 0.05271330333611615 - -0.004111361062266259 = 0.05682466439838241
+binary-digit-trainer.tsx:335 AFTER - Hidden weights: (4) [Array(9), Array(9), Array(9), Array(9)]
+binary-digit-trainer.tsx:336 AFTER - Hidden biases: (4) [-0.07514727549095772, 0.07774692384563525, -0.06562061661933508, 0.05682466439838241]
+binary-digit-trainer.tsx:393 Captured training history after both backprop steps: {iteration: 1, totalSnapshots: 1, loss: 0.24495915226006443, hiddenWeight: 0.0621472135742087, outputWeight: 0.04882808908666531}
+binary-digit-trainer.tsx:533 runToNextSample - calling nextStep(), step: 5
+binary-digit-trainer.tsx:355 nextStep executing step: 5
+binary-digit-trainer.tsx:538 runToNextSample completed all 6 steps. Training history length: 1

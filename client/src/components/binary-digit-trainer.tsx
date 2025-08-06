@@ -317,6 +317,7 @@ export default function BinaryDigitTrainer() {
         backpropagationOutput();
         break;
       case 4:
+        console.log('Executing case 4 - backpropagation hidden and history capture');
         backpropagationHidden();
         // Capture training history directly from persistent store
         const historySnapshot = {

@@ -988,17 +988,17 @@ export default function BinaryDigitTrainer() {
               {/* Current Step Info */}
               <div className="mb-4 p-4 bg-blue-50 rounded-lg">
                 <div className="text-sm font-medium text-blue-900 mb-2">
-                  Step {step + 1} of 6: {STEP_DESCRIPTIONS[step].name}
+                  Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
                 </div>
                 
                 {/* Concept Explanation */}
                 <div className="text-sm text-blue-800 mb-3">
-                  <strong>Concept:</strong> {STEP_DESCRIPTIONS[step].concept}
+                  <strong>Concept:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].concept : 'Ready to begin training'}
                 </div>
                 
                 {/* Mathematical Formula */}
                 <div className="text-xs text-blue-700 font-mono bg-blue-100 p-2 rounded">
-                  <strong>Formula:</strong> {STEP_DESCRIPTIONS[step].formula}
+                  <strong>Formula:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].formula : 'Click Next Step to begin'}
                 </div>
               </div>
 
@@ -1015,7 +1015,7 @@ export default function BinaryDigitTrainer() {
                     ← Previous
                   </Button>
                   <Button 
-                    onClick={nextStep}
+                    onClick={() => nextStep()}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     size="sm"
                   >

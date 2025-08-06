@@ -24,8 +24,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTrainingExampleSchema.parse(req.body);
       const example = await storage.createTrainingExample(validatedData);
-      await autoBackup(); // Auto-backup after creating
       res.status(201).json(example);
+      // Backup after response to avoid slowing down the UI
+      setImmediate(() => autoBackup());
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid data", details: error.errors });
@@ -48,8 +49,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      await autoBackup(); // Auto-backup after updating
       res.json(example);
+      // Backup after response to avoid slowing down the UI
+      setImmediate(() => autoBackup());
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid data", details: error.errors });
@@ -71,8 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      await autoBackup(); // Auto-backup after deleting
       res.status(204).send();
+      // Backup after response to avoid slowing down the UI
+      setImmediate(() => autoBackup());
     } catch (error) {
       console.error("Error deleting training example:", error);
       res.status(500).json({ error: "Failed to delete training example" });
@@ -83,8 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/training-examples", async (req, res) => {
     try {
       await storage.clearTrainingExamples();
-      await autoBackup(); // Auto-backup after clearing
       res.status(204).send();
+      // Backup after response to avoid slowing down the UI
+      setImmediate(() => autoBackup());
     } catch (error) {
       console.error("Error clearing training examples:", error);
       res.status(500).json({ error: "Failed to clear training examples" });

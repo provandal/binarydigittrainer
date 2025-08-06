@@ -49,7 +49,15 @@ export async function restoreTrainingExamples() {
   }
 }
 
-// Auto-backup on data changes
+// Auto-backup on data changes (with throttling to prevent excessive backups)
+let lastBackupTime = 0;
+const BACKUP_THROTTLE_MS = 2000; // Only backup once every 2 seconds
+
 export async function autoBackup() {
+  const now = Date.now();
+  if (now - lastBackupTime < BACKUP_THROTTLE_MS) {
+    return; // Skip backup if too recent
+  }
+  lastBackupTime = now;
   await backupTrainingExamples();
 }

@@ -185,6 +185,9 @@ export default function BinaryDigitTrainer() {
   const [numberOfEpochs, setNumberOfEpochs] = useState(1);
   const [currentEpoch, setCurrentEpoch] = useState(0);
   
+  // Loss function selection
+  const [lossFunction, setLossFunction] = useState<'mse' | 'crossentropy'>('mse');
+  
   // Epoch loss tracking
   const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
   const currentEpochLoss = useRef<number[]>([]);
@@ -305,16 +308,28 @@ export default function BinaryDigitTrainer() {
       // Use one-hot targets from training data: [digit_0, digit_1]
       const example = trainingExamples[datasetIndex];
       target = example.label === 0 ? [1, 0] : [0, 1];
-      console.log(`🎯 Dataset Loss - Label: ${example.label}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: ${example.label}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot
       target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0]; // [digit_0, digit_1]
-      console.log(`🎯 Manual Loss - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🎯 Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     }
-    const mse = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
-      sum + Math.pow(output - target[i], 2), 0) / 2;
-    currentNetworkState.current.loss = mse;
-    setLoss(mse);
+    
+    let calculatedLoss;
+    if (lossFunction === 'mse') {
+      // Mean Squared Error
+      calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
+        sum + Math.pow(output - target[i], 2), 0) / 2;
+    } else {
+      // Cross-Entropy Loss
+      calculatedLoss = -target.reduce((sum, t, i) => {
+        const output = Math.max(1e-15, Math.min(1 - 1e-15, currentNetworkState.current.outputActivations[i]));
+        return sum + t * Math.log(output);
+      }, 0);
+    }
+    
+    currentNetworkState.current.loss = calculatedLoss;
+    setLoss(calculatedLoss);
   };
 
   const backpropagationOutput = () => {
@@ -328,12 +343,19 @@ export default function BinaryDigitTrainer() {
       target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0]; // [digit_0, digit_1]
     }
     
-    // Calculate individual output deltas using PRE-ACTIVATION values (matching Python)
-    // δᵢ = (aᵢ - yᵢ) · σ'(zᵢ) where zᵢ is PRE-activation
-    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-      (output - target[i]) * sigmoidDerivative(currentNetworkState.current.outputPreActivations[i]));
+    // Calculate individual output deltas based on loss function
+    let outputErrors;
+    if (lossFunction === 'mse') {
+      // MSE: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ) where zᵢ is PRE-activation
+      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+        (output - target[i]) * sigmoidDerivative(currentNetworkState.current.outputPreActivations[i]));
+    } else {
+      // Cross-Entropy: δᵢ = (aᵢ - yᵢ) - simplified gradient
+      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+        output - target[i]);
+    }
     
-    console.log(`🔄 Backprop Output - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
+    console.log(`🔄 Backprop Output (${lossFunction.toUpperCase()}) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
     
     // Update output weights and biases for each output neuron
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
@@ -496,6 +518,7 @@ export default function BinaryDigitTrainer() {
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
     setCurrentTrainingIndex(0);
     setCurrentEpoch(1);
+    setLossFunction('mse'); // Reset to default loss function
   };
 
   // Dataset editor functions
@@ -913,6 +936,17 @@ export default function BinaryDigitTrainer() {
                       max="1.0"
                       className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                     />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Loss Function:</span>
+                    <select
+                      value={lossFunction}
+                      onChange={(e) => setLossFunction(e.target.value as 'mse' | 'crossentropy')}
+                      className="w-24 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
+                    >
+                      <option value="mse">MSE</option>
+                      <option value="crossentropy">Cross-Entropy</option>
+                    </select>
                   </div>
                   <div>Architecture: 81 → 24 → 2</div>
                   <div>Activation: Sigmoid</div>

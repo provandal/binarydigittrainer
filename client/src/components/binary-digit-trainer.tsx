@@ -201,7 +201,7 @@ export default function BinaryDigitTrainer() {
   const [showDebugDialog, setShowDebugDialog] = useState(false);
   const [debugHistory, setDebugHistory] = useState<{
     iteration: number;
-    label: number;
+    label: number[]; // Changed to number[] for one-hot format
     outputActivations: number[];
     outputErrors: number[];
     outputBiases: number[];

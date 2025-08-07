@@ -188,6 +188,7 @@ export default function BinaryDigitTrainer() {
   // Epoch loss tracking
   const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
   const currentEpochLoss = useRef<number[]>([]);
+  const [trainingCompleted, setTrainingCompleted] = useState(false);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -486,6 +487,8 @@ export default function BinaryDigitTrainer() {
     setTrainingHistory([]);
     setSelectedWeightBox(null);
     setWeightDialogIteration(0);
+    setTrainingCompleted(false);
+    setEpochLossHistory([]);
   };
 
   // Dataset editor functions
@@ -650,6 +653,7 @@ export default function BinaryDigitTrainer() {
           const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
           setCurrentTrainingIndex(nextIndex);
           setIsAutoTraining(false);
+          setTrainingCompleted(true);
         }, autoTrainingSpeed / 2);
       }
     }, autoTrainingSpeed);
@@ -672,6 +676,7 @@ export default function BinaryDigitTrainer() {
     // Reset epoch loss tracking
     setEpochLossHistory([]);
     currentEpochLoss.current = [];
+    setTrainingCompleted(false);
     
     let epochCount = 0;
     let currentExampleIndex = 0;
@@ -698,7 +703,7 @@ export default function BinaryDigitTrainer() {
         if (epochCount >= numberOfEpochs) {
           console.log(`Finished processing ${numberOfEpochs} epoch(s). Training history length:`, trainingHistoryStore.current.length);
           setIsAutoTraining(false);
-          setStep(0);
+          setTrainingCompleted(true);
           return;
         }
         
@@ -1129,7 +1134,7 @@ export default function BinaryDigitTrainer() {
               {/* Training Mode Toggle */}
               <div className="mb-4 flex gap-2">
                 <Button 
-                  onClick={() => setTrainingMode('manual')}
+                  onClick={() => { setTrainingMode('manual'); setTrainingCompleted(false); }}
                   variant={trainingMode === 'manual' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
@@ -1137,7 +1142,7 @@ export default function BinaryDigitTrainer() {
                   Manual Draw
                 </Button>
                 <Button 
-                  onClick={() => setTrainingMode('dataset')}
+                  onClick={() => { setTrainingMode('dataset'); setTrainingCompleted(false); }}
                   variant={trainingMode === 'dataset' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
@@ -1146,8 +1151,8 @@ export default function BinaryDigitTrainer() {
                 </Button>
               </div>
 
-              {/* Current Step Info - Show detailed info only when not auto-training */}
-              {!isAutoTraining ? (
+              {/* Current Step Info - Show detailed info only when not auto-training and not completed */}
+              {!isAutoTraining && !trainingCompleted ? (
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">
                   <div className="text-sm font-medium text-blue-900 mb-2">
                     Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
@@ -1163,13 +1168,16 @@ export default function BinaryDigitTrainer() {
                     <strong>Formula:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].formula : 'Click Next Step to begin'}
                   </div>
                 </div>
-              ) : (
+              ) : (isAutoTraining || trainingCompleted) ? (
                 <div className="mb-4 p-4 bg-purple-50 rounded-lg">
                   <div className="text-sm font-medium text-purple-900 mb-2">
-                    Automated Training in Progress
+                    {isAutoTraining ? 'Automated Training in Progress' : 'Training Complete'}
                   </div>
                   <div className="text-sm text-purple-800 mb-2">
-                    {numberOfEpochs > 1 ? `Epoch ${currentEpoch + 1} of ${numberOfEpochs}` : 'Processing training examples automatically'}
+                    {isAutoTraining 
+                      ? (numberOfEpochs > 1 ? `Epoch ${currentEpoch + 1} of ${numberOfEpochs}` : 'Processing training examples automatically')
+                      : `Completed ${numberOfEpochs} epoch(s) with ${trainingExamples.length} samples`
+                    }
                   </div>
                   
                   {/* Epoch Progress Bar (only show if multiple epochs) */}
@@ -1218,7 +1226,7 @@ export default function BinaryDigitTrainer() {
                     </div>
                   )}
                 </div>
-              )}
+              ) : null}
 
               {/* Navigation Controls */}
               <div className="space-y-2 mb-4">

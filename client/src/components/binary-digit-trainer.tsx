@@ -364,6 +364,7 @@ export default function BinaryDigitTrainer() {
         target = JSON.parse(labelStr);
       }
       console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentExampleIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🔍 Debug: Training examples array length: ${trainingExamples.length}, currentExampleIndex: ${currentExampleIndex}`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
@@ -801,12 +802,46 @@ export default function BinaryDigitTrainer() {
         console.log('runToNextSample completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
         // Update React step state to final step and then complete
         setStep(0);
-        // After completing all steps, move to next example
+        
+        // Add current loss to epoch tracking
+        currentEpochLoss.current.push(currentNetworkState.current.loss);
+        
+        // Move to next example
         setTimeout(() => {
+          if (shouldStopTraining.current) return;
+          
           const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
-          setCurrentExampleIndex(nextIndex);
-          setIsAutoTraining(false);
-          setTrainingCompleted(true);
+          console.log(`🔄 Moving from example ${currentExampleIndex} to ${nextIndex} (total: ${trainingExamples.length})`);
+          
+          if (nextIndex === 0) {
+            // Completed one epoch
+            const newEpoch = currentEpoch + 1;
+            console.log(`✅ Completed epoch ${currentEpoch}/${numberOfEpochs}`);
+            
+            // Calculate average loss for completed epoch
+            if (currentEpochLoss.current.length > 0) {
+              const avgLoss = currentEpochLoss.current.reduce((a, b) => a + b, 0) / currentEpochLoss.current.length;
+              setEpochLossHistory(prev => [...prev, { epoch: currentEpoch, averageLoss: avgLoss }]);
+              currentEpochLoss.current = []; // Reset for next epoch
+            }
+            
+            if (newEpoch <= numberOfEpochs) {
+              // Continue to next epoch
+              setCurrentEpoch(newEpoch);
+              setCurrentExampleIndex(0);
+              console.log(`🚀 Starting epoch ${newEpoch}/${numberOfEpochs}`);
+              runToNextSample();
+            } else {
+              // All epochs completed
+              console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+              setIsAutoTraining(false);
+              setTrainingCompleted(true);
+            }
+          } else {
+            // Continue with next example in current epoch
+            setCurrentExampleIndex(nextIndex);
+            runToNextSample();
+          }
         }, autoTrainingSpeed / 2);
       }
     }, autoTrainingSpeed);
@@ -831,7 +866,7 @@ export default function BinaryDigitTrainer() {
   const startMultiEpochTraining = () => {
     if (trainingExamples.length === 0) return;
     
-    console.log(`Starting processTrainingSet for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
+    console.log(`Starting multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
     shouldStopTraining.current = false;
     setIsAutoTraining(true);
@@ -842,100 +877,10 @@ export default function BinaryDigitTrainer() {
     setEpochLossHistory([]);
     currentEpochLoss.current = [];
     setTrainingCompleted(false);
-    
-    let epochCount = 1;
-    let currentExampleIndex = 0;
     setCurrentEpoch(1);
     
-    // Create shuffled copy for first epoch
-    let shuffledExamples = [...trainingExamples].sort(() => Math.random() - 0.5);
-    console.log(`Shuffled training examples for epoch ${epochCount}`);
-    
-    const processNextExample = () => {
-      if (currentExampleIndex >= shuffledExamples.length) {
-        // Finished one epoch - calculate and store average loss
-        if (currentEpochLoss.current.length > 0) {
-          const averageLoss = currentEpochLoss.current.reduce((sum, loss) => sum + loss, 0) / currentEpochLoss.current.length;
-          console.log(`Epoch ${epochCount} completed. Average loss: ${averageLoss.toFixed(6)}`);
-          
-          // Store epoch loss history
-          setEpochLossHistory(prev => [...prev, { epoch: epochCount, averageLoss }]);
-          
-          // Reset for next epoch
-          currentEpochLoss.current = [];
-        }
-        
-        epochCount++;
-        currentExampleIndex = 0;
-        setCurrentEpoch(epochCount);
-        
-        if (epochCount > numberOfEpochs) {
-          console.log(`Finished processing ${numberOfEpochs} epoch(s). Training history length:`, trainingHistoryStore.current.length);
-          setIsAutoTraining(false);
-          setTrainingCompleted(true);
-          return;
-        }
-        
-        // Create new shuffled copy for the new epoch
-        shuffledExamples = [...trainingExamples].sort(() => Math.random() - 0.5);
-        console.log(`Starting epoch ${epochCount} of ${numberOfEpochs} - Shuffled training examples`);
-      }
-      
-      console.log(`Epoch ${epochCount}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${shuffledExamples.length}`);
-      
-      // Set the current training index and run to next sample
-      setCurrentExampleIndex(currentExampleIndex);
-      
-      // Use the same logic as runToNextSample but continue to next example when done
-      const currentExample = shuffledExamples[currentExampleIndex];
-      setPixelGrid(currentExample.pattern as number[][]);
-      // Convert one-hot label back to integer for UI display
-      const oneHotLabel = currentExample.label as number[];
-      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
-      setStep(0);
-      
-      // Run through all 6 steps using nextStep() with forced step numbers
-      let stepCount = 0;
-      trainingIntervalRef.current = setInterval(() => {
-        // Check if training was stopped
-        if (shouldStopTraining.current) {
-          console.log('Training stopped during step processing');
-          if (trainingIntervalRef.current) {
-            clearInterval(trainingIntervalRef.current);
-            trainingIntervalRef.current = null;
-          }
-          return;
-        }
-        
-        if (stepCount < 6) {
-          nextStep(stepCount); // Force the step number
-          stepCount++;
-          
-          // After step 2 (loss calculation), capture the loss for epoch tracking
-          if (stepCount === 3) { // After step 2 completes (0-indexed)
-            const currentLoss = currentNetworkState.current.loss;
-            currentEpochLoss.current.push(currentLoss);
-            console.log(`Sample ${currentExampleIndex + 1}/${shuffledExamples.length} - Loss: ${currentLoss.toFixed(6)}`);
-          }
-        } else {
-          if (trainingIntervalRef.current) {
-            clearInterval(trainingIntervalRef.current);
-            trainingIntervalRef.current = null;
-          }
-          // Check if training was stopped before moving to next example
-          if (shouldStopTraining.current) {
-            console.log('Training stopped between examples');
-            return;
-          }
-          // Move to next example immediately (no delay between examples)
-          currentExampleIndex++;
-          processNextExample();
-        }
-      }, autoTrainingSpeed);
-    };
-    
-    // Start processing
-    processNextExample();
+    // Start the recursive training process
+    runToNextSample();
   };
 
   // Cleanup interval on unmount

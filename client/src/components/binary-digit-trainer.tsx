@@ -911,7 +911,7 @@ export default function BinaryDigitTrainer() {
   const runEpochs = async () => {
     if (trainingExamples.length === 0) return;
     
-    console.log(`🚀 Starting async multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
+    console.log(`🚀 NEW ASYNC runEpochs starting for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
     setIsAutoTraining(true);
     setTrainingCompleted(false);
@@ -934,7 +934,7 @@ export default function BinaryDigitTrainer() {
         const oneHot = parseLabel(example.label);
         const uiDigit = oneHot[0] === 1 ? 0 : 1;
         
-        console.log(`📊 Epoch ${epoch}/${numberOfEpochs}, Example ${idx + 1}/${trainingExamples.length}, Label: [${oneHot}]`);
+        console.log(`📊 Epoch ${epoch}/${numberOfEpochs}, Example ${idx + 1}/${trainingExamples.length}, ExampleID: ${example.id}, Label: [${oneHot}]`);
         
         // Snapshot the sample before running steps (eliminates async state issues)
         setPixelGrid(pattern);
@@ -944,6 +944,7 @@ export default function BinaryDigitTrainer() {
         // Cache target and inputs in network state for training logic
         currentNetworkState.current.currentTarget = oneHot;
         currentNetworkState.current.inputs = pattern.flat();
+        console.log(`🔄 CACHE SET in runEpochs: currentTarget = [${oneHot}], ExampleID = ${example.id}`);
         
         const completed = await runStepsForCurrentSample();
         if (!completed) break;

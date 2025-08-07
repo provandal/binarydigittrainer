@@ -600,7 +600,7 @@ export default function BinaryDigitTrainer() {
   const addDatasetExample = () => {
     const newExample = {
       pattern: Array(9).fill(0).map(() => Array(9).fill(0)),
-      label: 0
+      label: [1, 0] // Default to digit 0 in one-hot format
     };
     createExampleMutation.mutate(newExample);
   };
@@ -615,9 +615,11 @@ export default function BinaryDigitTrainer() {
   const updateDatasetExample = (index: number, pattern: number[][] | number[], label: number) => {
     const example = trainingExamples[index];
     if (example?.id) {
+      // Convert integer label to one-hot format
+      const oneHotLabel = label === 0 ? [1, 0] : [0, 1];
       updateExampleMutation.mutate({ 
         id: example.id, 
-        example: { pattern, label } 
+        example: { pattern, label: oneHotLabel } 
       });
     }
   };
@@ -1825,21 +1827,11 @@ export default function BinaryDigitTrainer() {
                 <p className="text-sm text-gray-600">
                   {trainingExamples.length} examples total • 
                   {trainingExamples.filter((ex: TrainingExample) => {
-                    const label = ex.label;
-                    // Handle both integer and one-hot array formats
-                    if (Array.isArray(label)) {
-                      return (label as number[])[0] === 1; // [1,0] = digit 0
-                    } else {
-                      return label === 0; // integer 0 = digit 0
-                    }
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[0] === 1; // [1,0] = digit 0
                   }).length} zeros, {trainingExamples.filter((ex: TrainingExample) => {
-                    const label = ex.label;
-                    // Handle both integer and one-hot array formats
-                    if (Array.isArray(label)) {
-                      return (label as number[])[1] === 1; // [0,1] = digit 1
-                    } else {
-                      return label === 1; // integer 1 = digit 1
-                    }
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[1] === 1; // [0,1] = digit 1
                   }).length} ones
                 </p>
                 <Button onClick={addDatasetExample} size="sm">

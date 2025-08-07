@@ -238,7 +238,9 @@ export default function BinaryDigitTrainer() {
       // Convert flat array to 2D grid if needed
       const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
       setPixelGrid(grid);
-      setSelectedLabel(trainingExamples[datasetIndex].label);
+      // Convert one-hot label back to integer for UI display
+      const oneHotLabel = trainingExamples[datasetIndex].label as number[];
+      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     }
   }, [trainingMode, datasetIndex, trainingExamples]);
 
@@ -328,10 +330,10 @@ export default function BinaryDigitTrainer() {
   const calculateLoss = () => {
     let target;
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      // Use one-hot targets from training data: [digit_0, digit_1] - fresh array each time
+      // Use one-hot targets directly from training data (already one-hot)
       const example = trainingExamples[datasetIndex];
-      target = example.label === 0 ? [1, 0] : [0, 1];
-      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: ${example.label}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      target = example.label as number[]; // Already one-hot: [1,0] or [0,1]
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: [${example.label}], Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
@@ -360,9 +362,9 @@ export default function BinaryDigitTrainer() {
   const backpropagationOutput = () => {
     let target;
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      // Use one-hot targets from training data: [digit_0, digit_1] - fresh array each time
+      // Use one-hot targets directly from training data (already one-hot)
       const example = trainingExamples[datasetIndex];
-      target = example.label === 0 ? [1, 0] : [0, 1];
+      target = example.label as number[]; // Already one-hot: [1,0] or [0,1]
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
@@ -443,29 +445,27 @@ export default function BinaryDigitTrainer() {
     // Determine current label based on training mode and state
     if (trainingMode === 'dataset') {
       if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
-        // During automated training, use the current training index
-        currentLabel = trainingExamples[currentTrainingIndex].label;
-        console.log(`🔍 Debug: Auto training - currentTrainingIndex: ${currentTrainingIndex}, label: ${currentLabel}`);
+        // During automated training, use the current training index (already one-hot)
+        currentOneHotTarget = trainingExamples[currentTrainingIndex].label;
+        console.log(`🔍 Debug: Auto training - currentTrainingIndex: ${currentTrainingIndex}, label: [${currentOneHotTarget}]`);
       } else if (trainingExamples[datasetIndex]) {
-        // During manual dataset mode, use the dataset index
-        currentLabel = trainingExamples[datasetIndex].label;
-        console.log(`🔍 Debug: Manual dataset - datasetIndex: ${datasetIndex}, label: ${currentLabel}`);
+        // During manual dataset mode, use the dataset index (already one-hot)
+        currentOneHotTarget = trainingExamples[datasetIndex].label;
+        console.log(`🔍 Debug: Manual dataset - datasetIndex: ${datasetIndex}, label: [${currentOneHotTarget}]`);
       } else {
-        currentLabel = selectedLabel;
-        console.log(`🔍 Debug: Fallback to selectedLabel: ${currentLabel}`);
+        // Convert selectedLabel to one-hot for consistency
+        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
       }
     } else {
-      // Manual drawing mode, use selected label
-      currentLabel = selectedLabel;
-      console.log(`🔍 Debug: Manual drawing - selectedLabel: ${currentLabel}`);
+      // Manual drawing mode, convert selected label to one-hot
+      currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+      console.log(`🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
     }
-    
-    // Convert integer label to one-hot target format for display
-    currentOneHotTarget = currentLabel === 0 ? [1, 0] : [0, 1];
     
     const debugEntry = {
       iteration: trainingHistoryStore.current.length,
-      label: currentOneHotTarget, // Now showing one-hot format instead of integer
+      label: currentOneHotTarget as number[], // Now showing one-hot format instead of integer
       outputActivations: [...currentNetworkState.current.outputActivations],
       outputErrors: [...currentNetworkState.current.outputErrors],
       outputBiases: [...currentNetworkState.current.outputBiases],
@@ -660,7 +660,7 @@ export default function BinaryDigitTrainer() {
       
       updateExampleMutation.mutate({ 
         id: example.id, 
-        example: { pattern: newPattern, label: example.label } 
+        example: { pattern: newPattern, label: example.label as number[] } 
       });
     } else {
       console.warn(`No valid example found at index ${exampleIndex}`, { example, trainingExamples });
@@ -738,7 +738,9 @@ export default function BinaryDigitTrainer() {
     // Convert flat array to 2D grid if needed
     const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
     setPixelGrid(grid);
-    setSelectedLabel(currentExample.label);
+    // Convert one-hot label back to integer for UI display
+    const oneHotLabel = currentExample.label as number[];
+    setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     setStep(0); // Start at step 0
     
     // Run through all 6 steps automatically using nextStep() with forced step numbers
@@ -841,7 +843,9 @@ export default function BinaryDigitTrainer() {
       // Use the same logic as runToNextSample but continue to next example when done
       const currentExample = shuffledExamples[currentExampleIndex];
       setPixelGrid(currentExample.pattern as number[][]);
-      setSelectedLabel(currentExample.label);
+      // Convert one-hot label back to integer for UI display
+      const oneHotLabel = currentExample.label as number[];
+      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
       setStep(0);
       
       // Run through all 6 steps using nextStep() with forced step numbers
@@ -1521,9 +1525,9 @@ export default function BinaryDigitTrainer() {
                       Training Dataset
                     </div>
                     <div className="text-xs text-green-700">
-                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {trainingExamples[datasetIndex]?.label}
+                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {(trainingExamples[datasetIndex]?.label as number[])?.[0] === 1 ? '0' : '1'}
                       <br />
-                      One-hot: [{trainingExamples[datasetIndex]?.label === 0 ? '1,0' : '0,1'}] (Neuron0: digit0, Neuron1: digit1)
+                      One-hot: [{(trainingExamples[datasetIndex]?.label as number[])?.join(',')}] (Neuron0: digit0, Neuron1: digit1)
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -1836,7 +1840,7 @@ export default function BinaryDigitTrainer() {
                             <Label htmlFor={`label-${index}`} className="text-sm">Label:</Label>
                             <select
                               id={`label-${index}`}
-                              value={example.label}
+                              value={(example.label as number[])?.[0] === 1 ? '0' : '1'}
                               onChange={(e) => updateDatasetExample(index, example.pattern as number[][] | number[], parseInt(e.target.value))}
                               className="px-2 py-1 border rounded text-sm"
                             >
@@ -1878,7 +1882,7 @@ export default function BinaryDigitTrainer() {
                         
                         <div className="text-xs text-gray-600">
                           <div>Pattern: [{pixelValues.map(v => v.toString()).join(', ')}]</div>
-                          <div className="mt-1">Click pixels to toggle. Target: {example.label}</div>
+                          <div className="mt-1">Click pixels to toggle. Target: {(example.label as number[])?.[0] === 1 ? '0' : '1'}</div>
                           <div className="mt-1">Each pixel is 0 (white) or 1 (black)</div>
                         </div>
                       </div>

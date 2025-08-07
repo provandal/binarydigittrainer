@@ -12,7 +12,7 @@ export const users = pgTable("users", {
 export const trainingExamples = pgTable("training_examples", {
   id: serial("id").primaryKey(),
   pattern: json("pattern").notNull(),
-  label: integer("label").notNull(),
+  label: json("label").notNull(), // Changed to json to store one-hot arrays [1,0] or [0,1]
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

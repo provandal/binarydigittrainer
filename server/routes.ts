@@ -112,11 +112,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         target: z.array(z.number()).length(2)
       })).parse(req.body);
 
-      // Convert one-hot encoded targets to integer labels
+      // Store one-hot targets directly (no conversion to integers)
       const examples = bulkData.map(item => ({
         pattern: item.input,
-        // Convert [1,0] to 0 (digit "0"), [0,1] to 1 (digit "1")
-        label: item.target[0] === 1 ? 0 : 1
+        label: item.target // Store one-hot array directly
       }));
 
       // Clear existing data first

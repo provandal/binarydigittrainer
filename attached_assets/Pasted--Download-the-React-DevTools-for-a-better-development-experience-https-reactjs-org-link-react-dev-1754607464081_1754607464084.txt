@@ -1,0 +1,709 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js:335
+ Starting multi-epoch training for 1 epoch(s) with 106 examples
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.570,0.553]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1054,0.1366], PreActivations: [0.282,0.211]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 1
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.582,0.530]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1016,0.1321], PreActivations: [0.333,0.122]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 2
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.607,0.504]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0938,0.1259], PreActivations: [0.434,0.015]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 3
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.624,0.480]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0884,0.1199], PreActivations: [0.505,-0.079]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 4
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.639,0.458]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0832,0.1137], PreActivations: [0.572,-0.168]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 5
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.654,0.437]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0784,0.1075], PreActivations: [0.636,-0.254]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 6
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.667,0.417]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0738,0.1014], PreActivations: [0.696,-0.335]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 7
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.680,0.398]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0696,0.0955], PreActivations: [0.754,-0.412]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 8
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.692,0.381]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0657,0.0899], PreActivations: [0.808,-0.485]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 9
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.703,0.365]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0621,0.0846], PreActivations: [0.860,-0.554]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 10
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.713,0.350]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0587,0.0796], PreActivations: [0.910,-0.620]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 11
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.723,0.336]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0556,0.0749], PreActivations: [0.957,-0.682]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 12
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.732,0.323]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0527,0.0706], PreActivations: [1.003,-0.741]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 13
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.740,0.311]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0500,0.0665], PreActivations: [1.046,-0.797]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 14
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.748,0.299]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0476,0.0628], PreActivations: [1.087,-0.850]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 15
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.755,0.289]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0453,0.0594], PreActivations: [1.127,-0.901]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 16
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.762,0.279]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0431,0.0562], PreActivations: [1.165,-0.949]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 17
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.769,0.270]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0411,0.0532], PreActivations: [1.201,-0.994]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 18
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.775,0.262]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0393,0.0505], PreActivations: [1.236,-1.038]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 19
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.781,0.254]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0376,0.0480], PreActivations: [1.270,-1.080]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 20
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.786,0.246]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0360,0.0456], PreActivations: [1.302,-1.120]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 21
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.791,0.239]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0345,0.0435], PreActivations: [1.333,-1.158]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 22
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.796,0.232]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0330,0.0415], PreActivations: [1.363,-1.195]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 23
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.801,0.226]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0317,0.0396], PreActivations: [1.392,-1.230]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 24
+ 🔄 Moving from example 0 to 1 (total: 106)
+ Starting runToNextSampleLegacy for example index: 0
+ Loading example for runToNextSampleLegacy: Array(2)
+ Parsed label for runToNextSampleLegacy: Array(2)
+ runToNextSampleLegacy - calling nextStep(), step: 0
+ nextStep executing step: 0
+ 🛑 Training stopped by user
+ runToNextSampleLegacy - calling nextStep(), step: 1
+ nextStep executing step: 1
+ runToNextSampleLegacy - calling nextStep(), step: 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.805,0.220]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ runToNextSampleLegacy - calling nextStep(), step: 3
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0305,0.0379], PreActivations: [1.420,-1.264]
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ runToNextSampleLegacy - calling nextStep(), step: 4
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ runToNextSampleLegacy - calling nextStep(), step: 5
+ nextStep executing step: 5
+ runToNextSampleLegacy completed all 6 steps. Training history length: 25
+89b42a09-429f-4d5c-9….worf.replit.dev/:1 Uncaught (in promise) 
+89b42a09-429f-4d5c-9….worf.replit.dev/:1 Uncaught (in promise) 
+89b42a09-429f-4d5c-9….worf.replit.dev/:1 Uncaught (in promise) 
+89b42a09-429f-4d5c-9….worf.replit.dev/:1 Uncaught (in promise) 
+ 🚀 Single sample training - Example 0, Label: [1,0]
+ 📌 CACHE SET: currentTarget = [1,0], example index = 0
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.462,0.509]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1338,0.1272], PreActivations: [-0.153,0.036]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 🚀 Single sample training - Example 1, Label: [0,1]
+ 📌 CACHE SET: currentTarget = [0,1], example index = 1
+ 🔄 Running step 0 for sample 1
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 1
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 1
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 1 (manual), ExampleID: 2, RawLabel: [0,1], ParsedTarget: [0,1], Outputs: [0.477,0.481]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 1
+ 🔄 Running step 3 for sample 1
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [0,1], Errors: [0.1191,-0.1295], PreActivations: [-0.091,-0.075]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 1, ExampleID: 2, rawLabel: [0,1], parsedLabel: [0,1]
+ 🔄 Running step 4 for sample 1
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 1
+ nextStep executing step: 5
+ 🚀 Single sample training - Example 2, Label: [1,0]
+ 📌 CACHE SET: currentTarget = [1,0], example index = 2
+ 🔄 Running step 0 for sample 2
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 2
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 2
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 2 (manual), ExampleID: 3, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.467,0.510]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 2
+ 🔄 Running step 3 for sample 2
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1327,0.1274], PreActivations: [-0.132,0.040]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 2, ExampleID: 3, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 2
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 2
+ nextStep executing step: 5
+ 🚀 Single sample training - Example 3, Label: [0,1]
+ 📌 CACHE SET: currentTarget = [0,1], example index = 3
+ 🔄 Running step 0 for sample 3
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 3
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 3
+ nextStep executing step: 2
+binary-digit-trainer.tsx:403 🎯 Dataset Loss (MSE) - Index: 3 (manual), ExampleID: 4, RawLabel: [0,1], ParsedTarget: [0,1], Outputs: [0.479,0.483]
+binary-digit-trainer.tsx:404 🔍 Debug: Training examples array length: 106, currentExampleIndex: 3
+binary-digit-trainer.tsx:826 🔄 Running step 3 for sample 3
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [0,1], Errors: [0.1196,-0.1291], PreActivations: [-0.084,-0.068]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 3, ExampleID: 4, rawLabel: [0,1], parsedLabel: [0,1]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 3
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 3
+binary-digit-trainer.tsx:575 nextStep executing step: 5
+binary-digit-trainer.tsx:1607 🚀 Single sample training - Example 4, Label: [1,0]
+binary-digit-trainer.tsx:1614 📌 CACHE SET: currentTarget = [1,0], example index = 4
+binary-digit-trainer.tsx:826 🔄 Running step 0 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 0
+binary-digit-trainer.tsx:826 🔄 Running step 1 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 1
+binary-digit-trainer.tsx:826 🔄 Running step 2 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 2
+binary-digit-trainer.tsx:403 🎯 Dataset Loss (MSE) - Index: 4 (manual), ExampleID: 5, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.469,0.512]
+binary-digit-trainer.tsx:404 🔍 Debug: Training examples array length: 106, currentExampleIndex: 4
+binary-digit-trainer.tsx:826 🔄 Running step 3 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1323,0.1279], PreActivations: [-0.126,0.048]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 4, ExampleID: 5, rawLabel: [1,0], parsedLabel: [1,0]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 4
+binary-digit-trainer.tsx:575 nextStep executing step: 5
+binary-digit-trainer.tsx:1607 🚀 Single sample training - Example 5, Label: [0,1]
+binary-digit-trainer.tsx:1614 📌 CACHE SET: currentTarget = [0,1], example index = 5
+binary-digit-trainer.tsx:826 🔄 Running step 0 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 0
+binary-digit-trainer.tsx:826 🔄 Running step 1 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 1
+binary-digit-trainer.tsx:826 🔄 Running step 2 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 2
+binary-digit-trainer.tsx:403 🎯 Dataset Loss (MSE) - Index: 5 (manual), ExampleID: 6, RawLabel: [0,1], ParsedTarget: [0,1], Outputs: [0.484,0.484]
+binary-digit-trainer.tsx:404 🔍 Debug: Training examples array length: 106, currentExampleIndex: 5
+binary-digit-trainer.tsx:826 🔄 Running step 3 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [0,1], Errors: [0.1209,-0.1290], PreActivations: [-0.064,-0.065]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 5, ExampleID: 6, rawLabel: [0,1], parsedLabel: [0,1]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 5
+binary-digit-trainer.tsx:575 nextStep executing step: 5

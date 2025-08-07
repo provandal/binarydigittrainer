@@ -998,8 +998,8 @@ export default function BinaryDigitTrainer() {
     setTrainingCompleted(false);
     setCurrentEpoch(1);
     
-    // Start the recursive training process
-    runToNextSampleLegacy();
+    // Start the async training process
+    runEpochs();
   };
 
   // Cleanup interval on unmount

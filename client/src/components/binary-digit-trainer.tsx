@@ -285,9 +285,11 @@ export default function BinaryDigitTrainer() {
       // Use one-hot targets from training data: [digit_1, digit_0]
       const example = trainingExamples[datasetIndex];
       target = example.label === 1 ? [1, 0] : [0, 1];
+      console.log(`🎯 Dataset Loss - Label: ${example.label}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot
       target = [selectedLabel === 1 ? 1 : 0, selectedLabel === 0 ? 1 : 0]; // [digit_1, digit_0]
+      console.log(`🎯 Manual Loss - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     }
     const mse = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
       sum + Math.pow(output - target[i], 2), 0) / 2;
@@ -309,6 +311,8 @@ export default function BinaryDigitTrainer() {
     // Calculate individual output deltas: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ)
     const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
       (output - target[i]) * (output * (1 - output))); // sigmoid derivative: σ'(z) = σ(z) * (1 - σ(z))
+    
+    console.log(`🔄 Backprop Output - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}]`);
     
     // Update output weights and biases for each output neuron
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
@@ -1235,6 +1239,8 @@ export default function BinaryDigitTrainer() {
                     </div>
                     <div className="text-xs text-green-700">
                       Example {datasetIndex + 1} of {trainingExamples.length} • Target: {trainingExamples[datasetIndex]?.label}
+                      <br />
+                      One-hot: [{trainingExamples[datasetIndex]?.label === 1 ? '1,0' : '0,1'}] (Neuron0: digit1, Neuron1: digit0)
                     </div>
                   </div>
                   <div className="flex gap-2">

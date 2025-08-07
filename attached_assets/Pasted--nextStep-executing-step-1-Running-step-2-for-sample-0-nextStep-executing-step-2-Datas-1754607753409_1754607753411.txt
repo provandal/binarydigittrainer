@@ -1,0 +1,1000 @@
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.814,0.177]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0281,0.0259], PreActivations: [1.478,-1.535]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 35/106, Label: [1,0]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.819,0.176]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0269,0.0255], PreActivations: [1.507,-1.544]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 36/106, Label: [0,1]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.822,0.171]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0262,0.0241], PreActivations: [1.527,-1.582]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 37/106, Label: [1,0]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.822,0.172]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0260,0.0246], PreActivations: [1.532,-1.568]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 38/106, Label: [0,1]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.826,0.167]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0250,0.0231], PreActivations: [1.558,-1.610]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 39/106, Label: [1,0]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.827,0.171]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0246,0.0242], PreActivations: [1.567,-1.580]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 40/106, Label: [0,1]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.833,0.160]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0232,0.0215], PreActivations: [1.607,-1.658]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 41/106, Label: [1,0]
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🛑 Training stopped by user
+ ✅ Epoch 1 completed. Average loss: 0.0824
+ 🎉 Training completed! All 1 epochs finished.
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=1da9a504:335
+ Starting multi-epoch training for 1 epoch(s) with 106 examples
+ 🚀 NEW ASYNC runEpochs starting for 1 epoch(s) with 106 examples
+ 📊 Epoch 1/1, Example 1/106, ExampleID: 1, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 1
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.832,0.164]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0236,0.0225], PreActivations: [1.597,-1.628]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 2/106, ExampleID: 2, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 2
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.836,0.157]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0226,0.0208], PreActivations: [1.626,-1.679]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 3/106, ExampleID: 3, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 3
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.839,0.157]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0217,0.0208], PreActivations: [1.652,-1.681]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 4/106, ExampleID: 4, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 4
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.842,0.151]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0210,0.0193], PreActivations: [1.673,-1.728]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 5/106, ExampleID: 5, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 5
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.842,0.153]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0210,0.0197], PreActivations: [1.673,-1.714]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 6/106, ExampleID: 6, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 6
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.847,0.145]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0198,0.0179], PreActivations: [1.712,-1.776]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 7/106, ExampleID: 7, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 7
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.847,0.150]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0198,0.0192], PreActivations: [1.712,-1.731]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 8/106, ExampleID: 8, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 8
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.851,0.145]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0190,0.0180], PreActivations: [1.740,-1.774]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 9/106, ExampleID: 9, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 9
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.852,0.146]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0186,0.0182], PreActivations: [1.752,-1.765]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 10/106, ExampleID: 10, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 10
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.855,0.140]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0179,0.0169], PreActivations: [1.777,-1.815]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 11/106, ExampleID: 11, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 11
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.853,0.147]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0185,0.0184], PreActivations: [1.755,-1.761]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 12/106, ExampleID: 12, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 12
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.859,0.136]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0171,0.0161], PreActivations: [1.805,-1.845]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 13/106, ExampleID: 13, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 13
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.858,0.140]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0172,0.0168], PreActivations: [1.801,-1.816]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 14/106, ExampleID: 14, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 14
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.862,0.132]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0164,0.0151], PreActivations: [1.834,-1.882]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 15/106, ExampleID: 15, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 15
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.861,0.137]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0166,0.0163], PreActivations: [1.826,-1.837]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 16/106, ExampleID: 16, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 16
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.867,0.131]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0153,0.0149], PreActivations: [1.877,-1.894]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 17/106, ExampleID: 17, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 17
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.865,0.132]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0157,0.0151], PreActivations: [1.859,-1.883]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 18/106, ExampleID: 18, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 18
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.868,0.128]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0151,0.0142], PreActivations: [1.886,-1.923]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 19/106, ExampleID: 19, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 19
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 40
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 40
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 40 (manual), ExampleID: 41, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.869,0.126]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 40
+ 🔄 Running step 3 for sample 40
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0149,0.0139], PreActivations: [1.895,-1.934]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 40, ExampleID: 41, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 40
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 40
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 20/106, ExampleID: 20, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 20
+ 🔄 Running step 0 for sample 40
+ nextStep executing step: 0
+ 🛑 Training stopped by user
+ ✅ Epoch 1 completed. Average loss: 0.0212
+ 🎉 Training completed! All 1 epochs finished.
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ @radix-ui_react-dialog.js?v=1da9a504:335
+ Starting multi-epoch training for 1 epoch(s) with 106 examples
+ 🚀 NEW ASYNC runEpochs starting for 1 epoch(s) with 106 examples
+ 📊 Epoch 1/1, Example 1/106, ExampleID: 1, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 1
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.462,0.550]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1337,0.1361], PreActivations: [-0.153,0.200]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 2/106, ExampleID: 2, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 2
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.487,0.527]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1282,0.1313], PreActivations: [-0.053,0.107]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 3/106, ExampleID: 3, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 3
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.506,0.503]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1234,0.1257], PreActivations: [0.026,0.011]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 4/106, ExampleID: 4, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 4
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.532,0.482]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1164,0.1205], PreActivations: [0.130,-0.070]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 5/106, ExampleID: 5, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 5
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.549,0.459]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1116,0.1140], PreActivations: [0.197,-0.164]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 6/106, ExampleID: 6, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 6
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.572,0.446]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1047,0.1102], PreActivations: [0.291,-0.217]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 7/106, ExampleID: 7, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 7
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.585,0.422]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.1007,0.1029], PreActivations: [0.344,-0.315]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 8/106, ExampleID: 8, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 8
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.608,0.405]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0935,0.0975], PreActivations: [0.438,-0.386]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 9/106, ExampleID: 9, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 9
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.622,0.386]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0890,0.0913], PreActivations: [0.497,-0.466]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 10/106, ExampleID: 10, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 10
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.639,0.373]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0834,0.0872], PreActivations: [0.569,-0.520]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 11/106, ExampleID: 11, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 11
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.653,0.355]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0787,0.0812], PreActivations: [0.631,-0.598]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 12/106, ExampleID: 12, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 12
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.665,0.345]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0747,0.0779], PreActivations: [0.685,-0.642]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 13/106, ExampleID: 13, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 13
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.675,0.330]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0711,0.0728], PreActivations: [0.733,-0.710]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 14/106, ExampleID: 14, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 14
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.687,0.321]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0673,0.0700], PreActivations: [0.787,-0.749]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 15/106, ExampleID: 15, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 15
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.696,0.307]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0644,0.0652], PreActivations: [0.827,-0.817]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 16/106, ExampleID: 16, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 16
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.707,0.297]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0607,0.0622], PreActivations: [0.881,-0.859]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 17/106, ExampleID: 17, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 17
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.719,0.287]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0568,0.0586], PreActivations: [0.939,-0.912]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 18/106, ExampleID: 18, Label: [0,1]
+ 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 18
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.726,0.281]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+ nextStep executing step: 3
+ 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0545,0.0568], PreActivations: [0.974,-0.938]
+ 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+ 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+ 🔄 Running step 4 for sample 0
+ nextStep executing step: 4
+ Executing case 4 - backpropagation hidden (input→hidden weights)
+ Captured training history after both backprop steps: Object
+ 🔄 Running step 5 for sample 0
+ nextStep executing step: 5
+ 📊 Epoch 1/1, Example 19/106, ExampleID: 19, Label: [1,0]
+ 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 19
+ 🔄 Running step 0 for sample 0
+ nextStep executing step: 0
+ 🔄 Running step 1 for sample 0
+ nextStep executing step: 1
+ 🔄 Running step 2 for sample 0
+ nextStep executing step: 2
+ 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.733,0.267]
+ 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+ 🔄 Running step 3 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0524,0.0523], PreActivations: [1.008,-1.009]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 5
+binary-digit-trainer.tsx:937 📊 Epoch 1/1, Example 20/106, ExampleID: 20, Label: [0,1]
+binary-digit-trainer.tsx:947 🔄 CACHE SET in runEpochs: currentTarget = [0,1], ExampleID = 20
+binary-digit-trainer.tsx:826 🔄 Running step 0 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 0
+binary-digit-trainer.tsx:826 🔄 Running step 1 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 1
+binary-digit-trainer.tsx:826 🔄 Running step 2 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 2
+binary-digit-trainer.tsx:403 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.741,0.265]
+binary-digit-trainer.tsx:404 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+binary-digit-trainer.tsx:826 🔄 Running step 3 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0498,0.0517], PreActivations: [1.050,-1.019]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=0,1
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 5
+binary-digit-trainer.tsx:937 📊 Epoch 1/1, Example 21/106, ExampleID: 21, Label: [1,0]
+binary-digit-trainer.tsx:947 🔄 CACHE SET in runEpochs: currentTarget = [1,0], ExampleID = 21
+binary-digit-trainer.tsx:826 🔄 Running step 0 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 0
+binary-digit-trainer.tsx:826 🔄 Running step 1 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 1
+binary-digit-trainer.tsx:826 🔄 Running step 2 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 2
+binary-digit-trainer.tsx:403 🎯 Dataset Loss (MSE) - Index: 0 (manual), ExampleID: 1, RawLabel: [1,0], ParsedTarget: [1,0], Outputs: [0.749,0.252]
+binary-digit-trainer.tsx:404 🔍 Debug: Training examples array length: 106, currentExampleIndex: 0
+binary-digit-trainer.tsx:826 🔄 Running step 3 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 3
+binary-digit-trainer.tsx:470 🔄 Backprop Output (MSE) - Target: [1,0], Errors: [-0.0473,0.0476], PreActivations: [1.092,-1.086]
+binary-digit-trainer.tsx:535 🔍 Debug: NOT using cached target - isAutoTraining=false, cachedTarget=1,0
+binary-digit-trainer.tsx:542 🔍 Debug: Dataset mode - currentExampleIndex: 0, ExampleID: 1, rawLabel: [1,0], parsedLabel: [1,0]
+binary-digit-trainer.tsx:826 🔄 Running step 4 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 4
+binary-digit-trainer.tsx:592 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:613 Captured training history after both backprop steps: Object
+binary-digit-trainer.tsx:826 🔄 Running step 5 for sample 0
+binary-digit-trainer.tsx:575 nextStep executing step: 5
+binary-digit-trainer.tsx:976 🛑 Training stopped by user
+binary-digit-trainer.tsx:959 ✅ Epoch 1 completed. Average loss: 0.1448
+binary-digit-trainer.tsx:967 🎉 Training completed! All 1 epochs finished.

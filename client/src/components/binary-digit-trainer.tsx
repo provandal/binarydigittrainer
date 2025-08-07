@@ -196,6 +196,17 @@ export default function BinaryDigitTrainer() {
   const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
   const currentEpochLoss = useRef<number[]>([]);
   const [trainingCompleted, setTrainingCompleted] = useState(false);
+  
+  // Debug info display
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<{
+    label: number;
+    outputActivations: number[];
+    outputErrors: number[];
+    outputBiases: number[];
+    loss: number;
+    step: number;
+  } | null>(null);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -338,6 +349,22 @@ export default function BinaryDigitTrainer() {
     
     currentNetworkState.current.loss = calculatedLoss;
     setLoss(calculatedLoss);
+    
+    // Update debug info if panel is open
+    if (showDebugInfo) {
+      const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
+        ? trainingExamples[datasetIndex].label 
+        : selectedLabel;
+      
+      setDebugInfo({
+        label: currentLabel,
+        outputActivations: [...currentNetworkState.current.outputActivations],
+        outputErrors: [...currentNetworkState.current.outputErrors],
+        outputBiases: [...currentNetworkState.current.outputBiases],
+        loss: calculatedLoss,
+        step: step
+      });
+    }
   };
 
   const backpropagationOutput = () => {
@@ -1192,6 +1219,41 @@ export default function BinaryDigitTrainer() {
                     </g>
                   ))}
 
+                  {/* Debug Info Icon */}
+                  <g className="debug-icon cursor-pointer" onClick={() => {
+                    setShowDebugInfo(!showDebugInfo);
+                    if (!showDebugInfo) {
+                      // Capture current debug info when opening
+                      const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
+                        ? trainingExamples[datasetIndex].label 
+                        : selectedLabel;
+                      
+                      setDebugInfo({
+                        label: currentLabel,
+                        outputActivations: [...currentNetworkState.current.outputActivations],
+                        outputErrors: [...currentNetworkState.current.outputErrors],
+                        outputBiases: [...currentNetworkState.current.outputBiases],
+                        loss: currentNetworkState.current.loss,
+                        step: step
+                      });
+                    }
+                  }}>
+                    {/* Debug icon background */}
+                    <circle
+                      cx="680"
+                      cy="25"
+                      r="15"
+                      fill={showDebugInfo ? "#3B82F6" : "#6B7280"}
+                      stroke={showDebugInfo ? "#1D4ED8" : "#4B5563"}
+                      strokeWidth="2"
+                      opacity="0.9"
+                    />
+                    {/* Info icon (i) */}
+                    <text x="680" y="31" fontSize="16" fill="white" textAnchor="middle" fontWeight="bold">
+                      i
+                    </text>
+                  </g>
+
                   {/* Legend */}
                   <g className="legend">
                     <text x="38" y="1200" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
@@ -1199,6 +1261,11 @@ export default function BinaryDigitTrainer() {
                     <line x1="46" y1="1220" x2="54" y2="1220" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                     <line x1="50" y1="1216" x2="50" y2="1224" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                     <text x="65" y="1225" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
+                    
+                    {/* Debug icon legend */}
+                    <circle cx="50" cy="1245" r="8" fill="#6B7280" stroke="#4B5563" strokeWidth="1.5"/>
+                    <text x="50" y="1250" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">i</text>
+                    <text x="65" y="1250" fontSize="13" fill="#666">Click info button (top right) to view network debug information</text>
                   </g>
                 </svg>
               </div>
@@ -1218,6 +1285,53 @@ export default function BinaryDigitTrainer() {
                   </div>
                 </div>
               </div>
+              
+              {/* Debug Information Panel */}
+              {showDebugInfo && debugInfo && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-blue-800">Debug Information</h3>
+                    <button 
+                      onClick={() => setShowDebugInfo(false)}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 text-xs">
+                    <div>
+                      <span className="font-medium text-blue-700">Label:</span>
+                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.label}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">Step:</span>
+                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.step}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">Loss:</span>
+                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.loss.toFixed(6)}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">Output Activations:</span>
+                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
+                        [{debugInfo.outputActivations.map(a => a.toFixed(4)).join(', ')}]
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">Output Errors:</span>
+                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
+                        [{debugInfo.outputErrors.map(e => e.toFixed(4)).join(', ')}]
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">Output Biases:</span>
+                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
+                        [{debugInfo.outputBiases.map(b => b.toFixed(4)).join(', ')}]
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

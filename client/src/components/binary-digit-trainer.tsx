@@ -198,6 +198,7 @@ export default function BinaryDigitTrainer() {
   
   // Training control refs
   const trainingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldStopTraining = useRef(false);
   
   // Current network state that gets updated during training
   const currentNetworkState = useRef({
@@ -516,6 +517,7 @@ export default function BinaryDigitTrainer() {
     setEpochLossHistory([]);
     
     // Reset training state to ensure Automated Training section remains visible
+    shouldStopTraining.current = false;
     setIsAutoTraining(false);
     setMode('training');
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
@@ -699,6 +701,7 @@ export default function BinaryDigitTrainer() {
 
   const stopTraining = () => {
     console.log('🛑 Training stopped by user');
+    shouldStopTraining.current = true;
     setIsAutoTraining(false);
     setTrainingCompleted(true);
     if (trainingIntervalRef.current) {
@@ -712,6 +715,7 @@ export default function BinaryDigitTrainer() {
     
     console.log(`Starting processTrainingSet for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
+    shouldStopTraining.current = false;
     setIsAutoTraining(true);
     setCurrentTrainingIndex(0);
     setIsEpochDialogOpen(false);
@@ -774,7 +778,7 @@ export default function BinaryDigitTrainer() {
       let stepCount = 0;
       trainingIntervalRef.current = setInterval(() => {
         // Check if training was stopped
-        if (!isAutoTraining) {
+        if (shouldStopTraining.current) {
           console.log('Training stopped during step processing');
           if (trainingIntervalRef.current) {
             clearInterval(trainingIntervalRef.current);
@@ -799,7 +803,7 @@ export default function BinaryDigitTrainer() {
             trainingIntervalRef.current = null;
           }
           // Check if training was stopped before moving to next example
-          if (!isAutoTraining) {
+          if (shouldStopTraining.current) {
             console.log('Training stopped between examples');
             return;
           }

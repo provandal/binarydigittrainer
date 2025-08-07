@@ -184,6 +184,10 @@ export default function BinaryDigitTrainer() {
   const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
   const [numberOfEpochs, setNumberOfEpochs] = useState(1);
   const [currentEpoch, setCurrentEpoch] = useState(0);
+  
+  // Epoch loss tracking
+  const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
+  const currentEpochLoss = useRef<number[]>([]);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -665,13 +669,28 @@ export default function BinaryDigitTrainer() {
     setCurrentTrainingIndex(0);
     setIsEpochDialogOpen(false);
     
+    // Reset epoch loss tracking
+    setEpochLossHistory([]);
+    currentEpochLoss.current = [];
+    
     let epochCount = 0;
     let currentExampleIndex = 0;
     setCurrentEpoch(0);
     
     const processNextExample = () => {
       if (currentExampleIndex >= trainingExamples.length) {
-        // Finished one epoch
+        // Finished one epoch - calculate and store average loss
+        if (currentEpochLoss.current.length > 0) {
+          const averageLoss = currentEpochLoss.current.reduce((sum, loss) => sum + loss, 0) / currentEpochLoss.current.length;
+          console.log(`Epoch ${epochCount + 1} completed. Average loss: ${averageLoss.toFixed(6)}`);
+          
+          // Store epoch loss history
+          setEpochLossHistory(prev => [...prev, { epoch: epochCount + 1, averageLoss }]);
+          
+          // Reset for next epoch
+          currentEpochLoss.current = [];
+        }
+        
         epochCount++;
         currentExampleIndex = 0;
         setCurrentEpoch(epochCount);
@@ -703,6 +722,13 @@ export default function BinaryDigitTrainer() {
         if (stepCount < 6) {
           nextStep(stepCount); // Force the step number
           stepCount++;
+          
+          // After step 2 (loss calculation), capture the loss for epoch tracking
+          if (stepCount === 3) { // After step 2 completes (0-indexed)
+            const currentLoss = currentNetworkState.current.loss;
+            currentEpochLoss.current.push(currentLoss);
+            console.log(`Sample ${currentExampleIndex + 1}/${trainingExamples.length} - Loss: ${currentLoss.toFixed(6)}`);
+          }
         } else {
           clearInterval(interval);
           // Move to next example immediately (no delay between examples)
@@ -1160,6 +1186,26 @@ export default function BinaryDigitTrainer() {
                     Sample {currentTrainingIndex + 1} of {trainingExamples.length}
                     {numberOfEpochs > 1 && ` • Epoch ${currentEpoch + 1}/${numberOfEpochs}`}
                   </div>
+                  
+                  {/* Epoch Loss History */}
+                  {epochLossHistory.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-purple-200">
+                      <div className="text-xs font-medium text-purple-900 mb-2">Learning Progress</div>
+                      <div className="space-y-1 max-h-20 overflow-y-auto">
+                        {epochLossHistory.slice(-5).map((epochData, index) => (
+                          <div key={epochData.epoch} className="flex justify-between text-xs text-purple-800">
+                            <span>Epoch {epochData.epoch}:</span>
+                            <span className="font-mono">{epochData.averageLoss.toFixed(6)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {epochLossHistory.length > 1 && (
+                        <div className="text-xs text-purple-700 mt-2 text-center">
+                          {epochLossHistory[epochLossHistory.length - 1].averageLoss < epochLossHistory[0].averageLoss ? '📉 Loss decreasing!' : '📈 Loss trend varies'}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

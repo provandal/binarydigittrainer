@@ -239,7 +239,16 @@ export default function BinaryDigitTrainer() {
       const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
       setPixelGrid(grid);
       // Convert one-hot label back to integer for UI display
-      const oneHotLabel = trainingExamples[datasetIndex].label as number[];
+      let oneHotLabel;
+      if (Array.isArray(trainingExamples[datasetIndex].label)) {
+        oneHotLabel = trainingExamples[datasetIndex].label as number[];
+      } else {
+        let labelStr = trainingExamples[datasetIndex].label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1);
+        }
+        oneHotLabel = JSON.parse(labelStr);
+      }
       setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     }
   }, [trainingMode, datasetIndex, trainingExamples]);
@@ -332,7 +341,17 @@ export default function BinaryDigitTrainer() {
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
       // Use one-hot targets directly from training data (already one-hot)
       const example = trainingExamples[datasetIndex];
-      target = example.label as number[]; // Already one-hot: [1,0] or [0,1]
+      // Ensure target is always an array (parse if it's a string)
+      if (Array.isArray(example.label)) {
+        target = example.label;
+      } else {
+        // Handle both regular JSON strings and double-quoted strings
+        let labelStr = example.label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1); // Remove outer quotes
+        }
+        target = JSON.parse(labelStr);
+      }
       console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: [${example.label}], Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
@@ -347,7 +366,7 @@ export default function BinaryDigitTrainer() {
         sum + Math.pow(output - target[i], 2), 0) / 2;
     } else {
       // Cross-Entropy Loss
-      calculatedLoss = -target.reduce((sum, t, i) => {
+      calculatedLoss = -target.reduce((sum: number, t: number, i: number) => {
         const output = Math.max(1e-15, Math.min(1 - 1e-15, currentNetworkState.current.outputActivations[i]));
         return sum + t * Math.log(output);
       }, 0);
@@ -364,7 +383,17 @@ export default function BinaryDigitTrainer() {
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
       // Use one-hot targets directly from training data (already one-hot)
       const example = trainingExamples[datasetIndex];
-      target = example.label as number[]; // Already one-hot: [1,0] or [0,1]
+      // Ensure target is always an array (parse if it's a string)
+      if (Array.isArray(example.label)) {
+        target = example.label;
+      } else {
+        // Handle both regular JSON strings and double-quoted strings
+        let labelStr = example.label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1); // Remove outer quotes
+        }
+        target = JSON.parse(labelStr);
+      }
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]

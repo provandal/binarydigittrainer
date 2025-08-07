@@ -1,0 +1,157 @@
+1) Decide: softmax + cross-entropy or sigmoid + binary cross-entropy (BCE) — and make them consistent
+Right now your code uses two independent sigmoids on the outputs, but the “cross-entropy” loss you compute is the softmax style -Σ t_k log(a_k) (only the positive term). Then in backprop you use the gradient simplification δ = a − t (which is correct for softmax+CE or sigmoid+BCE), but the loss math and the activation don’t match. That combination makes one bias run away trying to satisfy a loss it can’t actually minimize properly.
+
+Pick one path and update both the forward and the loss/grad:
+
+Option A (recommended): softmax + cross-entropy (multi-class, mutually exclusive)
+Forward output: compute softmax of the two logits.
+
+Loss: CE = -Σ t_k log(p_k).
+
+Output delta: δ_k = p_k − t_k (no sigmoid derivative factor).
+
+Patch:
+
+ts
+Copy
+Edit
+// utils
+const softmax = (z: number[]) => {
+  const m = Math.max(...z);
+  const exps = z.map(v => Math.exp(v - m));
+  const sum = exps.reduce((a,b)=>a+b, 0);
+  return exps.map(e => e / sum);
+};
+
+// forwardPassOutput: replace the sigmoid() of z2 with softmax
+const z2 = currentNetworkState.current.outputWeights.map((w, i) =>
+  w.reduce((sum, wj, j) => sum + wj * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
+);
+const probs = softmax(z2);
+currentNetworkState.current.outputPreActivations = z2;
+currentNetworkState.current.outputActivations = probs;
+setOutputActivations(probs);
+
+// calculateLoss (cross-entropy)
+const eps = 1e-7;
+const target = getCurrentTarget();  // see section #3 below
+const ce = -target.reduce((s, t, i) => s + t * Math.log(probs[i] + eps), 0);
+currentNetworkState.current.loss = ce;
+setLoss(ce);
+
+// backpropagationOutput: CE gradient with softmax
+const outputErrors = probs.map((p, i) => p - target[i]); // δ = p - t
+// update weights/biases
+Option B: two sigmoids + BCE (one-vs-rest)
+Keep your sigmoids.
+
+Loss: BCE = -Σ[ t_k log(a_k) + (1−t_k) log(1−a_k) ].
+
+Output delta: δ_k = a_k − t_k (still no extra σ’ factor).
+
+Patch (if you keep sigmoids):
+
+ts
+Copy
+Edit
+// calculateLoss (BCE per output)
+const eps = 1e-7;
+const target = getCurrentTarget();
+const a = currentNetworkState.current.outputActivations;
+const bce = -target.reduce((s, t, i) => s + (t * Math.log(a[i] + eps) + (1 - t) * Math.log(1 - a[i] + eps)), 0);
+currentNetworkState.current.loss = bce;
+setLoss(bce);
+
+// backpropagationOutput for BCE+sigmoid
+const outputErrors = a.map((ai, i) => ai - target[i]); // δ = a - t
+TL;DR: Either switch the output to softmax (my pick if labels are mutually exclusive) or fix the cross-entropy branch to be true BCE for sigmoids. Right now you’re mixing them.
+
+2) Don’t multiply by σ′ at the output when using CE/BCE
+You already do δ = a − t in the CE branch — great. Make sure you do not multiply that by sigmoidDerivative(z) at the output; that double-counts and will blow up updates.
+
+For the hidden layer, keep using:
+
+objectivec
+Copy
+Edit
+δ_hidden = (W_out^T · δ_out) ⊙ σ′(z_hidden)
+But compute δ_out first. (You can snapshot W_out before you update it if you want strict “standard” backprop, but using the just-updated matrix usually won’t cause the instant divergence you’re seeing.)
+
+3) Kill the race: always use the cached target/inputs during auto-training
+You already set:
+
+ts
+Copy
+Edit
+currentNetworkState.current.currentTarget = oneHot;
+currentNetworkState.current.inputs = pattern.flat();
+But calculateLoss/backpropagationOutput sometimes rebuild target from trainingExamples[currentExampleIndex]. Because setCurrentExampleIndex is async, those functions can read a different example’s label than the one you cached and drew — which makes the gradient effectively random, and biases sprint off a cliff.
+
+Patch both calculateLoss and backpropagationOutput to always read the cached target first:
+
+ts
+Copy
+Edit
+const getCurrentTarget = (): number[] => {
+  const t = currentNetworkState.current.currentTarget;
+  if (t && t.length === 2) return t;
+  // LAST-RESORT fallback (manual mode); but prefer the cached target
+  return selectedLabel === 0 ? [1, 0] : [0, 1];
+};
+
+// In calculateLoss/backpropagationOutput:
+const target = getCurrentTarget();
+Do the same for inputs (getPixelValues() already looks at the cache — good).
+
+4) Clamp the step size on bias updates (quick stabilizer)
+This isn’t a substitute for #1–#3, but it makes early training less explosive if a label is wrong or a batch is pathological.
+
+ts
+Copy
+Edit
+const gradClip = 1.0; // or 0.5
+const clip = (g: number) => Math.max(-gradClip, Math.min(gradClip, g));
+
+// biases
+const newOutputBiases = currentNetworkState.current.outputBiases.map((b, i) =>
+  b - learningRate * clip(outputErrors[i])
+);
+If you want even more damping, add tiny L2 decay:
+
+ts
+Copy
+Edit
+const weightDecay = 1e-4; // small!
+b = b - lr * (clip(δ) + weightDecay * b);
+5) Make bias init boring (zero) and learning rate sane
+For stability:
+
+Initialize output biases to 0 and hidden biases to 0. Random bias init isn’t helping here.
+
+Start with lr = 0.01 or 0.005. You had 0.1 as the default in the file — that’s aggressive for CE/BCE on raw 0/1 pixels.
+
+ts
+Copy
+Edit
+const initialBiases = Array(24).fill(0);
+const initialOutputBiases = Array(2).fill(0);
+6) (If you stay with softmax) normalize the two outputs
+You’ll get nicer behavior (no both-high/both-low weirdness) and the loss will match the probabilities.
+
+Already covered in #1 Option A.
+
+7) Small correctness nits you can fold in
+In calculateLoss you currently clamp outputs; keep that eps clamp in whichever loss you use.
+
+In resetNetwork, make sure you reset hidden activations to length 24 (you fixed this in one version but double-check).
+
+When computing hiddenErrors, if you want the strict textbook version, use a snapshot of outputWeights before you update them:
+
+ts
+Copy
+Edit
+const WoutPrev = currentNetworkState.current.outputWeights.map(r => [...r]); // snapshot
+const hiddenErrors = currentNetworkState.current.hiddenPreActivations.map((zh, h) => {
+  const sum = outputErrors.reduce((s, δk, k) => s + δk * WoutPrev[k][h], 0);
+  return sigmoidDerivative(zh) * sum;
+});

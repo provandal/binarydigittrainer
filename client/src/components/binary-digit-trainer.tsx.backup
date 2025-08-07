@@ -1,0 +1,2101 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Trash2, Plus, Edit3, Upload } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+
+
+// Weight initialization helper using Xavier/Glorot initialization
+const initWeight = (n_in: number, n_out: number) => 
+  (Math.random() - 0.5) * Math.sqrt(2 / (n_in + n_out));
+
+// 9x9 pixel grid (81 pixels total, each pixel is 0 or 1)
+const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9x9 grid of pixels
+const initialWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
+const initialBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+const initialOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
+const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+
+// Training dataset - 100+ examples each of 0 and 1
+const generateTrainingDataset = () => {
+  const dataset: { pattern: number[][], label: number }[] = [];
+  
+  // Empty dataset - user will create examples from scratch
+  return dataset;
+};
+
+const sigmoid = (x: number) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
+const sigmoidDerivative = (z: number) => {
+  const s = sigmoid(z);
+  return s * (1 - s);
+};
+
+// Helper functions to convert between flat array and 2D array formats
+const flatToGrid = (flatArray: number[]): number[][] => {
+  const grid: number[][] = [];
+  for (let i = 0; i < 9; i++) {
+    grid.push(flatArray.slice(i * 9, (i + 1) * 9));
+  }
+  return grid;
+};
+
+const gridToFlat = (grid: number[][]): number[] => {
+  return grid.flat();
+};
+
+// Helper function to parse labels consistently
+const parseLabel = (label: any): number[] => {
+  if (Array.isArray(label)) {
+    return label;
+  }
+  if (typeof label === 'string') {
+    // Handle both regular JSON strings and double-quoted strings
+    let labelStr = label;
+    if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+      labelStr = labelStr.slice(1, -1); // Remove outer quotes
+    }
+    return JSON.parse(labelStr);
+  }
+  // Fallback for any other format
+  return [1, 0];
+};
+
+const STEP_DESCRIPTIONS = [
+  {
+    name: "Ready - Draw your digit",
+    concept: "The neural network is ready. In Training mode: draw and train step-by-step. In Predict mode: draw and get instant predictions.",
+    formula: "Input preparation: x = [x₁, x₂, ..., x₈₁] where each xᵢ ∈ [0,1]",
+    activeElements: []
+  },
+  {
+    name: "Forward Pass - Input to Hidden",
+    concept: "Each input pixel is multiplied by connection weights and summed with bias to calculate hidden neuron activations.",
+    formula: "hⱼ = σ(∑ᵢ wᵢⱼ·xᵢ + bⱼ) where σ(z) = 1/(1+e⁻ᶻ)",
+    activeElements: ["input", "hidden", "inputWeights"]
+  },
+  {
+    name: "Forward Pass - Hidden to Output", 
+    concept: "Hidden layer activations are combined using output weights to produce final predictions for digits 0 and 1.",
+    formula: "oₖ = σ(∑ⱼ wⱼₖ·hⱼ + bₖ) for output neurons k ∈ {0,1}",
+    activeElements: ["hidden", "output", "outputWeights"]
+  },
+  {
+    name: "Calculate Loss",
+    concept: "The network's prediction is compared to the target label using Mean Squared Error to measure accuracy.",
+    formula: "Loss = ½∑ₖ(tₖ - oₖ)² where tₖ is target and oₖ is output",
+    activeElements: ["output", "loss"]
+  },
+  {
+    name: "Backpropagation - Output Layer",
+    concept: "Error signals flow backward to adjust output weights. Larger errors cause bigger weight changes.",
+    formula: "δₖ = (tₖ - oₖ)·oₖ·(1-oₖ), Δwⱼₖ = α·δₖ·hⱼ",
+    activeElements: ["output", "outputWeights", "backprop"]
+  },
+  {
+    name: "Backpropagation - Hidden Layer",
+    concept: "Error signals propagate to hidden layer, adjusting input weights based on their contribution to the total error.",
+    formula: "δⱼ = hⱼ·(1-hⱼ)·∑ₖδₖ·wⱼₖ, Δwᵢⱼ = α·δⱼ·xᵢ",
+    activeElements: ["hidden", "inputWeights", "backprop"]
+  }
+];
+
+export default function BinaryDigitTrainer() {
+  const queryClient = useQueryClient();
+  
+  // Fetch training examples from the API
+  const { data: trainingExamples = [], isLoading: loadingExamples } = useQuery<TrainingExample[]>({
+    queryKey: ["/api/training-examples"],
+    queryFn: () => fetch("/api/training-examples").then(res => res.json()),
+  });
+
+  // Mutations for CRUD operations
+  const createExampleMutation = useMutation({
+    mutationFn: (example: InsertTrainingExample) => 
+      apiRequest("POST", "/api/training-examples", example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const updateExampleMutation = useMutation({
+    mutationFn: ({ id, example }: { id: number; example: InsertTrainingExample }) =>
+      apiRequest("PUT", `/api/training-examples/${id}`, example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const deleteExampleMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiRequest("DELETE", `/api/training-examples/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const bulkUploadMutation = useMutation({
+    mutationFn: (data: { input: number[]; target: number[] }[]) =>
+      apiRequest("POST", "/api/training-examples/bulk-upload", data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      alert(`Successfully uploaded ${data.count} training examples!`);
+    },
+    onError: (error) => {
+      console.error("Bulk upload error:", error);
+      alert("Failed to upload training data. Please check the file format.");
+    }
+  });
+
+  const clearExamplesMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("DELETE", "/api/training-examples"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      // Also clear any cached data to prevent stale ID issues
+      queryClient.removeQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const [pixelGrid, setPixelGridState] = useState(initialPixelGrid);
+  
+  // Safe setter that ensures pixelGrid is always a 2D array
+  const setPixelGrid = (grid: number[][] | number[]) => {
+    if (Array.isArray(grid[0])) {
+      setPixelGridState(grid as number[][]);
+    } else {
+      setPixelGridState(flatToGrid(grid as number[]));
+    }
+  };
+  const [weights, setWeights] = useState(initialWeights);
+  const [biases, setBiases] = useState(initialBiases);
+  const [outputWeights, setOutputWeights] = useState(initialOutputWeights);
+  const [outputBiases, setOutputBiases] = useState(initialOutputBiases);
+  const [hiddenActivations, setHiddenActivations] = useState(Array(24).fill(0));
+  const [outputActivations, setOutputActivations] = useState(Array(2).fill(0));
+  const [selectedLabel, setSelectedLabel] = useState(0);
+  const [step, setStep] = useState(0);
+  const [loss, setLoss] = useState(0);
+  const [learningRate, setLearningRate] = useState(0.1);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
+  const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
+  const [weightDialogIteration, setWeightDialogIteration] = useState(0);
+  const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
+  
+  // New state for enhanced features
+  const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+  const [stepHistory, setStepHistory] = useState<any[]>([]);
+  const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
+  const [activeElements, setActiveElements] = useState<string[]>([]);
+  const [showDatasetEditor, setShowDatasetEditor] = useState(false);
+  const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
+  
+  // New state for automated training and inference mode
+  const [mode, setMode] = useState<'training' | 'inference'>('training');
+  const [isAutoTraining, setIsAutoTraining] = useState(false);
+  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(50); // ms between steps - much faster for automated training
+  const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
+  const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
+  const [numberOfEpochs, setNumberOfEpochs] = useState(1);
+  const [currentEpoch, setCurrentEpoch] = useState(0);
+  
+  // Loss function selection
+  const [lossFunction, setLossFunction] = useState<'mse' | 'crossentropy'>('mse');
+  
+  // Epoch loss tracking
+  const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
+  const currentEpochLoss = useRef<number[]>([]);
+  const [trainingCompleted, setTrainingCompleted] = useState(false);
+  
+  // Debug info display
+  const [showDebugDialog, setShowDebugDialog] = useState(false);
+  const [debugHistory, setDebugHistory] = useState<{
+    iteration: number;
+    label: number[]; // Changed to number[] for one-hot format
+    outputActivations: number[];
+    outputErrors: number[];
+    outputBiases: number[];
+    loss: number;
+    step: number;
+    timestamp: Date;
+  }[]>([]);
+
+  // Persistent training history store - independent of React state
+  const trainingHistoryStore = useRef<any[]>([]);
+  
+  // Training control refs
+  const trainingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldStopTraining = useRef(false);
+  
+  // Current network state that gets updated during training
+  const currentNetworkState = useRef({
+    weights: initialWeights.map(w => [...w]),
+    biases: [...initialBiases],
+    outputWeights: initialOutputWeights.map(w => [...w]),
+    outputBiases: [...initialOutputBiases],
+    hiddenActivations: Array(24).fill(0),
+    outputActivations: Array(2).fill(0),
+    hiddenPreActivations: Array(24).fill(0), // z1 values (pre-activation)
+    outputPreActivations: Array(2).fill(0),   // z2 values (pre-activation)
+    loss: 0,
+    outputErrors: Array(2).fill(0)
+  });
+
+  // Load dataset example when in dataset mode
+  useEffect(() => {
+    if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
+      const pattern = trainingExamples[currentExampleIndex].pattern as number[][] | number[];
+      // Convert flat array to 2D grid if needed
+      const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+      setPixelGrid(grid);
+      // Convert one-hot label back to integer for UI display
+      let oneHotLabel;
+      if (Array.isArray(trainingExamples[currentExampleIndex].label)) {
+        oneHotLabel = trainingExamples[currentExampleIndex].label as number[];
+      } else {
+        let labelStr = trainingExamples[currentExampleIndex].label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1);
+        }
+        oneHotLabel = JSON.parse(labelStr);
+      }
+      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    }
+  }, [trainingMode, currentExampleIndex, trainingExamples]);
+
+  // Update active elements based on current step
+  useEffect(() => {
+    if (STEP_DESCRIPTIONS[step]) {
+      setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
+    } else {
+      setActiveElements([]);
+    }
+  }, [step]);
+
+  // Update weight dialog iteration to show latest when training history changes
+  useEffect(() => {
+    if (trainingHistory.length > 0) {
+      setWeightDialogIteration(trainingHistory.length - 1);
+    }
+  }, [trainingHistory.length]);
+
+  // Calculate pixel values - flatten 9x9 grid to 81 inputs (each pixel is 0 or 1)
+  const getPixelValues = () => {
+    return pixelGrid.flat(); // Flatten 9x9 grid to 81 inputs
+  };
+
+  const togglePixel = (rowIndex: number, colIndex: number) => {
+    const newPixelGrid = [...pixelGrid];
+    newPixelGrid[rowIndex] = [...newPixelGrid[rowIndex]];
+    newPixelGrid[rowIndex][colIndex] = newPixelGrid[rowIndex][colIndex] === 0 ? 1 : 0;
+    setPixelGrid(newPixelGrid);
+    setStep(0); // Reset to first step when input changes
+  };
+
+  const handleMouseDown = (rowIndex: number, colIndex: number) => {
+    setIsDrawing(true);
+    togglePixel(rowIndex, colIndex);
+  };
+
+  const handleMouseEnter = (rowIndex: number, colIndex: number) => {
+    if (isDrawing) {
+      togglePixel(rowIndex, colIndex);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDrawing(false);
+  };
+
+  const handlePixelHover = (pixelIndex: number) => {
+    setHoveredPixel(pixelIndex);
+  };
+
+  const handlePixelLeave = () => {
+    setHoveredPixel(null);
+  };
+
+  const forwardPassHidden = () => {
+    const pixelValues = getPixelValues();
+    // Calculate pre-activation values (z1)
+    const newPreActivations = currentNetworkState.current.weights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * pixelValues[j], currentNetworkState.current.biases[i])
+    );
+    // Apply sigmoid to get activations
+    const newActivations = newPreActivations.map(z => sigmoid(z));
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.hiddenPreActivations = newPreActivations;
+    currentNetworkState.current.hiddenActivations = newActivations;
+    setHiddenActivations(newActivations);
+  };
+
+  const forwardPassOutput = () => {
+    // Calculate pre-activation values (z2)
+    const newPreActivations = currentNetworkState.current.outputWeights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
+    );
+    // Apply sigmoid to get activations
+    const newOutputActivations = newPreActivations.map(z => sigmoid(z));
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.outputPreActivations = newPreActivations;
+    currentNetworkState.current.outputActivations = newOutputActivations;
+    setOutputActivations(newOutputActivations);
+    
+    // Debug info will be captured in backpropagationOutput after errors are calculated
+  };
+
+  const calculateLoss = () => {
+    let target: number[];
+    if (trainingMode === 'dataset') {
+      // Use current example index
+      const example = trainingExamples[currentExampleIndex];
+      if (!example) {
+        // Fallback to manual mode
+        target = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🎯 Fallback Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}]`);
+        let calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
+          sum + Math.pow(output - target[i], 2), 0) / 2;
+        currentNetworkState.current.loss = calculatedLoss;
+        setLoss(calculatedLoss);
+        return;
+      }
+      
+      // Use one-hot targets directly from training data (already one-hot)
+      // Ensure target is always an array (parse if it's a string)
+      if (Array.isArray(example.label)) {
+        target = example.label;
+      } else {
+        // Handle both regular JSON strings and double-quoted strings
+        let labelStr = example.label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1); // Remove outer quotes
+        }
+        target = JSON.parse(labelStr);
+      }
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentExampleIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🔍 Debug: Training examples array length: ${trainingExamples.length}, currentExampleIndex: ${currentExampleIndex}`);
+    } else {
+      // Manual mode: convert selectedLabel to one-hot - fresh array each time
+      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
+      console.log(`🎯 Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+    }
+    
+    let calculatedLoss;
+    if (lossFunction === 'mse') {
+      // Mean Squared Error
+      calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
+        sum + Math.pow(output - target[i], 2), 0) / 2;
+    } else {
+      // Cross-Entropy Loss
+      calculatedLoss = -target.reduce((sum: number, t: number, i: number) => {
+        const output = Math.max(1e-15, Math.min(1 - 1e-15, currentNetworkState.current.outputActivations[i]));
+        return sum + t * Math.log(output);
+      }, 0);
+    }
+    
+    currentNetworkState.current.loss = calculatedLoss;
+    setLoss(calculatedLoss);
+    
+    // Debug info is now captured in captureDebugInfo function
+  };
+
+  const backpropagationOutput = () => {
+    let target: number[];
+    if (trainingMode === 'dataset') {
+      // Use current example index
+      const example = trainingExamples[currentExampleIndex];
+      if (!example) {
+        // Fallback to manual mode
+        target = selectedLabel === 0 ? [1, 0] : [0, 1];
+        return;
+      }
+      
+      // Use one-hot targets directly from training data (already one-hot)
+      // Ensure target is always an array (parse if it's a string)
+      if (Array.isArray(example.label)) {
+        target = example.label;
+      } else {
+        // Handle both regular JSON strings and double-quoted strings
+        let labelStr = example.label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1); // Remove outer quotes
+        }
+        target = JSON.parse(labelStr);
+      }
+    } else {
+      // Manual mode: convert selectedLabel to one-hot - fresh array each time
+      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
+    }
+    
+    // Calculate individual output deltas based on loss function
+    let outputErrors;
+    if (lossFunction === 'mse') {
+      // MSE: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ) where zᵢ is PRE-activation
+      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+        (output - target[i]) * sigmoidDerivative(currentNetworkState.current.outputPreActivations[i]));
+    } else {
+      // Cross-Entropy: δᵢ = (aᵢ - yᵢ) - simplified gradient
+      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+        output - target[i]);
+    }
+    
+    console.log(`🔄 Backprop Output (${lossFunction.toUpperCase()}) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
+    
+    // Store output errors for later use
+    currentNetworkState.current.outputErrors = outputErrors;
+    
+    // Update output weights and biases for each output neuron
+    const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
+      weights.map((weight, j) => 
+        weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
+    const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
+      bias - learningRate * outputErrors[i]);
+    
+    // Update persistent store
+    currentNetworkState.current.outputWeights = newOutputWeights;
+    currentNetworkState.current.outputBiases = newOutputBiases;
+    
+    // Update React state for display
+    setOutputWeights(newOutputWeights);
+    setOutputBiases(newOutputBiases);
+    
+    // Capture debug info right after outputErrors are computed
+    captureDebugInfo('backpropagationOutput');
+  };
+
+  const backpropagationHidden = () => {
+    // Use stored output errors from output layer backpropagation
+    const outputErrors = currentNetworkState.current.outputErrors;
+    const pixelValues = getPixelValues();
+    
+    // Calculate hidden errors using PRE-ACTIVATION values (matching Python)
+    // δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ) where zₕ is PRE-activation
+    const hiddenErrors = currentNetworkState.current.hiddenPreActivations.map((preActivation, h) => {
+      const errorSum = outputErrors.reduce((sum, outputError, i) => 
+        sum + outputError * currentNetworkState.current.outputWeights[i][h], 0);
+      return errorSum * sigmoidDerivative(preActivation);
+    });
+    
+    // Update hidden weights and biases
+    const newWeights = currentNetworkState.current.weights.map((weights, i) => 
+      weights.map((weight, j) => 
+        weight - learningRate * hiddenErrors[i] * pixelValues[j]));
+    const newBiases = currentNetworkState.current.biases.map((bias, i) => 
+      bias - learningRate * hiddenErrors[i]);
+    
+    // Update persistent store
+    currentNetworkState.current.weights = newWeights;
+    currentNetworkState.current.biases = newBiases;
+    
+    // Update React state for display
+    setWeights(newWeights);
+    setBiases(newBiases);
+  };
+
+
+
+  // Function to capture debug information
+  const captureDebugInfo = (stage: string) => {
+    let currentLabel;
+    let currentOneHotTarget;
+    
+    // Determine current label based on training mode and state
+    if (trainingMode === 'dataset') {
+      const example = trainingExamples[currentExampleIndex];
+      if (example) {
+        // Use the current example (parse to ensure it's an array)
+        currentOneHotTarget = parseLabel(example.label);
+        console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`);
+      } else {
+        // Convert selectedLabel to one-hot for consistency
+        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+      }
+    } else {
+      // Manual drawing mode, convert selected label to one-hot
+      currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+      console.log(`🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+    }
+    
+    const debugEntry = {
+      iteration: trainingHistoryStore.current.length,
+      label: currentOneHotTarget as number[], // Now showing one-hot format instead of integer
+      outputActivations: [...currentNetworkState.current.outputActivations],
+      outputErrors: [...currentNetworkState.current.outputErrors],
+      outputBiases: [...currentNetworkState.current.outputBiases],
+      loss: currentNetworkState.current.loss,
+      step: step,
+      timestamp: new Date()
+    };
+    
+    setDebugHistory(prev => [...prev, debugEntry]);
+  };
+
+  const nextStep = (forceStep?: number) => {
+    let currentLoss = loss;
+    let currentHiddenActivations = hiddenActivations;
+    let currentOutputActivations = outputActivations;
+    
+    const currentStep = forceStep !== undefined ? forceStep : step;
+    console.log('nextStep executing step:', currentStep);
+    
+    switch (currentStep) {
+      case 0:
+        forwardPassHidden();
+        break;
+      case 1:
+        forwardPassOutput();
+        break;
+      case 2:
+        // Calculate loss using persistent store
+        calculateLoss();
+        break;
+      case 3:
+        backpropagationOutput();
+        break;
+      case 4:
+        backpropagationHidden();
+        break;
+      case 5:
+        // Training complete - update training history
+        const trainingRecord = {
+          step: step,
+          weights: currentNetworkState.current.weights.map(w => [...w]),
+          biases: [...currentNetworkState.current.biases],
+          outputWeights: currentNetworkState.current.outputWeights.map(w => [...w]),
+          outputBiases: [...currentNetworkState.current.outputBiases],
+          hiddenActivations: [...currentNetworkState.current.hiddenActivations],
+          outputActivations: [...currentNetworkState.current.outputActivations],
+          loss: currentNetworkState.current.loss,
+          learningRate: learningRate,
+          pixelGrid: pixelGrid.map(row => [...row]),
+          selectedLabel: selectedLabel,
+          inputs: getPixelValues()
+        };
+        
+        // Store in persistent store
+        trainingHistoryStore.current.push(trainingRecord);
+        
+        // Also update React state for UI
+        setTrainingHistory(prev => [...prev, trainingRecord]);
+        break;
+    }
+    
+    // Update React state step (for UI display only)
+    if (forceStep === undefined) {
+      if (step < 5) {
+        setStep(step + 1);
+      } else {
+        setStep(0); // Reset for next training cycle
+      }
+    } else {
+      // Don't update React state when forcing steps during automated training
+      // This prevents UI flicker and state conflicts
+    }
+  };
+
+  const clearCanvas = () => {
+    setPixelGrid(initialPixelGrid);
+    setStep(0);
+    if (mode === 'inference') {
+      setPrediction(null);
+    }
+  };
+
+  const resetNetwork = () => {
+    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
+    const newBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
+    const newOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    
+    setWeights(newWeights);
+    setBiases(newBiases);
+    setOutputWeights(newOutputWeights);
+    setOutputBiases(newOutputBiases);
+    
+    // Reset persistent store
+    currentNetworkState.current = {
+      weights: newWeights.map(w => [...w]),
+      biases: [...newBiases],
+      outputWeights: newOutputWeights.map(w => [...w]),
+      outputBiases: [...newOutputBiases],
+      hiddenActivations: Array(24).fill(0),
+      outputActivations: Array(2).fill(0),
+      hiddenPreActivations: Array(24).fill(0),
+      outputPreActivations: Array(2).fill(0),
+      loss: 0,
+      outputErrors: Array(2).fill(0)
+    };
+    
+    setHiddenActivations(Array(24).fill(0));
+    setOutputActivations(Array(2).fill(0));
+    setLoss(0);
+    setStep(0);
+    setTrainingHistory([]);
+    setStepHistory([]);
+    setCurrentStepInHistory(0);
+    
+    // Clear epoch tracking
+    setEpochLossHistory([]);
+    currentEpochLoss.current = [];
+    setCurrentEpoch(0);
+    setTrainingCompleted(false);
+    
+    // Clear debug history
+    setDebugHistory([]);
+    trainingHistoryStore.current = [];
+  };
+
+  const getWeightColor = (weight: number, isOutput: boolean = false) => {
+    const magnitude = Math.abs(weight);
+    const intensity = Math.min(magnitude * 2, 1); // Scale to 0-1 range
+    const opacity = Math.max(0.1, intensity);
+    
+    if (weight > 0) {
+      return `rgba(34, 197, 94, ${opacity})`; // Green for positive weights
+    } else {
+      return `rgba(239, 68, 68, ${opacity})`; // Red for negative weights
+    }
+  };
+
+  // Functions for training dataset management
+  const addDatasetExample = () => {
+    if (pixelGrid.flat().every(pixel => pixel === 0)) {
+      alert("Please draw something on the canvas first!");
+      return;
+    }
+
+    const newExample: InsertTrainingExample = {
+      pattern: pixelGrid,
+      label: [1, 0] // Default to digit 0 in one-hot format
+    };
+
+    createExampleMutation.mutate(newExample);
+  };
+  
+  // Training dataset editor component
+  const [editorPixelGrid, setEditorPixelGrid] = useState<number[][]>(initialPixelGrid);
+  const [editorSelectedLabel, setEditorSelectedLabel] = useState(0);
+  const [editingExample, setEditingExample] = useState<TrainingExample | null>(null);
+
+  const openDatasetEditor = (example?: TrainingExample) => {
+    if (example) {
+      setEditingExample(example);
+      const pattern = example.pattern as number[][] | number[];
+      // Convert flat array to 2D grid if needed
+      const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+      setEditorPixelGrid(grid);
+      // Convert one-hot label back to integer for UI display
+      const oneHotLabel = parseLabel(example.label);
+      setEditorSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    } else {
+      setEditingExample(null);
+      setEditorPixelGrid(initialPixelGrid);
+      setEditorSelectedLabel(0);
+    }
+    setShowDatasetEditor(true);
+  };
+
+  const toggleEditorPixel = (rowIndex: number, colIndex: number) => {
+    const newGrid = [...editorPixelGrid];
+    newGrid[rowIndex] = [...newGrid[rowIndex]];
+    newGrid[rowIndex][colIndex] = newGrid[rowIndex][colIndex] === 0 ? 1 : 0;
+    setEditorPixelGrid(newGrid);
+  };
+
+  const handleEditorMouseDown = (rowIndex: number, colIndex: number) => {
+    setIsDrawingInEditor(true);
+    toggleEditorPixel(rowIndex, colIndex);
+  };
+
+  const handleEditorMouseEnter = (rowIndex: number, colIndex: number) => {
+    if (isDrawingInEditor) {
+      toggleEditorPixel(rowIndex, colIndex);
+    }
+  };
+
+  const handleEditorMouseUp = () => {
+    setIsDrawingInEditor(false);
+  };
+
+  const saveDatasetExample = () => {
+    if (editorPixelGrid.flat().every(pixel => pixel === 0)) {
+      alert("Please draw something on the canvas first!");
+      return;
+    }
+
+    // Convert integer label to one-hot format for storage
+    const oneHotLabel = editorSelectedLabel === 0 ? [1, 0] : [0, 1];
+
+    const exampleData: InsertTrainingExample = {
+      pattern: editorPixelGrid,
+      label: oneHotLabel
+    };
+
+    if (editingExample) {
+      updateExampleMutation.mutate({
+        id: editingExample.id,
+        example: exampleData
+      });
+    } else {
+      createExampleMutation.mutate(exampleData);
+    }
+    
+    setShowDatasetEditor(false);
+    setEditingExample(null);
+  };
+
+  const updateDatasetExample = (id: number, label: number) => {
+    const example = trainingExamples.find(ex => ex.id === id);
+    if (!example) return;
+
+    // Convert integer label to one-hot format for storage
+    const oneHotLabel = label === 0 ? [1, 0] : [0, 1];
+
+    const updatedExample: InsertTrainingExample = {
+      pattern: example.pattern,
+      label: oneHotLabel
+    };
+
+    updateExampleMutation.mutate({
+      id,
+      example: updatedExample
+    });
+  };
+
+  const clearDataset = () => {
+    if (confirm("Are you sure you want to delete ALL training examples? This cannot be undone.")) {
+      clearExamplesMutation.mutate();
+    }
+  };
+
+  // File upload handler
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        
+        // Validate the data structure
+        if (!Array.isArray(data)) {
+          throw new Error("File must contain an array of training examples");
+        }
+
+        // Convert the data to the expected format
+        const formattedData = data.map((item: any) => ({
+          input: Array.isArray(item.input) ? item.input : item.pattern?.flat() || [],
+          target: Array.isArray(item.target) ? item.target : (item.label === 0 ? [1, 0] : [0, 1])
+        }));
+
+        bulkUploadMutation.mutate(formattedData);
+      } catch (error) {
+        console.error("File upload error:", error);
+        alert("Invalid file format. Please upload a valid JSON file with training data.");
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
+  };
+
+  // Automated training functions
+  const runToNextSample = () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log('Starting runToNextSample for example index:', currentExampleIndex);
+    setIsAutoTraining(true);
+    
+    // Load current training example
+    const currentExample = trainingExamples[currentExampleIndex];
+    console.log('Loading example for runToNextSample:', currentExample.label);
+    const pattern = currentExample.pattern as number[][] | number[];
+    // Convert flat array to 2D grid if needed
+    const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+    setPixelGrid(grid);
+    // Convert one-hot label back to integer for UI display
+    const oneHotLabel = parseLabel(currentExample.label);
+    console.log('Parsed label for runToNextSample:', oneHotLabel);
+    setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    setStep(0); // Start at step 0
+    
+    // Run through all 6 steps automatically using nextStep() with forced step numbers
+    let stepCount = 0;
+    const interval = setInterval(() => {
+      if (stepCount < 6) {
+        console.log('runToNextSample - calling nextStep(), step:', stepCount);
+        nextStep(stepCount); // Force the step number to avoid React state timing issues
+        stepCount++;
+      } else {
+        clearInterval(interval);
+        console.log('runToNextSample completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
+        // Update React step state to final step and then complete
+        setStep(0);
+        
+        // Add current loss to epoch tracking
+        currentEpochLoss.current.push(currentNetworkState.current.loss);
+        
+        // Move to next example
+        setTimeout(() => {
+          if (shouldStopTraining.current) return;
+          
+          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+          console.log(`🔄 Moving from example ${currentExampleIndex} to ${nextIndex} (total: ${trainingExamples.length})`);
+          
+          if (nextIndex === 0) {
+            // Completed one epoch
+            const newEpoch = currentEpoch + 1;
+            console.log(`✅ Completed epoch ${currentEpoch}/${numberOfEpochs}`);
+            
+            // Calculate average loss for completed epoch
+            if (currentEpochLoss.current.length > 0) {
+              const averageLoss = currentEpochLoss.current.reduce((sum, loss) => sum + loss, 0) / currentEpochLoss.current.length;
+              setEpochLossHistory(prev => [...prev, { epoch: currentEpoch, averageLoss }]);
+            }
+            
+            if (newEpoch <= numberOfEpochs) {
+              // Continue to next epoch
+              setCurrentEpoch(newEpoch);
+              setCurrentExampleIndex(0);
+              console.log(`🚀 Starting epoch ${newEpoch}/${numberOfEpochs}`);
+              runToNextSample();
+            } else {
+              // All epochs completed
+              console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+              setIsAutoTraining(false);
+              setTrainingCompleted(true);
+            }
+          } else {
+            // Continue with next example in current epoch
+            setCurrentExampleIndex(nextIndex);
+            runToNextSample();
+          }
+        }, autoTrainingSpeed / 2);
+      }
+    }, autoTrainingSpeed);
+  };
+
+  // Process entire training set by calling runToNextSample() multiple times
+  const processTrainingSet = () => {
+    setIsEpochDialogOpen(true);
+  };
+
+  const stopTraining = () => {
+    console.log('🛑 Training stopped by user');
+    shouldStopTraining.current = true;
+    setIsAutoTraining(false);
+    setTrainingCompleted(true);
+    if (trainingIntervalRef.current) {
+      clearInterval(trainingIntervalRef.current);
+      trainingIntervalRef.current = null;
+    }
+  };
+
+  const startMultiEpochTraining = () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log(`Starting multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
+    
+    // Reset training control flag
+    shouldStopTraining.current = false;
+    setIsAutoTraining(true);
+    setIsEpochDialogOpen(false);
+    
+    // Initialize training state
+    setCurrentExampleIndex(0);
+    currentEpochLoss.current = [];
+    setTrainingCompleted(false);
+    setCurrentEpoch(1);
+    
+    // Start the recursive training process
+    runToNextSample();
+  };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (trainingIntervalRef.current) {
+        clearInterval(trainingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Inference mode function
+  const runInference = () => {
+    if (mode !== 'inference') return;
+    
+    const inputs = getPixelValues();
+    
+    // Forward pass only (no training)
+    const hiddenSums = weights.map((neuronWeights, i) => 
+      inputs.reduce((sum, input, j) => sum + input * neuronWeights[j], 0) + biases[i]
+    );
+    const hiddenOutputs = hiddenSums.map(sigmoid);
+    
+    const outputSums = outputWeights.map((neuronWeights, i) => 
+      hiddenOutputs.reduce((sum, hidden, j) => sum + hidden * neuronWeights[j], 0) + outputBiases[i]
+    );
+    const outputs = outputSums.map(sigmoid);
+    
+    // Determine prediction (higher activation wins)
+    const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
+    const confidence = Math.max(...outputs);
+    
+    setPrediction({ digit: predictedDigit, confidence });
+    setHiddenActivations(hiddenOutputs);
+    setOutputActivations(outputs);
+  };
+
+  // Run inference whenever canvas changes in inference mode
+  useEffect(() => {
+    if (mode === 'inference') {
+      runInference();
+    }
+  }, [pixelGrid, mode]);
+
+  // Calculate digit counts from training data
+  const getDigitCounts = () => {
+    if (!trainingExamples || trainingExamples.length === 0) return { zeros: 0, ones: 0 };
+    
+    let zeros = 0, ones = 0;
+    
+    trainingExamples.forEach(example => {
+      const oneHotLabel = parseLabel(example.label);
+      if (oneHotLabel[0] === 1) {
+        zeros++;
+      } else if (oneHotLabel[1] === 1) {
+        ones++;
+      }
+    });
+    
+    return { zeros, ones };
+  };
+
+  const digitCounts = getDigitCounts();
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Binary Digit Trainer</h1>
+          <p className="text-gray-600">Educational neural network for learning binary digit classification (0 vs 1)</p>
+          
+          {/* Mode Selection */}
+          <div className="mt-4 flex gap-2">
+            <Button
+              onClick={() => setMode('training')}
+              variant={mode === 'training' ? 'default' : 'outline'}
+              className={mode === 'training' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            >
+              Training Mode
+            </Button>
+            <Button
+              onClick={() => setMode('inference')}
+              variant={mode === 'inference' ? 'default' : 'outline'}
+              className={mode === 'inference' ? 'bg-green-600 hover:bg-green-700' : ''}
+            >
+              Predict Mode
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Left Column: Drawing Canvas and Controls */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Drawing Canvas */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Drawing Canvas</h2>
+                  <div className="text-sm text-gray-600">
+                    9×9 pixels (81 inputs)
+                  </div>
+                </div>
+                
+                <div className="bg-white border-2 border-gray-300 inline-block rounded p-4 mb-4">
+                  <div className="grid grid-cols-9 gap-0.5" onMouseLeave={handleMouseUp}>
+                    {pixelGrid.map((row, rowIndex) =>
+                      row.map((pixel, colIndex) => (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          className={`w-6 h-6 border border-gray-200 cursor-crosshair transition-colors ${
+                            pixel === 1 ? 'bg-black' : 'bg-white'
+                          }`}
+                          onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+                          onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                          onMouseUp={handleMouseUp}
+                        />
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={clearCanvas} size="sm" variant="outline">
+                    Clear Canvas
+                  </Button>
+                  {mode === 'training' && trainingMode === 'manual' && (
+                    <Button onClick={addDatasetExample} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Example
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Training Controls */}
+            {mode === 'training' && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold mb-4">Training Controls</h2>
+                  
+                  {/* Training Mode Selection */}
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Training Mode</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        onClick={() => setTrainingMode('manual')}
+                        variant={trainingMode === 'manual' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        Manual Draw
+                      </Button>
+                      <Button
+                        onClick={() => setTrainingMode('dataset')}
+                        variant={trainingMode === 'dataset' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                        disabled={trainingExamples.length === 0}
+                      >
+                        Use Dataset ({trainingExamples.length})
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Label Selection (Manual Mode) */}
+                  {trainingMode === 'manual' && (
+                    <div className="mb-4">
+                      <Label className="text-sm font-medium">Target Label</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          onClick={() => setSelectedLabel(0)}
+                          variant={selectedLabel === 0 ? 'default' : 'outline'}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          Digit 0
+                        </Button>
+                        <Button
+                          onClick={() => setSelectedLabel(1)}
+                          variant={selectedLabel === 1 ? 'default' : 'outline'}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          Digit 1
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dataset Controls (Dataset Mode) */}
+                  {trainingMode === 'dataset' && (
+                    <div className="mb-4">
+                      <Label className="text-sm font-medium">Dataset Example</Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Button
+                          onClick={() => setCurrentExampleIndex(Math.max(0, currentExampleIndex - 1))}
+                          size="sm"
+                          variant="outline"
+                          disabled={currentExampleIndex === 0}
+                        >
+                          ←
+                        </Button>
+                        <span className="text-sm px-2">
+                          {currentExampleIndex + 1} of {trainingExamples.length}
+                        </span>
+                        <Button
+                          onClick={() => setCurrentExampleIndex(Math.min(trainingExamples.length - 1, currentExampleIndex + 1))}
+                          size="sm"
+                          variant="outline"
+                          disabled={currentExampleIndex >= trainingExamples.length - 1}
+                        >
+                          →
+                        </Button>
+                      </div>
+                      {trainingExamples[currentExampleIndex] && (
+                        <div className="text-xs text-gray-600 mt-1">
+                          Label: {parseLabel(trainingExamples[currentExampleIndex].label)[0] === 1 ? 'Digit 0' : 'Digit 1'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Learning Rate */}
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Learning Rate: {learningRate}</Label>
+                    <input
+                      type="range"
+                      min="0.01"
+                      max="1"
+                      step="0.01"
+                      value={learningRate}
+                      onChange={(e) => setLearningRate(parseFloat(e.target.value))}
+                      className="w-full mt-2"
+                    />
+                  </div>
+
+                  {/* Loss Function Selection */}
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium">Loss Function</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        onClick={() => setLossFunction('mse')}
+                        variant={lossFunction === 'mse' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        MSE
+                      </Button>
+                      <Button
+                        onClick={() => setLossFunction('crossentropy')}
+                        variant={lossFunction === 'crossentropy' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        Cross-Entropy
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Step-by-step Training */}
+                  <div className="mb-4">
+                    <Button 
+                      onClick={() => nextStep()} 
+                      className="w-full mb-2"
+                      disabled={isAutoTraining}
+                    >
+                      Next Step ({step + 1}/6)
+                    </Button>
+                  </div>
+
+                  {/* Automated Training Controls - Only in Training Mode */}
+                  {mode === 'training' && trainingMode === 'dataset' && trainingExamples.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <div className="text-sm font-medium text-gray-700 mb-2">Automated Training</div>
+                      <Button 
+                        onClick={runToNextSample}
+                        disabled={isAutoTraining}
+                        size="sm"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
+                      </Button>
+                      <Button 
+                        onClick={processTrainingSet}
+                        disabled={isAutoTraining}
+                        size="sm"
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        {isAutoTraining ? 'Processing Set...' : 'Process Training Set'}
+                      </Button>
+                      
+                      {/* Stop Training Button - Only show when training is active */}
+                      {isAutoTraining && (
+                        <Button 
+                          onClick={stopTraining}
+                          size="sm"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Stop Training
+                        </Button>
+                      )}
+                      
+                      {/* Training Speed Control */}
+                      <div className="mt-2">
+                        <Label className="text-sm font-medium">Speed: {autoTrainingSpeed}ms</Label>
+                        <input
+                          type="range"
+                          min="10"
+                          max="500"
+                          step="10"
+                          value={autoTrainingSpeed}
+                          onChange={(e) => setAutoTrainingSpeed(parseInt(e.target.value))}
+                          className="w-full mt-1"
+                          disabled={isAutoTraining}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-4 space-y-2">
+                    <Button 
+                      onClick={resetNetwork} 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      disabled={isAutoTraining}
+                    >
+                      Reset Network
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Inference Mode Prediction Display */}
+            {mode === 'inference' && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold mb-4">Prediction</h2>
+                  {prediction ? (
+                    <div className="text-center">
+                      <div className="text-4xl font-bold mb-2 text-blue-600">
+                        {prediction.digit}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Confidence: {(prediction.confidence * 100).toFixed(1)}%
+                      </div>
+                      <div className="mt-3 text-xs text-gray-500">
+                        Output 0: {outputActivations[0].toFixed(3)}<br/>
+                        Output 1: {outputActivations[1].toFixed(3)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      Draw a digit to get a prediction
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Middle Column: Neural Network Visualization */}
+          <div className="xl:col-span-1 space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Neural Network (81→24→2)</h2>
+                  <div className="text-sm text-gray-600">
+                    {mode === 'inference' ? 'Prediction Mode' : `Step ${step + 1}/6`}
+                  </div>
+                </div>
+
+                {/* Current Step Description - Only in Training Mode */}
+                {mode === 'training' && (
+                  <div className="mb-6 p-3 bg-blue-50 rounded-lg">
+                    <h3 className="font-medium text-blue-900 mb-2">
+                      {STEP_DESCRIPTIONS[step].name}
+                    </h3>
+                    <p className="text-sm text-blue-700 mb-2">
+                      {STEP_DESCRIPTIONS[step].concept}
+                    </p>
+                    <div className="text-xs font-mono bg-white p-2 rounded border text-blue-800">
+                      {STEP_DESCRIPTIONS[step].formula}
+                    </div>
+                  </div>
+                )}
+
+                {/* Network Visualization */}
+                <div className="relative">
+                  {/* Input Layer */}
+                  <div className="mb-8">
+                    <div className="text-sm font-medium mb-2 text-center">Input Layer (81 neurons)</div>
+                    <div 
+                      className={`grid grid-cols-9 gap-0.5 p-2 rounded ${
+                        activeElements.includes('input') ? 'bg-blue-100 ring-2 ring-blue-300' : 'bg-gray-50'
+                      }`}
+                      style={{ maxWidth: '200px', margin: '0 auto' }}
+                    >
+                      {getPixelValues().map((value, i) => (
+                        <div
+                          key={i}
+                          className={`w-3 h-3 rounded-sm transition-all ${
+                            value > 0 ? 'bg-black' : 'bg-white border border-gray-300'
+                          } ${
+                            hoveredPixel === i ? 'ring-2 ring-yellow-400' : ''
+                          }`}
+                          onMouseEnter={() => handlePixelHover(i)}
+                          onMouseLeave={handlePixelLeave}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Connection visualization from Input to Hidden */}
+                  {activeElements.includes('inputWeights') && (
+                    <div className="absolute left-1/2 transform -translate-x-1/2" style={{ top: '120px', height: '60px' }}>
+                      <div className="text-xs text-center text-blue-600 font-medium">
+                        Weight connections (81×24)
+                      </div>
+                      <svg width="100" height="40" className="mx-auto">
+                        {Array.from({length: 8}).map((_, i) => (
+                          <line
+                            key={i}
+                            x1="10"
+                            y1={5 + i * 4}
+                            x2="90"
+                            y2={15}
+                            stroke={getWeightColor(weights[0]?.[i * 10] || 0)}
+                            strokeWidth="1"
+                            opacity="0.6"
+                          />
+                        ))}
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Hidden Layer */}
+                  <div className="mb-8 mt-8">
+                    <div className="text-sm font-medium mb-2 text-center">Hidden Layer (24 neurons)</div>
+                    <div 
+                      className={`grid grid-cols-6 gap-1 p-2 rounded justify-center ${
+                        activeElements.includes('hidden') ? 'bg-blue-100 ring-2 ring-blue-300' : 'bg-gray-50'
+                      }`}
+                      style={{ maxWidth: '160px', margin: '0 auto' }}
+                    >
+                      {hiddenActivations.map((activation, i) => (
+                        <div
+                          key={i}
+                          className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center text-xs cursor-pointer"
+                          style={{ 
+                            backgroundColor: `rgba(34, 197, 94, ${Math.max(0.1, activation)})`,
+                            color: activation > 0.5 ? 'white' : 'black'
+                          }}
+                          onClick={() => setSelectedWeightBox({type: 'hidden', index: i})}
+                          title={`Hidden ${i}: ${activation.toFixed(3)}`}
+                        >
+                          {activation.toFixed(1)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Connection visualization from Hidden to Output */}
+                  {activeElements.includes('outputWeights') && (
+                    <div className="absolute left-1/2 transform -translate-x-1/2" style={{ top: '300px', height: '40px' }}>
+                      <div className="text-xs text-center text-blue-600 font-medium">
+                        Output weights (24×2)
+                      </div>
+                      <svg width="80" height="30" className="mx-auto">
+                        {Array.from({length: 12}).map((_, i) => (
+                          <g key={i}>
+                            <line
+                              x1="20"
+                              y1="10"
+                              x2="35"
+                              y2="5"
+                              stroke={getWeightColor(outputWeights[0]?.[i] || 0, true)}
+                              strokeWidth="1.5"
+                              opacity="0.7"
+                            />
+                            <line
+                              x1="20"
+                              y1="10"
+                              x2="35"
+                              y2="15"
+                              stroke={getWeightColor(outputWeights[1]?.[i] || 0, true)}
+                              strokeWidth="1.5"
+                              opacity="0.7"
+                            />
+                          </g>
+                        ))}
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Output Layer */}
+                  <div className="mb-4 mt-8">
+                    <div className="text-sm font-medium mb-2 text-center">Output Layer (2 neurons)</div>
+                    <div 
+                      className={`flex gap-4 justify-center p-2 rounded ${
+                        activeElements.includes('output') ? 'bg-blue-100 ring-2 ring-blue-300' : 'bg-gray-50'
+                      }`}
+                    >
+                      {outputActivations.map((activation, i) => (
+                        <div
+                          key={i}
+                          className="flex flex-col items-center"
+                        >
+                          <div
+                            className="w-8 h-8 rounded-full border-2 border-gray-400 flex items-center justify-center text-sm font-medium cursor-pointer"
+                            style={{ 
+                              backgroundColor: `rgba(34, 197, 94, ${Math.max(0.1, activation)})`,
+                              color: activation > 0.5 ? 'white' : 'black',
+                              borderColor: selectedLabel === i && trainingMode === 'manual' ? '#3b82f6' : '#9ca3af'
+                            }}
+                            onClick={() => setSelectedWeightBox({type: 'output', index: i})}
+                            title={`Output ${i}: ${activation.toFixed(3)}`}
+                          >
+                            {activation.toFixed(2)}
+                          </div>
+                          <div className="text-xs mt-1 font-medium">
+                            Digit {i}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Loss Display - Only in Training Mode */}
+                  {mode === 'training' && (
+                    <div 
+                      className={`text-center p-3 rounded ${
+                        activeElements.includes('loss') ? 'bg-red-100 ring-2 ring-red-300' : 'bg-gray-50'
+                      }`}
+                    >
+                      <div className="text-sm font-medium mb-1">Loss ({lossFunction.toUpperCase()})</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {loss.toFixed(4)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Backpropagation indicators */}
+                  {activeElements.includes('backprop') && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                        <div className="text-xs text-red-600 font-medium animate-pulse">
+                          ← Error signals
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Training Data and Information */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Training Dataset */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Training Dataset</h2>
+                  <div className="text-sm text-gray-600">
+                    {trainingExamples.length} examples
+                  </div>
+                </div>
+
+                {/* Dataset Statistics */}
+                <div className="mb-4 p-3 bg-gray-50 rounded">
+                  <div className="text-sm">
+                    <div className="flex justify-between">
+                      <span>Digit 0:</span>
+                      <span className="font-medium">{digitCounts.zeros}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Digit 1:</span>
+                      <span className="font-medium">{digitCounts.ones}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span>Total:</span>
+                      <span className="font-medium">{trainingExamples.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dataset Management */}
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => openDatasetEditor()}
+                    size="sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add New Example
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setShowDatasetEditor(true)}
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Edit3 className="w-4 h-4 mr-1" />
+                    Edit Training Dataset
+                  </Button>
+
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <Button
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      disabled={bulkUploadMutation.isPending}
+                    >
+                      <Upload className="w-4 h-4 mr-1" />
+                      {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload JSON Data'}
+                    </Button>
+                  </div>
+
+                  <Button
+                    onClick={clearDataset}
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                    disabled={clearExamplesMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    {clearExamplesMutation.isPending ? 'Clearing...' : 'Clear All Data'}
+                  </Button>
+                </div>
+
+                {/* Sample Examples Display */}
+                {trainingExamples.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-sm font-medium mb-2">Recent Examples:</div>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {trainingExamples.slice(0, 6).map((example) => {
+                        const pattern = example.pattern as number[][] | number[];
+                        const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+                        const oneHotLabel = parseLabel(example.label);
+                        const digitLabel = oneHotLabel[0] === 1 ? 0 : 1;
+                        
+                        return (
+                          <div key={example.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-xs">
+                            <div className="grid grid-cols-9 gap-px" style={{ width: '45px', height: '45px' }}>
+                              {grid.flat().map((pixel, i) => (
+                                <div
+                                  key={i}
+                                  className={`${pixel === 1 ? 'bg-black' : 'bg-white'} border border-gray-300`}
+                                  style={{ width: '4px', height: '4px' }}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex-1">
+                              <div>ID: {example.id}</div>
+                              <div>Label: Digit {digitLabel}</div>
+                              <div>Pattern: {grid.flat().reduce((sum, pixel) => sum + pixel, 0)} pixels</div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                onClick={() => openDatasetEditor(example)}
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-6 px-2"
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                onClick={() => deleteExampleMutation.mutate(example.id)}
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-6 px-2 text-red-600"
+                                disabled={deleteExampleMutation.isPending}
+                              >
+                                Del
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Training Progress (Only show in Training Mode) */}
+            {mode === 'training' && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Training Progress</h2>
+                    <Button
+                      onClick={() => setShowDebugDialog(true)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Debug Info
+                    </Button>
+                  </div>
+
+                  {/* Current Training Info */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Training History:</span>
+                      <span className="font-medium">{trainingHistory.length} iterations</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Current Loss:</span>
+                      <span className="font-medium text-red-600">{loss.toFixed(4)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Learning Rate:</span>
+                      <span className="font-medium">{learningRate}</span>
+                    </div>
+                  </div>
+
+                  {/* Epoch Progress */}
+                  {isAutoTraining && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                      <div className="text-sm font-medium text-blue-900">
+                        Epoch {currentEpoch}/{numberOfEpochs}
+                      </div>
+                      <div className="text-xs text-blue-700 mt-1">
+                        Example: {currentExampleIndex + 1}/{trainingExamples.length}
+                      </div>
+                      {currentEpochLoss.current.length > 0 && (
+                        <div className="text-xs text-blue-700">
+                          Avg Loss: {(currentEpochLoss.current.reduce((a,b) => a+b, 0) / currentEpochLoss.current.length).toFixed(4)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Training Completed Message */}
+                  {trainingCompleted && !isAutoTraining && epochLossHistory.length > 0 && (
+                    <div className="mt-4 p-3 bg-green-50 rounded">
+                      <div className="text-sm font-medium text-green-900">
+                        Training Completed!
+                      </div>
+                      <div className="text-xs text-green-700 mt-1">
+                        Final Average Loss: {epochLossHistory[epochLossHistory.length - 1]?.averageLoss.toFixed(4)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Epoch Loss History */}
+                  {epochLossHistory.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-sm font-medium mb-2">Epoch Loss History:</div>
+                      <div className="space-y-1 max-h-24 overflow-y-auto text-xs">
+                        {epochLossHistory.map((epochData, i) => (
+                          <div key={i} className="flex justify-between px-2 py-1 bg-gray-50 rounded">
+                            <span>Epoch {epochData.epoch}:</span>
+                            <span className="font-mono">{epochData.averageLoss.toFixed(4)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Weight Information */}
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-lg font-semibold mb-4">Network Weights</h2>
+                
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <div className="font-medium mb-1">Input → Hidden Weights</div>
+                    <div className="text-xs text-gray-600">
+                      {weights.length}×{weights[0]?.length || 0} = {weights.length * (weights[0]?.length || 0)} connections
+                    </div>
+                    <div className="text-xs">
+                      Range: {Math.min(...weights.flat()).toFixed(3)} to {Math.max(...weights.flat()).toFixed(3)}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="font-medium mb-1">Hidden → Output Weights</div>
+                    <div className="text-xs text-gray-600">
+                      {outputWeights.length}×{outputWeights[0]?.length || 0} = {outputWeights.length * (outputWeights[0]?.length || 0)} connections
+                    </div>
+                    <div className="text-xs">
+                      Range: {Math.min(...outputWeights.flat()).toFixed(3)} to {Math.max(...outputWeights.flat()).toFixed(3)}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <div className="text-xs text-gray-600 mb-2">Color Legend:</div>
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-green-500 rounded"></div>
+                        <span>Positive</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 bg-red-500 rounded"></div>
+                        <span>Negative</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Dataset Editor Dialog */}
+      <Dialog open={showDatasetEditor} onOpenChange={setShowDatasetEditor}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingExample ? `Edit Example #${editingExample.id}` : 'Add New Training Example'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Editor Mode Selection */}
+          {!editingExample && (
+            <div className="mb-4">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => openDatasetEditor()}
+                  variant="default"
+                  size="sm"
+                >
+                  Draw New Example
+                </Button>
+                <Button
+                  onClick={() => setShowDatasetEditor(false)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Manage Existing
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Drawing Canvas for Editor */}
+          {(editingExample || !trainingExamples.length) && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Draw Your Example</h3>
+                <div className="text-sm text-gray-600">9×9 pixels</div>
+              </div>
+              
+              <div className="flex gap-6">
+                {/* Canvas */}
+                <div className="bg-white border-2 border-gray-300 rounded p-4">
+                  <div className="grid grid-cols-9 gap-0.5" onMouseLeave={handleEditorMouseUp}>
+                    {editorPixelGrid.map((row, rowIndex) =>
+                      row.map((pixel, colIndex) => (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          className={`w-8 h-8 border border-gray-200 cursor-crosshair transition-colors ${
+                            pixel === 1 ? 'bg-black' : 'bg-white'
+                          }`}
+                          onMouseDown={() => handleEditorMouseDown(rowIndex, colIndex)}
+                          onMouseEnter={() => handleEditorMouseEnter(rowIndex, colIndex)}
+                          onMouseUp={handleEditorMouseUp}
+                        />
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Label</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        onClick={() => setEditorSelectedLabel(0)}
+                        variant={editorSelectedLabel === 0 ? 'default' : 'outline'}
+                        size="sm"
+                      >
+                        Digit 0
+                      </Button>
+                      <Button
+                        onClick={() => setEditorSelectedLabel(1)}
+                        variant={editorSelectedLabel === 1 ? 'default' : 'outline'}
+                        size="sm"
+                      >
+                        Digit 1
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => setEditorPixelGrid(initialPixelGrid)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Clear Canvas
+                    </Button>
+                    
+                    <Button
+                      onClick={saveDatasetExample}
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      disabled={createExampleMutation.isPending || updateExampleMutation.isPending}
+                    >
+                      {createExampleMutation.isPending || updateExampleMutation.isPending
+                        ? 'Saving...'
+                        : editingExample
+                        ? 'Update Example'
+                        : 'Save Example'
+                      }
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Existing Examples Management */}
+          {!editingExample && trainingExamples.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Manage Training Examples</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {trainingExamples.map((example) => {
+                  const pattern = example.pattern as number[][] | number[];
+                  const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+                  const oneHotLabel = parseLabel(example.label);
+                  const digitLabel = oneHotLabel[0] === 1 ? 0 : 1;
+                  
+                  return (
+                    <div key={example.id} className="border border-gray-200 rounded p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="grid grid-cols-9 gap-px bg-gray-100 p-1" style={{ width: '60px', height: '60px' }}>
+                          {grid.flat().map((pixel, i) => (
+                            <div
+                              key={i}
+                              className={`${pixel === 1 ? 'bg-black' : 'bg-white'}`}
+                              style={{ width: '5px', height: '5px' }}
+                            />
+                          ))}
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">Example #{example.id}</div>
+                          <div className="text-xs text-gray-600">
+                            Current: Digit {digitLabel}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {grid.flat().reduce((sum, pixel) => sum + pixel, 0)} active pixels
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <div className="text-xs text-gray-600">Change to:</div>
+                          <div className="flex gap-1">
+                            <Button
+                              onClick={() => updateDatasetExample(example.id, 0)}
+                              size="sm"
+                              variant={digitLabel === 0 ? 'default' : 'outline'}
+                              className="text-xs h-7 px-2"
+                              disabled={updateExampleMutation.isPending || digitLabel === 0}
+                            >
+                              0
+                            </Button>
+                            <Button
+                              onClick={() => updateDatasetExample(example.id, 1)}
+                              size="sm"
+                              variant={digitLabel === 1 ? 'default' : 'outline'}
+                              className="text-xs h-7 px-2"
+                              disabled={updateExampleMutation.isPending || digitLabel === 1}
+                            >
+                              1
+                            </Button>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              onClick={() => openDatasetEditor(example)}
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 px-2"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => deleteExampleMutation.mutate(example.id)}
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 px-2 text-red-600"
+                              disabled={deleteExampleMutation.isPending}
+                            >
+                              Del
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Weight Details Dialog */}
+      {selectedWeightBox && (
+        <Dialog open={!!selectedWeightBox} onOpenChange={() => setSelectedWeightBox(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedWeightBox.type === 'hidden' 
+                  ? `Hidden Neuron ${selectedWeightBox.index}`
+                  : `Output Neuron ${selectedWeightBox.index} (Digit ${selectedWeightBox.index})`
+                }
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Current Values */}
+              <div>
+                <h4 className="font-medium mb-2">Current State</h4>
+                <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
+                  {selectedWeightBox.type === 'hidden' ? (
+                    <>
+                      <div>Activation: {hiddenActivations[selectedWeightBox.index].toFixed(4)}</div>
+                      <div>Bias: {biases[selectedWeightBox.index].toFixed(4)}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div>Activation: {outputActivations[selectedWeightBox.index].toFixed(4)}</div>
+                      <div>Bias: {outputBiases[selectedWeightBox.index].toFixed(4)}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Weight History (if available) */}
+              {trainingHistory.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Training History</h4>
+                  <div>
+                    <Label className="text-sm">Iteration: {weightDialogIteration + 1}/{trainingHistory.length}</Label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={trainingHistory.length - 1}
+                      value={weightDialogIteration}
+                      onChange={(e) => setWeightDialogIteration(parseInt(e.target.value))}
+                      className="w-full mt-2"
+                    />
+                  </div>
+                  
+                  {trainingHistory[weightDialogIteration] && (
+                    <div className="bg-gray-50 p-3 rounded text-sm mt-3">
+                      <div>Loss: {trainingHistory[weightDialogIteration].loss.toFixed(4)}</div>
+                      {selectedWeightBox.type === 'hidden' ? (
+                        <>
+                          <div>Activation: {trainingHistory[weightDialogIteration].hiddenActivations[selectedWeightBox.index].toFixed(4)}</div>
+                          <div>Bias: {trainingHistory[weightDialogIteration].biases[selectedWeightBox.index].toFixed(4)}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div>Activation: {trainingHistory[weightDialogIteration].outputActivations[selectedWeightBox.index].toFixed(4)}</div>
+                          <div>Bias: {trainingHistory[weightDialogIteration].outputBiases[selectedWeightBox.index].toFixed(4)}</div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Epoch Configuration Dialog */}
+      <Dialog open={isEpochDialogOpen} onOpenChange={setIsEpochDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Multi-Epoch Training</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="epochs">Number of Epochs</Label>
+              <Input
+                id="epochs"
+                type="number"
+                min="1"
+                max="100"
+                value={numberOfEpochs}
+                onChange={(e) => setNumberOfEpochs(parseInt(e.target.value) || 1)}
+              />
+              <div className="text-sm text-gray-600 mt-1">
+                Each epoch processes all {trainingExamples.length} training examples
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                onClick={startMultiEpochTraining}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Start Training
+              </Button>
+              <Button 
+                onClick={() => setIsEpochDialogOpen(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Debug Information Dialog */}
+      <Dialog open={showDebugDialog} onOpenChange={setShowDebugDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Debug Information</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm font-medium mb-2">
+                Debug History ({debugHistory.length} entries)
+              </div>
+              {debugHistory.length > 0 ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {debugHistory.slice(-20).reverse().map((entry, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded text-sm">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div><strong>Iteration:</strong> {entry.iteration}</div>
+                          <div><strong>Label:</strong> [{Array.isArray(entry.label) ? entry.label.join(',') : entry.label}]</div>
+                          <div><strong>Loss:</strong> {entry.loss.toFixed(4)}</div>
+                          <div><strong>Step:</strong> {entry.step}</div>
+                        </div>
+                        <div>
+                          <div><strong>Output Activations:</strong></div>
+                          <div className="text-xs font-mono">[{entry.outputActivations.map(a => a.toFixed(3)).join(', ')}]</div>
+                          <div><strong>Output Errors:</strong></div>
+                          <div className="text-xs font-mono">[{entry.outputErrors.map(e => e.toFixed(3)).join(', ')}]</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {entry.timestamp.toLocaleTimeString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-4">
+                  No debug information yet. Complete a training step to see debug data.
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

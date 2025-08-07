@@ -163,13 +163,17 @@ export default function BinaryDigitTrainer() {
 
   const [pixelGrid, setPixelGridState] = useState(initialPixelGrid);
   
-  // Safe setter that ensures pixelGrid is always a 2D array
+  // Safe setter that updates both ref (immediate) and React state (async, UI only)
   const setPixelGrid = (grid: number[][] | number[]) => {
-    if (Array.isArray(grid[0])) {
-      setPixelGridState(grid as number[][]);
-    } else {
-      setPixelGridState(flatToGrid(grid as number[]));
-    }
+    const normalized = Array.isArray(grid[0]) ? (grid as number[][]) : flatToGrid(grid as number[]);
+    pixelGridRef.current = normalized;             // <- immediate, used by training logic
+    setPixelGridState(normalized);                 // <- async, UI only
+  };
+  
+  // Safe setter for selected label
+  const setSelectedLabelSafe = (label: number) => {
+    selectedLabelRef.current = label;
+    setSelectedLabel(label);
   };
   const [weights, setWeights] = useState(initialWeights);
   const [biases, setBiases] = useState(initialBiases);
@@ -233,6 +237,10 @@ export default function BinaryDigitTrainer() {
   const trainingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const shouldStopTraining = useRef(false);
   
+  // Refs for synchronous access during training (eliminates async state issues)
+  const pixelGridRef = useRef<number[][]>(initialPixelGrid);
+  const selectedLabelRef = useRef<number>(0);
+  
   // Current network state that gets updated during training
   const currentNetworkState = useRef({
     weights: initialWeights.map(w => [...w]),
@@ -244,7 +252,10 @@ export default function BinaryDigitTrainer() {
     hiddenPreActivations: Array(24).fill(0), // z1 values (pre-activation)
     outputPreActivations: Array(2).fill(0),   // z2 values (pre-activation)
     loss: 0,
-    outputErrors: Array(2).fill(0)
+    outputErrors: Array(2).fill(0),
+    // Training-specific state (isolated from React)
+    currentTarget: [1, 0] as number[],
+    inputs: Array(81).fill(0) as number[]
   });
 
   // Load dataset example when in dataset mode
@@ -284,10 +295,19 @@ export default function BinaryDigitTrainer() {
       setWeightDialogIteration(trainingHistory.length - 1);
     }
   }, [trainingHistory.length]);
+  
+  // Sync refs with state changes
+  useEffect(() => { selectedLabelRef.current = selectedLabel; }, [selectedLabel]);
+  useEffect(() => { pixelGridRef.current = pixelGrid; }, [pixelGrid]);
 
-  // Calculate pixel values - flatten 9x9 grid to 81 inputs (each pixel is 0 or 1)
+  // Calculate pixel values - read from ref for training logic, fallback to state for UI
   const getPixelValues = () => {
-    return pixelGrid.flat(); // Flatten 9x9 grid to 81 inputs
+    // During training, use cached inputs from network state if available
+    if (currentNetworkState.current.inputs && currentNetworkState.current.inputs.some(x => x !== 0)) {
+      return currentNetworkState.current.inputs;
+    }
+    // Otherwise read from ref (immediate) or state (fallback)
+    return pixelGridRef.current?.flat() || pixelGrid.flat();
   };
 
   const togglePixel = (rowIndex: number, colIndex: number) => {
@@ -622,7 +642,9 @@ export default function BinaryDigitTrainer() {
       hiddenPreActivations: Array(24).fill(0),
       outputPreActivations: Array(2).fill(0),
       loss: 0,
-      outputErrors: Array(2).fill(0)
+      outputErrors: Array(2).fill(0),
+      currentTarget: [1, 0] as number[],
+      inputs: Array(81).fill(0) as number[]
     };
     
     // Clear training history
@@ -788,23 +810,36 @@ export default function BinaryDigitTrainer() {
     event.target.value = '';
   };
 
-  // Automated training functions
-  const runToNextSample = () => {
+  // Helper functions for async training
+  const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+  
+  const runStepsForCurrentSample = async (): Promise<boolean> => {
+    for (const s of [0, 1, 2, 3, 4, 5]) {
+      if (shouldStopTraining.current) return false;
+      console.log(`🔄 Running step ${s} for sample ${currentExampleIndex}`);
+      nextStep(s);                     // use the forced-step path; UI step is cosmetic
+      await sleep(autoTrainingSpeed);
+    }
+    return true;
+  };
+  
+  // Automated training functions - LEGACY (will be replaced)
+  const runToNextSampleLegacy = () => {
     if (trainingExamples.length === 0) return;
     
-    console.log('Starting runToNextSample for example index:', currentExampleIndex);
+    console.log('Starting runToNextSampleLegacy for example index:', currentExampleIndex);
     setIsAutoTraining(true);
     
     // Load current training example
     const currentExample = trainingExamples[currentExampleIndex];
-    console.log('Loading example for runToNextSample:', currentExample.label);
+    console.log('Loading example for runToNextSampleLegacy:', currentExample.label);
     const pattern = currentExample.pattern as number[][] | number[];
     // Convert flat array to 2D grid if needed
     const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
     setPixelGrid(grid);
     // Convert one-hot label back to integer for UI display
     const oneHotLabel = parseLabel(currentExample.label);
-    console.log('Parsed label for runToNextSample:', oneHotLabel);
+    console.log('Parsed label for runToNextSampleLegacy:', oneHotLabel);
     setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     setStep(0); // Start at step 0
     
@@ -812,12 +847,12 @@ export default function BinaryDigitTrainer() {
     let stepCount = 0;
     const interval = setInterval(() => {
       if (stepCount < 6) {
-        console.log('runToNextSample - calling nextStep(), step:', stepCount);
+        console.log('runToNextSampleLegacy - calling nextStep(), step:', stepCount);
         nextStep(stepCount); // Force the step number to avoid React state timing issues
         stepCount++;
       } else {
         clearInterval(interval);
-        console.log('runToNextSample completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
+        console.log('runToNextSampleLegacy completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
         // Update React step state to final step and then complete
         setStep(0);
         
@@ -848,7 +883,7 @@ export default function BinaryDigitTrainer() {
               setCurrentEpoch(newEpoch);
               setCurrentExampleIndex(0);
               console.log(`🚀 Starting epoch ${newEpoch}/${numberOfEpochs}`);
-              runToNextSample();
+              runToNextSampleLegacy();
             } else {
               // All epochs completed
               console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
@@ -858,14 +893,73 @@ export default function BinaryDigitTrainer() {
           } else {
             // Continue with next example in current epoch
             setCurrentExampleIndex(nextIndex);
-            runToNextSample();
+            runToNextSampleLegacy();
           }
         }, autoTrainingSpeed / 2);
       }
     }, autoTrainingSpeed);
   };
 
-  // Process entire training set by calling runToNextSample() multiple times
+  // New async multi-epoch training function
+  const runEpochs = async () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log(`🚀 Starting async multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
+    
+    setIsAutoTraining(true);
+    setTrainingCompleted(false);
+    setIsEpochDialogOpen(false);
+    
+    for (let epoch = 1; epoch <= numberOfEpochs; epoch++) {
+      if (shouldStopTraining.current) break;
+      
+      currentEpochLoss.current = [];
+      setCurrentEpoch(epoch);
+      
+      // Iterate through all examples in the training set
+      for (let idx = 0; idx < trainingExamples.length; idx++) {
+        if (shouldStopTraining.current) break;
+        
+        const example = trainingExamples[idx];
+        const pattern = Array.isArray((example.pattern as any)[0]) 
+          ? example.pattern as number[][] 
+          : flatToGrid(example.pattern as number[]);
+        const oneHot = parseLabel(example.label);
+        const uiDigit = oneHot[0] === 1 ? 0 : 1;
+        
+        console.log(`📊 Epoch ${epoch}/${numberOfEpochs}, Example ${idx + 1}/${trainingExamples.length}, Label: [${oneHot}]`);
+        
+        // Snapshot the sample before running steps (eliminates async state issues)
+        setPixelGrid(pattern);
+        setSelectedLabelSafe(uiDigit);
+        setCurrentExampleIndex(idx);
+        
+        // Cache target and inputs in network state for training logic
+        currentNetworkState.current.currentTarget = oneHot;
+        currentNetworkState.current.inputs = pattern.flat();
+        
+        const completed = await runStepsForCurrentSample();
+        if (!completed) break;
+        
+        currentEpochLoss.current.push(currentNetworkState.current.loss);
+      }
+      
+      // Calculate average loss for completed epoch
+      if (currentEpochLoss.current.length > 0) {
+        const avg = currentEpochLoss.current.reduce((a,b) => a+b, 0) / currentEpochLoss.current.length;
+        setEpochLossHistory(prev => [...prev, { epoch, averageLoss: avg }]);
+        console.log(`✅ Epoch ${epoch} completed. Average loss: ${avg.toFixed(4)}`);
+      }
+      
+      if (shouldStopTraining.current) break;
+    }
+    
+    setIsAutoTraining(false);
+    setTrainingCompleted(true);
+    console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+  };
+  
+  // Process entire training set by calling runEpochs
   const processTrainingSet = () => {
     setIsEpochDialogOpen(true);
   };
@@ -898,7 +992,7 @@ export default function BinaryDigitTrainer() {
     setCurrentEpoch(1);
     
     // Start the recursive training process
-    runToNextSample();
+    runToNextSampleLegacy();
   };
 
   // Cleanup interval on unmount
@@ -1493,7 +1587,34 @@ export default function BinaryDigitTrainer() {
                 <div className="mt-4 space-y-2">
                   <div className="text-sm font-medium text-gray-700 mb-2">Automated Training</div>
                   <Button 
-                    onClick={runToNextSample}
+                    onClick={() => {
+                      // Single sample training using new async approach
+                      if (trainingExamples.length === 0) return;
+                      const example = trainingExamples[currentExampleIndex];
+                      const pattern = Array.isArray((example.pattern as any)[0]) 
+                        ? example.pattern as number[][] 
+                        : flatToGrid(example.pattern as number[]);
+                      const oneHot = parseLabel(example.label);
+                      const uiDigit = oneHot[0] === 1 ? 0 : 1;
+                      
+                      console.log(`🚀 Single sample training - Example ${currentExampleIndex}, Label: [${oneHot}]`);
+                      
+                      // Snapshot the sample before running steps (eliminates async state issues)
+                      setPixelGrid(pattern);
+                      setSelectedLabelSafe(uiDigit);
+                      currentNetworkState.current.currentTarget = oneHot;
+                      currentNetworkState.current.inputs = pattern.flat();
+                      
+                      setIsAutoTraining(true);
+                      runStepsForCurrentSample().then((completed) => {
+                        setIsAutoTraining(false);
+                        if (completed) {
+                          // Move to next example
+                          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+                          setCurrentExampleIndex(nextIndex);
+                        }
+                      });
+                    }}
                     disabled={isAutoTraining}
                     size="sm"
                     className="w-full bg-green-600 hover:bg-green-700 text-white"

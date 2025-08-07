@@ -682,8 +682,12 @@ export default function BinaryDigitTrainer() {
     let currentExampleIndex = 0;
     setCurrentEpoch(1);
     
+    // Create shuffled copy for first epoch
+    let shuffledExamples = [...trainingExamples].sort(() => Math.random() - 0.5);
+    console.log(`Shuffled training examples for epoch ${epochCount}`);
+    
     const processNextExample = () => {
-      if (currentExampleIndex >= trainingExamples.length) {
+      if (currentExampleIndex >= shuffledExamples.length) {
         // Finished one epoch - calculate and store average loss
         if (currentEpochLoss.current.length > 0) {
           const averageLoss = currentEpochLoss.current.reduce((sum, loss) => sum + loss, 0) / currentEpochLoss.current.length;
@@ -707,16 +711,18 @@ export default function BinaryDigitTrainer() {
           return;
         }
         
-        console.log(`Starting epoch ${epochCount} of ${numberOfEpochs}`);
+        // Create new shuffled copy for the new epoch
+        shuffledExamples = [...trainingExamples].sort(() => Math.random() - 0.5);
+        console.log(`Starting epoch ${epochCount} of ${numberOfEpochs} - Shuffled training examples`);
       }
       
-      console.log(`Epoch ${epochCount}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
+      console.log(`Epoch ${epochCount}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${shuffledExamples.length}`);
       
       // Set the current training index and run to next sample
       setCurrentTrainingIndex(currentExampleIndex);
       
       // Use the same logic as runToNextSample but continue to next example when done
-      const currentExample = trainingExamples[currentExampleIndex];
+      const currentExample = shuffledExamples[currentExampleIndex];
       setPixelGrid(currentExample.pattern as number[][]);
       setSelectedLabel(currentExample.label);
       setStep(0);
@@ -732,7 +738,7 @@ export default function BinaryDigitTrainer() {
           if (stepCount === 3) { // After step 2 completes (0-indexed)
             const currentLoss = currentNetworkState.current.loss;
             currentEpochLoss.current.push(currentLoss);
-            console.log(`Sample ${currentExampleIndex + 1}/${trainingExamples.length} - Loss: ${currentLoss.toFixed(6)}`);
+            console.log(`Sample ${currentExampleIndex + 1}/${shuffledExamples.length} - Loss: ${currentLoss.toFixed(6)}`);
           }
         } else {
           clearInterval(interval);

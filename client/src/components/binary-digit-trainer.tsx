@@ -1825,11 +1825,21 @@ export default function BinaryDigitTrainer() {
                 <p className="text-sm text-gray-600">
                   {trainingExamples.length} examples total • 
                   {trainingExamples.filter((ex: TrainingExample) => {
-                    const label = ex.label as number[];
-                    return Array.isArray(label) && label[0] === 1;
+                    const label = ex.label;
+                    // Handle both integer and one-hot array formats
+                    if (Array.isArray(label)) {
+                      return (label as number[])[0] === 1; // [1,0] = digit 0
+                    } else {
+                      return label === 0; // integer 0 = digit 0
+                    }
                   }).length} zeros, {trainingExamples.filter((ex: TrainingExample) => {
-                    const label = ex.label as number[];
-                    return Array.isArray(label) && label[1] === 1;
+                    const label = ex.label;
+                    // Handle both integer and one-hot array formats
+                    if (Array.isArray(label)) {
+                      return (label as number[])[1] === 1; // [0,1] = digit 1
+                    } else {
+                      return label === 1; // integer 1 = digit 1
+                    }
                   }).length} ones
                 </p>
                 <Button onClick={addDatasetExample} size="sm">

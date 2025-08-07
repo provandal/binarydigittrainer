@@ -305,13 +305,13 @@ export default function BinaryDigitTrainer() {
   const calculateLoss = () => {
     let target;
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      // Use one-hot targets from training data: [digit_0, digit_1]
+      // Use one-hot targets from training data: [digit_0, digit_1] - fresh array each time
       const example = trainingExamples[datasetIndex];
       target = example.label === 0 ? [1, 0] : [0, 1];
       console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: ${example.label}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
-      // Manual mode: convert selectedLabel to one-hot
-      target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0]; // [digit_0, digit_1]
+      // Manual mode: convert selectedLabel to one-hot - fresh array each time
+      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
       console.log(`🎯 Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     }
     
@@ -335,12 +335,12 @@ export default function BinaryDigitTrainer() {
   const backpropagationOutput = () => {
     let target;
     if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      // Use one-hot targets from training data: [digit_0, digit_1]
+      // Use one-hot targets from training data: [digit_0, digit_1] - fresh array each time
       const example = trainingExamples[datasetIndex];
       target = example.label === 0 ? [1, 0] : [0, 1];
     } else {
-      // Manual mode: convert selectedLabel to one-hot
-      target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0]; // [digit_0, digit_1]
+      // Manual mode: convert selectedLabel to one-hot - fresh array each time
+      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
     }
     
     // Calculate individual output deltas based on loss function

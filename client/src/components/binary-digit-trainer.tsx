@@ -438,9 +438,18 @@ export default function BinaryDigitTrainer() {
 
   // Function to capture debug information
   const captureDebugInfo = (stage: string) => {
-    const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
-      ? trainingExamples[datasetIndex].label 
-      : selectedLabel;
+    let currentLabel;
+    
+    if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
+      // During automated training, use the current training index
+      currentLabel = trainingExamples[currentTrainingIndex].label;
+    } else if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+      // During manual dataset mode, use the dataset index
+      currentLabel = trainingExamples[datasetIndex].label;
+    } else {
+      // Manual drawing mode, use selected label
+      currentLabel = selectedLabel;
+    }
     
     const debugEntry = {
       iteration: trainingHistoryStore.current.length,

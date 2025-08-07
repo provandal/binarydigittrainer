@@ -322,8 +322,7 @@ export default function BinaryDigitTrainer() {
     currentNetworkState.current.outputActivations = newOutputActivations;
     setOutputActivations(newOutputActivations);
     
-    // Capture debug info right after outputActivations are computed
-    captureDebugInfo('forwardPassOutput');
+    // Debug info will be captured in backpropagationOutput after errors are calculated
   };
 
   const calculateLoss = () => {
@@ -440,12 +439,17 @@ export default function BinaryDigitTrainer() {
   const captureDebugInfo = (stage: string) => {
     let currentLabel;
     
-    if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
-      // During automated training, use the current training index
-      currentLabel = trainingExamples[currentTrainingIndex].label;
-    } else if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      // During manual dataset mode, use the dataset index
-      currentLabel = trainingExamples[datasetIndex].label;
+    // Determine current label based on training mode and state
+    if (trainingMode === 'dataset') {
+      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
+        // During automated training, use the current training index
+        currentLabel = trainingExamples[currentTrainingIndex].label;
+      } else if (trainingExamples[datasetIndex]) {
+        // During manual dataset mode, use the dataset index
+        currentLabel = trainingExamples[datasetIndex].label;
+      } else {
+        currentLabel = selectedLabel;
+      }
     } else {
       // Manual drawing mode, use selected label
       currentLabel = selectedLabel;

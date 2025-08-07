@@ -560,7 +560,7 @@ export default function BinaryDigitTrainer() {
     setBiases(newBiases);
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
-    setHiddenActivations(Array(4).fill(0));
+    setHiddenActivations(Array(24).fill(0));
     setOutputActivations(Array(2).fill(0));
     setLoss(0);
     setStep(0);

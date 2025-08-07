@@ -489,6 +489,13 @@ export default function BinaryDigitTrainer() {
     setWeightDialogIteration(0);
     setTrainingCompleted(false);
     setEpochLossHistory([]);
+    
+    // Reset training state to ensure Automated Training section remains visible
+    setIsAutoTraining(false);
+    setMode('training');
+    setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
+    setCurrentTrainingIndex(0);
+    setCurrentEpoch(1);
   };
 
   // Dataset editor functions

@@ -10,11 +10,15 @@ import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
 
+// Weight initialization helper using Xavier/Glorot initialization
+const initWeight = (n_in: number, n_out: number) => 
+  (Math.random() - 0.5) * Math.sqrt(2 / (n_in + n_out));
+
 // 9x9 pixel grid (81 pixels total, each pixel is 0 or 1)
 const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9x9 grid of pixels
-const initialWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+const initialWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
 const initialBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
-const initialOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+const initialOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
 const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
 
 // Training dataset - 100+ examples each of 0 and 1
@@ -478,9 +482,9 @@ export default function BinaryDigitTrainer() {
 
   const resetNetwork = () => {
     // 81→24→2 architecture: 81 inputs (9x9 grid), 24 hidden neurons, 2 output neurons
-    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
     const newBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
-    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
     const newOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
     
     // Update persistent state

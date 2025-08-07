@@ -530,8 +530,9 @@ export default function BinaryDigitTrainer() {
     // FIRST: Check if we have a cached target from async training (eliminates async state issues)
     if (isAutoTraining && currentNetworkState.current.currentTarget) {
       currentOneHotTarget = currentNetworkState.current.currentTarget;
-      console.log(`🔍 Debug: Using cached target from async training - Target: [${currentOneHotTarget}]`);
+      console.log(`🔍 Debug: Using cached target from async training - Target: [${currentOneHotTarget}], isAutoTraining=${isAutoTraining}`);
     } else {
+      console.log(`🔍 Debug: NOT using cached target - isAutoTraining=${isAutoTraining}, cachedTarget=${currentNetworkState.current.currentTarget}`);
       // FALLBACK: Read from React state (for manual training or when cache is unavailable)
       if (trainingMode === 'dataset') {
         const example = trainingExamples[currentExampleIndex];
@@ -1610,6 +1611,7 @@ export default function BinaryDigitTrainer() {
                       setSelectedLabelSafe(uiDigit);
                       currentNetworkState.current.currentTarget = oneHot;
                       currentNetworkState.current.inputs = pattern.flat();
+                      console.log(`📌 CACHE SET: currentTarget = [${oneHot}], example index = ${currentExampleIndex}`);
                       
                       setIsAutoTraining(true);
                       runStepsForCurrentSample().then((completed) => {

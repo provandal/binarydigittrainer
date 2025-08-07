@@ -196,6 +196,9 @@ export default function BinaryDigitTrainer() {
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
   
+  // Training control refs
+  const trainingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Current network state that gets updated during training
   const currentNetworkState = useRef({
     weights: initialWeights.map(w => [...w]),
@@ -694,6 +697,16 @@ export default function BinaryDigitTrainer() {
     setIsEpochDialogOpen(true);
   };
 
+  const stopTraining = () => {
+    console.log('🛑 Training stopped by user');
+    setIsAutoTraining(false);
+    setTrainingCompleted(true);
+    if (trainingIntervalRef.current) {
+      clearInterval(trainingIntervalRef.current);
+      trainingIntervalRef.current = null;
+    }
+  };
+
   const startMultiEpochTraining = () => {
     if (trainingExamples.length === 0) return;
     
@@ -759,7 +772,17 @@ export default function BinaryDigitTrainer() {
       
       // Run through all 6 steps using nextStep() with forced step numbers
       let stepCount = 0;
-      const interval = setInterval(() => {
+      trainingIntervalRef.current = setInterval(() => {
+        // Check if training was stopped
+        if (!isAutoTraining) {
+          console.log('Training stopped during step processing');
+          if (trainingIntervalRef.current) {
+            clearInterval(trainingIntervalRef.current);
+            trainingIntervalRef.current = null;
+          }
+          return;
+        }
+        
         if (stepCount < 6) {
           nextStep(stepCount); // Force the step number
           stepCount++;
@@ -771,7 +794,15 @@ export default function BinaryDigitTrainer() {
             console.log(`Sample ${currentExampleIndex + 1}/${shuffledExamples.length} - Loss: ${currentLoss.toFixed(6)}`);
           }
         } else {
-          clearInterval(interval);
+          if (trainingIntervalRef.current) {
+            clearInterval(trainingIntervalRef.current);
+            trainingIntervalRef.current = null;
+          }
+          // Check if training was stopped before moving to next example
+          if (!isAutoTraining) {
+            console.log('Training stopped between examples');
+            return;
+          }
           // Move to next example immediately (no delay between examples)
           currentExampleIndex++;
           processNextExample();
@@ -782,6 +813,15 @@ export default function BinaryDigitTrainer() {
     // Start processing
     processNextExample();
   };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (trainingIntervalRef.current) {
+        clearInterval(trainingIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Inference mode function
   const runInference = () => {
@@ -1355,6 +1395,18 @@ export default function BinaryDigitTrainer() {
                   >
                     {isAutoTraining ? 'Processing Set...' : 'Process Training Set'}
                   </Button>
+                  
+                  {/* Stop Training Button - Only show when training is active */}
+                  {isAutoTraining && (
+                    <Button 
+                      onClick={stopTraining}
+                      size="sm"
+                      variant="outline"
+                      className="w-full border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-600"
+                    >
+                      🛑 Stop Training
+                    </Button>
+                  )}
                   <div className="text-xs text-gray-600 text-center">
                     Sample {currentTrainingIndex + 1} of {trainingExamples.length} • Speed: {autoTrainingSpeed}ms
                   </div>

@@ -1802,7 +1802,7 @@ export default function BinaryDigitTrainer() {
                             [{entry.outputBiases.map((b: number) => b.toFixed(3)).join(', ')}]
                           </div>
                           <div className="text-center font-mono">{entry.step}</div>
-                          <div className="text-center font-mono">{entry.label}</div>
+                          <div className="text-center font-mono">[{Array.isArray(entry.label) ? entry.label.join(',') : entry.label}]</div>
                         </div>
                       ))}
                     </div>
@@ -1824,7 +1824,13 @@ export default function BinaryDigitTrainer() {
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-600">
                   {trainingExamples.length} examples total • 
-                  {trainingExamples.filter((ex: TrainingExample) => ex.label === 0).length} zeros, {trainingExamples.filter((ex: TrainingExample) => ex.label === 1).length} ones
+                  {trainingExamples.filter((ex: TrainingExample) => {
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[0] === 1;
+                  }).length} zeros, {trainingExamples.filter((ex: TrainingExample) => {
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[1] === 1;
+                  }).length} ones
                 </p>
                 <Button onClick={addDatasetExample} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
@@ -1887,7 +1893,11 @@ export default function BinaryDigitTrainer() {
                         </div>
                         
                         <div className="text-xs text-gray-600">
-                          <div>Pattern: [{pixelValues.map(v => v.toString()).join(', ')}]</div>
+                          <div>Pattern (81 pixels): [{(() => {
+                            const pattern = example.pattern as number[][] | number[];
+                            const flatPattern = Array.isArray(pattern[0]) ? (pattern as number[][]).flat() : pattern as number[];
+                            return flatPattern.slice(0, 12).map(v => v.toString()).join(',') + (flatPattern.length > 12 ? '...' : '');
+                          })()}]</div>
                           <div className="mt-1">Click pixels to toggle. Target: {Array.isArray(example.label) 
                             ? ((example.label as number[])?.[0] === 1 ? '0' : '1')
                             : String(example.label)}</div>

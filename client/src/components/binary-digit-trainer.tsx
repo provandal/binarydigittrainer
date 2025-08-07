@@ -438,26 +438,34 @@ export default function BinaryDigitTrainer() {
   // Function to capture debug information
   const captureDebugInfo = (stage: string) => {
     let currentLabel;
+    let currentOneHotTarget;
     
     // Determine current label based on training mode and state
     if (trainingMode === 'dataset') {
       if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
         // During automated training, use the current training index
         currentLabel = trainingExamples[currentTrainingIndex].label;
+        console.log(`🔍 Debug: Auto training - currentTrainingIndex: ${currentTrainingIndex}, label: ${currentLabel}`);
       } else if (trainingExamples[datasetIndex]) {
         // During manual dataset mode, use the dataset index
         currentLabel = trainingExamples[datasetIndex].label;
+        console.log(`🔍 Debug: Manual dataset - datasetIndex: ${datasetIndex}, label: ${currentLabel}`);
       } else {
         currentLabel = selectedLabel;
+        console.log(`🔍 Debug: Fallback to selectedLabel: ${currentLabel}`);
       }
     } else {
       // Manual drawing mode, use selected label
       currentLabel = selectedLabel;
+      console.log(`🔍 Debug: Manual drawing - selectedLabel: ${currentLabel}`);
     }
+    
+    // Convert integer label to one-hot target format for display
+    currentOneHotTarget = currentLabel === 0 ? [1, 0] : [0, 1];
     
     const debugEntry = {
       iteration: trainingHistoryStore.current.length,
-      label: currentLabel,
+      label: currentOneHotTarget, // Now showing one-hot format instead of integer
       outputActivations: [...currentNetworkState.current.outputActivations],
       outputErrors: [...currentNetworkState.current.outputErrors],
       outputBiases: [...currentNetworkState.current.outputBiases],

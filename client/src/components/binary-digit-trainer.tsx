@@ -159,7 +159,7 @@ export default function BinaryDigitTrainer() {
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [step, setStep] = useState(0);
   const [loss, setLoss] = useState(0);
-  const [learningRate] = useState(0.5);
+  const [learningRate, setLearningRate] = useState(0.1);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
   const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
@@ -883,8 +883,19 @@ export default function BinaryDigitTrainer() {
               {/* Network Info */}
               <div className="mt-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div>Learning Rate: {learningRate}</div>
+                <div className="text-xs text-gray-600 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span>Learning Rate:</span>
+                    <input
+                      type="number"
+                      value={learningRate}
+                      onChange={(e) => setLearningRate(parseFloat(e.target.value) || 0.1)}
+                      step="0.01"
+                      min="0.001"
+                      max="1.0"
+                      className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
                   <div>Architecture: 81 → 24 → 2</div>
                   <div>Activation: Sigmoid</div>
                   <div>Loss: Mean Squared Error</div>

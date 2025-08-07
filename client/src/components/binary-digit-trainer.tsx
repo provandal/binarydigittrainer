@@ -994,7 +994,7 @@ export default function BinaryDigitTrainer() {
                   </div>
                   <div>Architecture: 81 → 24 → 2</div>
                   <div>Activation: Sigmoid</div>
-                  <div>Loss: Mean Squared Error</div>
+                  <div>Loss: {lossFunction === 'mse' ? 'Mean Squared Error' : 'Cross-Entropy'}</div>
                   <div>Dataset: {trainingExamples.length} examples</div>
                 </div>
               </div>

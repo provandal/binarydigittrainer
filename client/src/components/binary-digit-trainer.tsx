@@ -352,7 +352,7 @@ export default function BinaryDigitTrainer() {
         }
         target = JSON.parse(labelStr);
       }
-      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Label: [${example.label}], Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - DatasetIndex: ${datasetIndex}, ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]

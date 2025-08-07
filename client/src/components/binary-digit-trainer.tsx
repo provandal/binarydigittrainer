@@ -678,19 +678,19 @@ export default function BinaryDigitTrainer() {
     currentEpochLoss.current = [];
     setTrainingCompleted(false);
     
-    let epochCount = 0;
+    let epochCount = 1;
     let currentExampleIndex = 0;
-    setCurrentEpoch(0);
+    setCurrentEpoch(1);
     
     const processNextExample = () => {
       if (currentExampleIndex >= trainingExamples.length) {
         // Finished one epoch - calculate and store average loss
         if (currentEpochLoss.current.length > 0) {
           const averageLoss = currentEpochLoss.current.reduce((sum, loss) => sum + loss, 0) / currentEpochLoss.current.length;
-          console.log(`Epoch ${epochCount + 1} completed. Average loss: ${averageLoss.toFixed(6)}`);
+          console.log(`Epoch ${epochCount} completed. Average loss: ${averageLoss.toFixed(6)}`);
           
           // Store epoch loss history
-          setEpochLossHistory(prev => [...prev, { epoch: epochCount + 1, averageLoss }]);
+          setEpochLossHistory(prev => [...prev, { epoch: epochCount, averageLoss }]);
           
           // Reset for next epoch
           currentEpochLoss.current = [];
@@ -700,17 +700,17 @@ export default function BinaryDigitTrainer() {
         currentExampleIndex = 0;
         setCurrentEpoch(epochCount);
         
-        if (epochCount >= numberOfEpochs) {
+        if (epochCount > numberOfEpochs) {
           console.log(`Finished processing ${numberOfEpochs} epoch(s). Training history length:`, trainingHistoryStore.current.length);
           setIsAutoTraining(false);
           setTrainingCompleted(true);
           return;
         }
         
-        console.log(`Starting epoch ${epochCount + 1} of ${numberOfEpochs}`);
+        console.log(`Starting epoch ${epochCount} of ${numberOfEpochs}`);
       }
       
-      console.log(`Epoch ${epochCount + 1}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
+      console.log(`Epoch ${epochCount}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${trainingExamples.length}`);
       
       // Set the current training index and run to next sample
       setCurrentTrainingIndex(currentExampleIndex);
@@ -1175,7 +1175,7 @@ export default function BinaryDigitTrainer() {
                   </div>
                   <div className="text-sm text-purple-800 mb-2">
                     {isAutoTraining 
-                      ? (numberOfEpochs > 1 ? `Epoch ${currentEpoch + 1} of ${numberOfEpochs}` : 'Processing training examples automatically')
+                      ? (numberOfEpochs > 1 ? `Epoch ${currentEpoch} of ${numberOfEpochs}` : 'Processing training examples automatically')
                       : `Completed ${numberOfEpochs} epoch(s) with ${trainingExamples.length} samples`
                     }
                   </div>
@@ -1186,7 +1186,7 @@ export default function BinaryDigitTrainer() {
                       <div className="w-full bg-purple-300 rounded-full h-1.5">
                         <div 
                           className="bg-purple-700 h-1.5 rounded-full transition-all duration-300" 
-                          style={{ width: `${((currentEpoch + 1) / numberOfEpochs) * 100}%` }}
+                          style={{ width: `${(currentEpoch / numberOfEpochs) * 100}%` }}
                         ></div>
                       </div>
                     </div>
@@ -1203,7 +1203,7 @@ export default function BinaryDigitTrainer() {
                   </div>
                   <div className="text-xs text-purple-700 mt-2 text-center">
                     Sample {currentTrainingIndex + 1} of {trainingExamples.length}
-                    {numberOfEpochs > 1 && ` • Epoch ${currentEpoch + 1}/${numberOfEpochs}`}
+                    {numberOfEpochs > 1 && ` • Epoch ${currentEpoch}/${numberOfEpochs}`}
                   </div>
                   
                   {/* Epoch Loss History */}

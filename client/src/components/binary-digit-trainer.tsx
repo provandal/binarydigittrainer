@@ -193,7 +193,8 @@ export default function BinaryDigitTrainer() {
     outputBiases: [...initialOutputBiases],
     hiddenActivations: Array(24).fill(0),
     outputActivations: Array(2).fill(0),
-    loss: 0
+    loss: 0,
+    outputErrors: Array(2).fill(0)
   });
 
   // Load dataset example when in dataset mode
@@ -279,7 +280,15 @@ export default function BinaryDigitTrainer() {
   };
 
   const calculateLoss = () => {
-    const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
+    let target;
+    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+      // Use one-hot targets from training data: [digit_1, digit_0]
+      const example = trainingExamples[datasetIndex];
+      target = example.label === 1 ? [1, 0] : [0, 1];
+    } else {
+      // Manual mode: convert selectedLabel to one-hot
+      target = [selectedLabel === 1 ? 1 : 0, selectedLabel === 0 ? 1 : 0]; // [digit_1, digit_0]
+    }
     const mse = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
       sum + Math.pow(output - target[i], 2), 0) / 2;
     currentNetworkState.current.loss = mse;
@@ -287,16 +296,29 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationOutput = () => {
-    const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-      (output - target[i]) * sigmoidDerivative(output));
+    let target;
+    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+      // Use one-hot targets from training data: [digit_1, digit_0]
+      const example = trainingExamples[datasetIndex];
+      target = example.label === 1 ? [1, 0] : [0, 1];
+    } else {
+      // Manual mode: convert selectedLabel to one-hot
+      target = [selectedLabel === 1 ? 1 : 0, selectedLabel === 0 ? 1 : 0]; // [digit_1, digit_0]
+    }
     
-    // Update output weights and biases
+    // Calculate individual output deltas: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ)
+    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+      (output - target[i]) * (output * (1 - output))); // sigmoid derivative: σ'(z) = σ(z) * (1 - σ(z))
+    
+    // Update output weights and biases for each output neuron
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
       weights.map((weight, j) => 
         weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
     const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
       bias - learningRate * outputErrors[i]);
+    
+    // Store output errors for hidden layer backpropagation
+    currentNetworkState.current.outputErrors = outputErrors;
     
     // Update persistent store
     currentNetworkState.current.outputWeights = newOutputWeights;
@@ -308,16 +330,15 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationHidden = () => {
-    const target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0];
-    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-      (output - target[i]) * sigmoidDerivative(output));
+    // Use stored output errors from output layer backpropagation
+    const outputErrors = currentNetworkState.current.outputErrors;
     const pixelValues = getPixelValues();
     
-    // Calculate hidden errors
-    const hiddenErrors = currentNetworkState.current.hiddenActivations.map((activation, i) => {
-      const error = outputErrors.reduce((sum, outputError, j) => 
-        sum + outputError * currentNetworkState.current.outputWeights[j][i], 0);
-      return error * sigmoidDerivative(activation);
+    // Calculate hidden errors: δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ)
+    const hiddenErrors = currentNetworkState.current.hiddenActivations.map((activation, h) => {
+      const errorSum = outputErrors.reduce((sum, outputError, i) => 
+        sum + outputError * currentNetworkState.current.outputWeights[i][h], 0);
+      return errorSum * (activation * (1 - activation)); // sigmoid derivative
     });
     
     // Update hidden weights and biases
@@ -404,9 +425,10 @@ export default function BinaryDigitTrainer() {
   };
 
   const resetNetwork = () => {
-    const newWeights = Array.from({ length: 4 }, () => Array(9).fill(0).map(() => (Math.random() - 0.5) * 0.4));
-    const newBiases = Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.2);
-    const newOutputWeights = Array.from({ length: 2 }, () => Array(4).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    // 81→24→2 architecture: 81 inputs (9x9 grid), 24 hidden neurons, 2 output neurons
+    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => (Math.random() - 0.5) * 0.4));
+    const newBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.4));
     const newOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
     
     // Update persistent state
@@ -417,7 +439,8 @@ export default function BinaryDigitTrainer() {
       outputBiases: newOutputBiases,
       hiddenActivations: Array(24).fill(0),
       outputActivations: Array(2).fill(0),
-      loss: 0
+      loss: 0,
+      outputErrors: Array(2).fill(0)
     };
     
     // Clear training history

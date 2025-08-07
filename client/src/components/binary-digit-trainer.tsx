@@ -172,7 +172,7 @@ export default function BinaryDigitTrainer() {
   
   // New state for enhanced features
   const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
-  const [datasetIndex, setDatasetIndex] = useState(0);
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
   const [stepHistory, setStepHistory] = useState<any[]>([]);
   const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
   const [activeElements, setActiveElements] = useState<string[]>([]);
@@ -182,7 +182,6 @@ export default function BinaryDigitTrainer() {
   // New state for automated training and inference mode
   const [mode, setMode] = useState<'training' | 'inference'>('training');
   const [isAutoTraining, setIsAutoTraining] = useState(false);
-  const [currentTrainingIndex, setCurrentTrainingIndex] = useState(0);
   const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(50); // ms between steps - much faster for automated training
   const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
   const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
@@ -233,17 +232,17 @@ export default function BinaryDigitTrainer() {
 
   // Load dataset example when in dataset mode
   useEffect(() => {
-    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
-      const pattern = trainingExamples[datasetIndex].pattern as number[][] | number[];
+    if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
+      const pattern = trainingExamples[currentExampleIndex].pattern as number[][] | number[];
       // Convert flat array to 2D grid if needed
       const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
       setPixelGrid(grid);
       // Convert one-hot label back to integer for UI display
       let oneHotLabel;
-      if (Array.isArray(trainingExamples[datasetIndex].label)) {
-        oneHotLabel = trainingExamples[datasetIndex].label as number[];
+      if (Array.isArray(trainingExamples[currentExampleIndex].label)) {
+        oneHotLabel = trainingExamples[currentExampleIndex].label as number[];
       } else {
-        let labelStr = trainingExamples[datasetIndex].label as string;
+        let labelStr = trainingExamples[currentExampleIndex].label as string;
         if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
           labelStr = labelStr.slice(1, -1);
         }
@@ -251,7 +250,7 @@ export default function BinaryDigitTrainer() {
       }
       setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     }
-  }, [trainingMode, datasetIndex, trainingExamples]);
+  }, [trainingMode, currentExampleIndex, trainingExamples]);
 
   // Update active elements based on current step
   useEffect(() => {
@@ -339,13 +338,9 @@ export default function BinaryDigitTrainer() {
   const calculateLoss = () => {
     let target: number[];
     if (trainingMode === 'dataset') {
-      // Use correct index based on training mode
-      let example;
-      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
-        example = trainingExamples[currentTrainingIndex];
-      } else if (trainingExamples[datasetIndex]) {
-        example = trainingExamples[datasetIndex];
-      } else {
+      // Use current example index
+      const example = trainingExamples[currentExampleIndex];
+      if (!example) {
         // Fallback to manual mode
         target = selectedLabel === 0 ? [1, 0] : [0, 1];
         console.log(`🎯 Fallback Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}]`);
@@ -368,8 +363,7 @@ export default function BinaryDigitTrainer() {
         }
         target = JSON.parse(labelStr);
       }
-      const currentIndex = isAutoTraining ? currentTrainingIndex : datasetIndex;
-      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentExampleIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
@@ -398,13 +392,9 @@ export default function BinaryDigitTrainer() {
   const backpropagationOutput = () => {
     let target: number[];
     if (trainingMode === 'dataset') {
-      // Use correct index based on training mode
-      let example;
-      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
-        example = trainingExamples[currentTrainingIndex];
-      } else if (trainingExamples[datasetIndex]) {
-        example = trainingExamples[datasetIndex];
-      } else {
+      // Use current example index
+      const example = trainingExamples[currentExampleIndex];
+      if (!example) {
         // Fallback to manual mode
         target = selectedLabel === 0 ? [1, 0] : [0, 1];
         return;
@@ -501,14 +491,11 @@ export default function BinaryDigitTrainer() {
     
     // Determine current label based on training mode and state
     if (trainingMode === 'dataset') {
-      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
-        // During automated training, use the current training index (already one-hot)
-        currentOneHotTarget = trainingExamples[currentTrainingIndex].label;
-        console.log(`🔍 Debug: Auto training - currentTrainingIndex: ${currentTrainingIndex}, label: [${currentOneHotTarget}]`);
-      } else if (trainingExamples[datasetIndex]) {
-        // During manual dataset mode, use the dataset index (already one-hot)
-        currentOneHotTarget = trainingExamples[datasetIndex].label;
-        console.log(`🔍 Debug: Manual dataset - datasetIndex: ${datasetIndex}, label: [${currentOneHotTarget}]`);
+      const example = trainingExamples[currentExampleIndex];
+      if (example) {
+        // Use the current example (already one-hot)
+        currentOneHotTarget = example.label;
+        console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, label: [${currentOneHotTarget}]`);
       } else {
         // Convert selectedLabel to one-hot for consistency
         currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
@@ -648,7 +635,7 @@ export default function BinaryDigitTrainer() {
     setDebugHistory([]);
     setShowDebugDialog(false);
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
-    setCurrentTrainingIndex(0);
+    setCurrentExampleIndex(0);
     setCurrentEpoch(1);
     setLossFunction('mse'); // Reset to default loss function
   };
@@ -728,7 +715,7 @@ export default function BinaryDigitTrainer() {
 
   const saveDataset = () => {
     setShowDatasetEditor(false);
-    setDatasetIndex(0);
+    setCurrentExampleIndex(0);
   };
 
   const getPatternPreview = (pattern: number[][] | number[]) => {
@@ -787,11 +774,11 @@ export default function BinaryDigitTrainer() {
   const runToNextSample = () => {
     if (trainingExamples.length === 0) return;
     
-    console.log('Starting runToNextSample for training index:', currentTrainingIndex);
+    console.log('Starting runToNextSample for example index:', currentExampleIndex);
     setIsAutoTraining(true);
     
     // Load current training example
-    const currentExample = trainingExamples[currentTrainingIndex];
+    const currentExample = trainingExamples[currentExampleIndex];
     console.log('Loading example for runToNextSample:', currentExample.label);
     const pattern = currentExample.pattern as number[][] | number[];
     // Convert flat array to 2D grid if needed
@@ -816,8 +803,8 @@ export default function BinaryDigitTrainer() {
         setStep(0);
         // After completing all steps, move to next example
         setTimeout(() => {
-          const nextIndex = (currentTrainingIndex + 1) % trainingExamples.length;
-          setCurrentTrainingIndex(nextIndex);
+          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+          setCurrentExampleIndex(nextIndex);
           setIsAutoTraining(false);
           setTrainingCompleted(true);
         }, autoTrainingSpeed / 2);
@@ -848,7 +835,7 @@ export default function BinaryDigitTrainer() {
     
     shouldStopTraining.current = false;
     setIsAutoTraining(true);
-    setCurrentTrainingIndex(0);
+    setCurrentExampleIndex(0);
     setIsEpochDialogOpen(false);
     
     // Reset epoch loss tracking
@@ -897,7 +884,7 @@ export default function BinaryDigitTrainer() {
       console.log(`Epoch ${epochCount}/${numberOfEpochs} - Processing example ${currentExampleIndex + 1} of ${shuffledExamples.length}`);
       
       // Set the current training index and run to next sample
-      setCurrentTrainingIndex(currentExampleIndex);
+      setCurrentExampleIndex(currentExampleIndex);
       
       // Use the same logic as runToNextSample but continue to next example when done
       const currentExample = shuffledExamples[currentExampleIndex];
@@ -1447,12 +1434,12 @@ export default function BinaryDigitTrainer() {
                     <div 
                       className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
                       style={{ 
-                        width: `${trainingExamples.length > 0 ? ((currentTrainingIndex + 1) / trainingExamples.length) * 100 : 0}%` 
+                        width: `${trainingExamples.length > 0 ? ((currentExampleIndex + 1) / trainingExamples.length) * 100 : 0}%` 
                       }}
                     ></div>
                   </div>
                   <div className="text-xs text-purple-700 mt-2 text-center">
-                    Sample {currentTrainingIndex + 1} of {trainingExamples.length}
+                    Sample {currentExampleIndex + 1} of {trainingExamples.length}
                     {numberOfEpochs > 1 && ` • Epoch ${currentEpoch}/${numberOfEpochs}`}
                   </div>
                   
@@ -1571,7 +1558,7 @@ export default function BinaryDigitTrainer() {
                     </Button>
                   )}
                   <div className="text-xs text-gray-600 text-center">
-                    Sample {currentTrainingIndex + 1} of {trainingExamples.length} • Speed: {autoTrainingSpeed}ms
+                    Sample {currentExampleIndex + 1} of {trainingExamples.length} • Speed: {autoTrainingSpeed}ms
                   </div>
                 </div>
               )}
@@ -1584,19 +1571,19 @@ export default function BinaryDigitTrainer() {
                       Training Dataset
                     </div>
                     <div className="text-xs text-green-700">
-                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {Array.isArray(trainingExamples[datasetIndex]?.label) 
-                        ? ((trainingExamples[datasetIndex]?.label as number[])?.[0] === 1 ? '0' : '1')
-                        : String(trainingExamples[datasetIndex]?.label || 0)}
+                      Example {currentExampleIndex + 1} of {trainingExamples.length} • Target: {Array.isArray(trainingExamples[currentExampleIndex]?.label) 
+                        ? ((trainingExamples[currentExampleIndex]?.label as number[])?.[0] === 1 ? '0' : '1')
+                        : String(trainingExamples[currentExampleIndex]?.label || 0)}
                       <br />
-                      One-hot: [{Array.isArray(trainingExamples[datasetIndex]?.label) 
-                        ? (trainingExamples[datasetIndex]?.label as number[]).join(',')
-                        : trainingExamples[datasetIndex]?.label === 0 ? '1,0' : '0,1'}] (Neuron0: digit0, Neuron1: digit1)
+                      One-hot: [{Array.isArray(trainingExamples[currentExampleIndex]?.label) 
+                        ? (trainingExamples[currentExampleIndex]?.label as number[]).join(',')
+                        : trainingExamples[currentExampleIndex]?.label === 0 ? '1,0' : '0,1'}] (Neuron0: digit0, Neuron1: digit1)
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <Button 
-                      onClick={() => setDatasetIndex(Math.max(0, datasetIndex - 1))}
-                      disabled={datasetIndex === 0}
+                      onClick={() => setCurrentExampleIndex(Math.max(0, currentExampleIndex - 1))}
+                      disabled={currentExampleIndex === 0}
                       variant="outline"
                       size="sm"
                       className="flex-1"
@@ -1604,8 +1591,8 @@ export default function BinaryDigitTrainer() {
                       ← Prev Example
                     </Button>
                     <Button 
-                      onClick={() => setDatasetIndex(Math.min(trainingExamples.length - 1, datasetIndex + 1))}
-                      disabled={datasetIndex === trainingExamples.length - 1}
+                      onClick={() => setCurrentExampleIndex(Math.min(trainingExamples.length - 1, currentExampleIndex + 1))}
+                      disabled={currentExampleIndex === trainingExamples.length - 1}
                       variant="outline"
                       size="sm"
                       className="flex-1"

@@ -48,6 +48,23 @@ const gridToFlat = (grid: number[][]): number[] => {
   return grid.flat();
 };
 
+// Helper function to parse labels consistently
+const parseLabel = (label: any): number[] => {
+  if (Array.isArray(label)) {
+    return label;
+  }
+  if (typeof label === 'string') {
+    // Handle both regular JSON strings and double-quoted strings
+    let labelStr = label;
+    if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+      labelStr = labelStr.slice(1, -1); // Remove outer quotes
+    }
+    return JSON.parse(labelStr);
+  }
+  // Fallback for any other format
+  return [1, 0];
+};
+
 const STEP_DESCRIPTIONS = [
   {
     name: "Ready - Draw your digit",
@@ -494,9 +511,9 @@ export default function BinaryDigitTrainer() {
     if (trainingMode === 'dataset') {
       const example = trainingExamples[currentExampleIndex];
       if (example) {
-        // Use the current example (already one-hot)
-        currentOneHotTarget = example.label;
-        console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, label: [${currentOneHotTarget}]`);
+        // Use the current example (parse to ensure it's an array)
+        currentOneHotTarget = parseLabel(example.label);
+        console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`);
       } else {
         // Convert selectedLabel to one-hot for consistency
         currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
@@ -786,7 +803,8 @@ export default function BinaryDigitTrainer() {
     const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
     setPixelGrid(grid);
     // Convert one-hot label back to integer for UI display
-    const oneHotLabel = currentExample.label as number[];
+    const oneHotLabel = parseLabel(currentExample.label);
+    console.log('Parsed label for runToNextSample:', oneHotLabel);
     setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
     setStep(0); // Start at step 0
     

@@ -337,10 +337,26 @@ export default function BinaryDigitTrainer() {
   };
 
   const calculateLoss = () => {
-    let target;
-    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+    let target: number[];
+    if (trainingMode === 'dataset') {
+      // Use correct index based on training mode
+      let example;
+      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
+        example = trainingExamples[currentTrainingIndex];
+      } else if (trainingExamples[datasetIndex]) {
+        example = trainingExamples[datasetIndex];
+      } else {
+        // Fallback to manual mode
+        target = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🎯 Fallback Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}]`);
+        let calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
+          sum + Math.pow(output - target[i], 2), 0) / 2;
+        currentNetworkState.current.loss = calculatedLoss;
+        setLoss(calculatedLoss);
+        return;
+      }
+      
       // Use one-hot targets directly from training data (already one-hot)
-      const example = trainingExamples[datasetIndex];
       // Ensure target is always an array (parse if it's a string)
       if (Array.isArray(example.label)) {
         target = example.label;
@@ -352,7 +368,8 @@ export default function BinaryDigitTrainer() {
         }
         target = JSON.parse(labelStr);
       }
-      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - DatasetIndex: ${datasetIndex}, ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+      const currentIndex = isAutoTraining ? currentTrainingIndex : datasetIndex;
+      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
     } else {
       // Manual mode: convert selectedLabel to one-hot - fresh array each time
       target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
@@ -379,10 +396,21 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationOutput = () => {
-    let target;
-    if (trainingMode === 'dataset' && trainingExamples[datasetIndex]) {
+    let target: number[];
+    if (trainingMode === 'dataset') {
+      // Use correct index based on training mode
+      let example;
+      if (isAutoTraining && trainingExamples[currentTrainingIndex]) {
+        example = trainingExamples[currentTrainingIndex];
+      } else if (trainingExamples[datasetIndex]) {
+        example = trainingExamples[datasetIndex];
+      } else {
+        // Fallback to manual mode
+        target = selectedLabel === 0 ? [1, 0] : [0, 1];
+        return;
+      }
+      
       // Use one-hot targets directly from training data (already one-hot)
-      const example = trainingExamples[datasetIndex];
       // Ensure target is always an array (parse if it's a string)
       if (Array.isArray(example.label)) {
         target = example.label;

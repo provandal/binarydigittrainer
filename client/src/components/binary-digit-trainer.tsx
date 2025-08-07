@@ -26,7 +26,10 @@ const generateTrainingDataset = () => {
 };
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x))));
-const sigmoidDerivative = (x: number) => x * (1 - x);
+const sigmoidDerivative = (z: number) => {
+  const s = sigmoid(z);
+  return s * (1 - s);
+};
 
 // Helper functions to convert between flat array and 2D array formats
 const flatToGrid = (flatArray: number[]): number[][] => {
@@ -193,6 +196,8 @@ export default function BinaryDigitTrainer() {
     outputBiases: [...initialOutputBiases],
     hiddenActivations: Array(24).fill(0),
     outputActivations: Array(2).fill(0),
+    hiddenPreActivations: Array(24).fill(0), // z1 values (pre-activation)
+    outputPreActivations: Array(2).fill(0),   // z2 values (pre-activation)
     loss: 0,
     outputErrors: Array(2).fill(0)
   });
@@ -262,19 +267,29 @@ export default function BinaryDigitTrainer() {
 
   const forwardPassHidden = () => {
     const pixelValues = getPixelValues();
-    const newActivations = currentNetworkState.current.weights.map((w, i) => {
-      const z = w.reduce((sum, weight, j) => sum + weight * pixelValues[j], currentNetworkState.current.biases[i]);
-      return sigmoid(z);
-    });
+    // Calculate pre-activation values (z1)
+    const newPreActivations = currentNetworkState.current.weights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * pixelValues[j], currentNetworkState.current.biases[i])
+    );
+    // Apply sigmoid to get activations
+    const newActivations = newPreActivations.map(z => sigmoid(z));
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.hiddenPreActivations = newPreActivations;
     currentNetworkState.current.hiddenActivations = newActivations;
     setHiddenActivations(newActivations);
   };
 
   const forwardPassOutput = () => {
-    const newOutputActivations = currentNetworkState.current.outputWeights.map((w, i) => {
-      const z = w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i]);
-      return sigmoid(z);
-    });
+    // Calculate pre-activation values (z2)
+    const newPreActivations = currentNetworkState.current.outputWeights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
+    );
+    // Apply sigmoid to get activations
+    const newOutputActivations = newPreActivations.map(z => sigmoid(z));
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.outputPreActivations = newPreActivations;
     currentNetworkState.current.outputActivations = newOutputActivations;
     setOutputActivations(newOutputActivations);
   };
@@ -308,11 +323,12 @@ export default function BinaryDigitTrainer() {
       target = [selectedLabel === 0 ? 1 : 0, selectedLabel === 1 ? 1 : 0]; // [digit_0, digit_1]
     }
     
-    // Calculate individual output deltas: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ)
+    // Calculate individual output deltas using PRE-ACTIVATION values (matching Python)
+    // δᵢ = (aᵢ - yᵢ) · σ'(zᵢ) where zᵢ is PRE-activation
     const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-      (output - target[i]) * (output * (1 - output))); // sigmoid derivative: σ'(z) = σ(z) * (1 - σ(z))
+      (output - target[i]) * sigmoidDerivative(currentNetworkState.current.outputPreActivations[i]));
     
-    console.log(`🔄 Backprop Output - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}]`);
+    console.log(`🔄 Backprop Output - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
     
     // Update output weights and biases for each output neuron
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
@@ -338,11 +354,12 @@ export default function BinaryDigitTrainer() {
     const outputErrors = currentNetworkState.current.outputErrors;
     const pixelValues = getPixelValues();
     
-    // Calculate hidden errors: δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ)
-    const hiddenErrors = currentNetworkState.current.hiddenActivations.map((activation, h) => {
+    // Calculate hidden errors using PRE-ACTIVATION values (matching Python)
+    // δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ) where zₕ is PRE-activation
+    const hiddenErrors = currentNetworkState.current.hiddenPreActivations.map((preActivation, h) => {
       const errorSum = outputErrors.reduce((sum, outputError, i) => 
         sum + outputError * currentNetworkState.current.outputWeights[i][h], 0);
-      return errorSum * (activation * (1 - activation)); // sigmoid derivative
+      return errorSum * sigmoidDerivative(preActivation);
     });
     
     // Update hidden weights and biases
@@ -443,6 +460,8 @@ export default function BinaryDigitTrainer() {
       outputBiases: newOutputBiases,
       hiddenActivations: Array(24).fill(0),
       outputActivations: Array(2).fill(0),
+      hiddenPreActivations: Array(24).fill(0),
+      outputPreActivations: Array(2).fill(0),
       loss: 0,
       outputErrors: Array(2).fill(0)
     };

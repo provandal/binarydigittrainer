@@ -199,14 +199,16 @@ export default function BinaryDigitTrainer() {
   
   // Debug info display
   const [showDebugInfo, setShowDebugInfo] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<{
+  const [debugHistory, setDebugHistory] = useState<{
+    iteration: number;
     label: number;
     outputActivations: number[];
     outputErrors: number[];
     outputBiases: number[];
     loss: number;
     step: number;
-  } | null>(null);
+    timestamp: Date;
+  }[]>([]);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -319,6 +321,9 @@ export default function BinaryDigitTrainer() {
     currentNetworkState.current.outputPreActivations = newPreActivations;
     currentNetworkState.current.outputActivations = newOutputActivations;
     setOutputActivations(newOutputActivations);
+    
+    // Capture debug info right after outputActivations are computed
+    captureDebugInfo('forwardPassOutput');
   };
 
   const calculateLoss = () => {
@@ -350,21 +355,7 @@ export default function BinaryDigitTrainer() {
     currentNetworkState.current.loss = calculatedLoss;
     setLoss(calculatedLoss);
     
-    // Update debug info if panel is open
-    if (showDebugInfo) {
-      const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
-        ? trainingExamples[datasetIndex].label 
-        : selectedLabel;
-      
-      setDebugInfo({
-        label: currentLabel,
-        outputActivations: [...currentNetworkState.current.outputActivations],
-        outputErrors: [...currentNetworkState.current.outputErrors],
-        outputBiases: [...currentNetworkState.current.outputBiases],
-        loss: calculatedLoss,
-        step: step
-      });
-    }
+    // Debug info is now captured in captureDebugInfo function
   };
 
   const backpropagationOutput = () => {
@@ -392,15 +383,15 @@ export default function BinaryDigitTrainer() {
     
     console.log(`🔄 Backprop Output (${lossFunction.toUpperCase()}) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
     
+    // Store output errors for later use
+    currentNetworkState.current.outputErrors = outputErrors;
+    
     // Update output weights and biases for each output neuron
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
       weights.map((weight, j) => 
         weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
     const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
       bias - learningRate * outputErrors[i]);
-    
-    // Store output errors for hidden layer backpropagation
-    currentNetworkState.current.outputErrors = outputErrors;
     
     // Update persistent store
     currentNetworkState.current.outputWeights = newOutputWeights;
@@ -409,6 +400,9 @@ export default function BinaryDigitTrainer() {
     // Update React state for display
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
+    
+    // Capture debug info right after outputErrors are computed
+    captureDebugInfo('backpropagationOutput');
   };
 
   const backpropagationHidden = () => {
@@ -441,6 +435,30 @@ export default function BinaryDigitTrainer() {
   };
 
 
+
+  // Function to capture debug information
+  const captureDebugInfo = (stage: string) => {
+    const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
+      ? trainingExamples[datasetIndex].label 
+      : selectedLabel;
+    
+    const debugEntry = {
+      iteration: trainingHistoryStore.current.length,
+      label: currentLabel,
+      outputActivations: [...currentNetworkState.current.outputActivations],
+      outputErrors: [...currentNetworkState.current.outputErrors],
+      outputBiases: [...currentNetworkState.current.outputBiases],
+      loss: currentNetworkState.current.loss,
+      step: step,
+      timestamp: new Date()
+    };
+    
+    setDebugHistory(prev => {
+      const updated = [...prev, debugEntry];
+      // Keep only last 50 entries to prevent memory issues
+      return updated.slice(-50);
+    });
+  };
 
   const nextStep = (forceStep?: number) => {
     let currentLoss = loss;
@@ -551,6 +569,9 @@ export default function BinaryDigitTrainer() {
     shouldStopTraining.current = false;
     setIsAutoTraining(false);
     setMode('training');
+    
+    // Clear debug history
+    setDebugHistory([]);
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
     setCurrentTrainingIndex(0);
     setCurrentEpoch(1);
@@ -1222,21 +1243,6 @@ export default function BinaryDigitTrainer() {
                   {/* Debug Info Icon */}
                   <g className="debug-icon cursor-pointer" onClick={() => {
                     setShowDebugInfo(!showDebugInfo);
-                    if (!showDebugInfo) {
-                      // Capture current debug info when opening
-                      const currentLabel = trainingMode === 'dataset' && trainingExamples[datasetIndex] 
-                        ? trainingExamples[datasetIndex].label 
-                        : selectedLabel;
-                      
-                      setDebugInfo({
-                        label: currentLabel,
-                        outputActivations: [...currentNetworkState.current.outputActivations],
-                        outputErrors: [...currentNetworkState.current.outputErrors],
-                        outputBiases: [...currentNetworkState.current.outputBiases],
-                        loss: currentNetworkState.current.loss,
-                        step: step
-                      });
-                    }
                   }}>
                     {/* Debug icon background */}
                     <circle
@@ -1287,10 +1293,10 @@ export default function BinaryDigitTrainer() {
               </div>
               
               {/* Debug Information Panel */}
-              {showDebugInfo && debugInfo && (
+              {showDebugInfo && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-blue-800">Debug Information</h3>
+                    <h3 className="text-sm font-semibold text-blue-800">Debug History ({debugHistory.length} entries)</h3>
                     <button 
                       onClick={() => setShowDebugInfo(false)}
                       className="text-blue-600 hover:text-blue-800 text-sm"
@@ -1298,38 +1304,52 @@ export default function BinaryDigitTrainer() {
                       ✕
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 text-xs">
-                    <div>
-                      <span className="font-medium text-blue-700">Label:</span>
-                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.label}</span>
+                  
+                  {debugHistory.length === 0 ? (
+                    <div className="text-sm text-blue-600 italic">
+                      No debug data captured yet. Run some training steps to see debug information.
                     </div>
-                    <div>
-                      <span className="font-medium text-blue-700">Step:</span>
-                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.step}</span>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto space-y-3">
+                      {debugHistory.slice().reverse().map((entry, index) => (
+                        <div key={index} className="p-3 bg-white border border-blue-200 rounded">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-medium text-blue-800">
+                              Iteration {entry.iteration} • {entry.timestamp.toLocaleTimeString()}
+                            </span>
+                            <span className="text-xs text-blue-600">
+                              Step {entry.step} • Label: {entry.label}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 gap-2 text-xs">
+                            <div>
+                              <span className="font-medium text-blue-700">Loss:</span>
+                              <span className="ml-2 font-mono">{entry.loss.toFixed(6)}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-blue-700">Output Activations:</span>
+                              <div className="mt-1 font-mono text-xs">
+                                [{entry.outputActivations.map((a: number) => a.toFixed(4)).join(', ')}]
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-blue-700">Output Errors:</span>
+                              <div className="mt-1 font-mono text-xs">
+                                [{entry.outputErrors.map((e: number) => e.toFixed(4)).join(', ')}]
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-blue-700">Output Biases:</span>
+                              <div className="mt-1 font-mono text-xs">
+                                [{entry.outputBiases.map((b: number) => b.toFixed(4)).join(', ')}]
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <span className="font-medium text-blue-700">Loss:</span>
-                      <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{debugInfo.loss.toFixed(6)}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-blue-700">Output Activations:</span>
-                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
-                        [{debugInfo.outputActivations.map(a => a.toFixed(4)).join(', ')}]
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-blue-700">Output Errors:</span>
-                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
-                        [{debugInfo.outputErrors.map(e => e.toFixed(4)).join(', ')}]
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-blue-700">Output Biases:</span>
-                      <div className="mt-1 font-mono bg-white p-2 rounded border text-xs">
-                        [{debugInfo.outputBiases.map(b => b.toFixed(4)).join(', ')}]
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
             </CardContent>

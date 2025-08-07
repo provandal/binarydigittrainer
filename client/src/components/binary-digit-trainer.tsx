@@ -527,22 +527,28 @@ export default function BinaryDigitTrainer() {
     let currentLabel;
     let currentOneHotTarget;
     
-    // Determine current label based on training mode and state
-    if (trainingMode === 'dataset') {
-      const example = trainingExamples[currentExampleIndex];
-      if (example) {
-        // Use the current example (parse to ensure it's an array)
-        currentOneHotTarget = parseLabel(example.label);
-        console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`);
-      } else {
-        // Convert selectedLabel to one-hot for consistency
-        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
-        console.log(`🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
-      }
+    // FIRST: Check if we have a cached target from async training (eliminates async state issues)
+    if (isAutoTraining && currentNetworkState.current.currentTarget) {
+      currentOneHotTarget = currentNetworkState.current.currentTarget;
+      console.log(`🔍 Debug: Using cached target from async training - Target: [${currentOneHotTarget}]`);
     } else {
-      // Manual drawing mode, convert selected label to one-hot
-      currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
-      console.log(`🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+      // FALLBACK: Read from React state (for manual training or when cache is unavailable)
+      if (trainingMode === 'dataset') {
+        const example = trainingExamples[currentExampleIndex];
+        if (example) {
+          // Use the current example (parse to ensure it's an array)
+          currentOneHotTarget = parseLabel(example.label);
+          console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`);
+        } else {
+          // Convert selectedLabel to one-hot for consistency
+          currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+          console.log(`🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+        }
+      } else {
+        // Manual drawing mode, convert selected label to one-hot
+        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+      }
     }
     
     const debugEntry = {

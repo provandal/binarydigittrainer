@@ -17,9 +17,9 @@ const initWeight = (n_in: number, n_out: number) =>
 // 9x9 pixel grid (81 pixels total, each pixel is 0 or 1)
 const initialPixelGrid = Array(9).fill(0).map(() => Array(9).fill(0)); // 9x9 grid of pixels
 const initialWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
-const initialBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+const initialBiases = Array(24).fill(0);
 const initialOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
-const initialOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+const initialOutputBiases = Array(2).fill(0);
 
 // Training dataset - 100+ examples each of 0 and 1
 const generateTrainingDataset = () => {
@@ -34,6 +34,18 @@ const sigmoidDerivative = (z: number) => {
   const s = sigmoid(z);
   return s * (1 - s);
 };
+
+// Softmax function for output layer
+const softmax = (z: number[]) => {
+  const m = Math.max(...z);
+  const exps = z.map(v => Math.exp(v - m));
+  const sum = exps.reduce((a,b)=>a+b, 0);
+  return exps.map(e => e / sum);
+};
+
+// Gradient clipping constants
+const GRADIENT_CLIP = 1.0;
+const clip = (g: number) => Math.max(-GRADIENT_CLIP, Math.min(GRADIENT_CLIP, g));
 
 // Helper functions to convert between flat array and 2D array formats
 const flatToGrid = (flatArray: number[]): number[][] => {
@@ -65,6 +77,32 @@ const parseLabel = (label: any): number[] => {
   return [1, 0];
 };
 
+// Helper function to get current target (eliminates race conditions)
+const getCurrentTarget = (currentNetworkState: any, trainingMode: string, trainingExamples: any[], currentExampleIndex: number, selectedLabelRef: any): number[] => {
+  // First check cached target from network state
+  const cached = currentNetworkState.current.currentTarget;
+  if (cached && cached.length === 2) {
+    return cached;
+  }
+  
+  // Fallback: rebuild target based on current mode
+  if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
+    const example = trainingExamples[currentExampleIndex];
+    if (Array.isArray(example.label)) {
+      return example.label;
+    } else {
+      let labelStr = example.label as string;
+      if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+        labelStr = labelStr.slice(1, -1);
+      }
+      return JSON.parse(labelStr);
+    }
+  }
+  
+  // Last resort: manual mode
+  return selectedLabelRef.current === 0 ? [1, 0] : [0, 1];
+};
+
 const STEP_DESCRIPTIONS = [
   {
     name: "Ready - Draw your digit",
@@ -80,20 +118,20 @@ const STEP_DESCRIPTIONS = [
   },
   {
     name: "Forward Pass - Hidden to Output", 
-    concept: "Hidden layer activations are combined using output weights to produce final predictions for digits 0 and 1.",
-    formula: "oₖ = σ(∑ⱼ wⱼₖ·hⱼ + bₖ) for output neurons k ∈ {0,1}",
+    concept: "Hidden layer activations are combined using output weights and softmax to produce probability predictions for digits 0 and 1.",
+    formula: "zₖ = ∑ⱼ wⱼₖ·hⱼ + bₖ, then pₖ = softmax(zₖ)",
     activeElements: ["hidden", "output", "outputWeights"]
   },
   {
     name: "Calculate Loss",
-    concept: "The network's prediction is compared to the target label using Mean Squared Error to measure accuracy.",
-    formula: "Loss = ½∑ₖ(tₖ - oₖ)² where tₖ is target and oₖ is output",
+    concept: "The network's prediction is compared to the target label using Cross-Entropy Loss to measure accuracy.",
+    formula: "Loss = -∑ₖ tₖ·log(pₖ) where tₖ is target and pₖ is predicted probability",
     activeElements: ["output", "loss"]
   },
   {
     name: "Backpropagation - Output Layer",
-    concept: "Error signals flow backward to adjust output weights. Larger errors cause bigger weight changes.",
-    formula: "δₖ = (tₖ - oₖ)·oₖ·(1-oₖ), Δwⱼₖ = α·δₖ·hⱼ",
+    concept: "Error signals flow backward to adjust output weights. The softmax + cross-entropy gradient is simplified.",
+    formula: "δₖ = pₖ - tₖ, Δwⱼₖ = α·clip(δₖ)·hⱼ",
     activeElements: ["output", "outputWeights", "backprop"]
   },
   {
@@ -184,7 +222,7 @@ export default function BinaryDigitTrainer() {
   const [selectedLabel, setSelectedLabel] = useState(0);
   const [step, setStep] = useState(0);
   const [loss, setLoss] = useState(0);
-  const [learningRate, setLearningRate] = useState(0.1);
+  const [learningRate, setLearningRate] = useState(0.01);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
   const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
@@ -209,8 +247,8 @@ export default function BinaryDigitTrainer() {
   const [numberOfEpochs, setNumberOfEpochs] = useState(1);
   const [currentEpoch, setCurrentEpoch] = useState(0);
   
-  // Loss function selection
-  const [lossFunction, setLossFunction] = useState<'mse' | 'crossentropy'>('mse');
+  // Using Cross-Entropy Loss (fixed)
+  const lossFunction = 'crossentropy';
   
   // Epoch loss tracking
   const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
@@ -361,8 +399,8 @@ export default function BinaryDigitTrainer() {
     const newPreActivations = currentNetworkState.current.outputWeights.map((w, i) => 
       w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
     );
-    // Apply sigmoid to get activations
-    const newOutputActivations = newPreActivations.map(z => sigmoid(z));
+    // Apply softmax to get probability distribution
+    const newOutputActivations = softmax(newPreActivations);
     
     // Store both pre-activation and activation values
     currentNetworkState.current.outputPreActivations = newPreActivations;
@@ -373,111 +411,45 @@ export default function BinaryDigitTrainer() {
   };
 
   const calculateLoss = () => {
-    let target: number[];
-    if (trainingMode === 'dataset') {
-      // Use current example index
-      const example = trainingExamples[currentExampleIndex];
-      if (!example) {
-        // Fallback to manual mode
-        target = selectedLabel === 0 ? [1, 0] : [0, 1];
-        console.log(`🎯 Fallback Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}]`);
-        let calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
-          sum + Math.pow(output - target[i], 2), 0) / 2;
-        currentNetworkState.current.loss = calculatedLoss;
-        setLoss(calculatedLoss);
-        return;
-      }
-      
-      // Use one-hot targets directly from training data (already one-hot)
-      // Ensure target is always an array (parse if it's a string)
-      if (Array.isArray(example.label)) {
-        target = example.label;
-      } else {
-        // Handle both regular JSON strings and double-quoted strings
-        let labelStr = example.label as string;
-        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
-          labelStr = labelStr.slice(1, -1); // Remove outer quotes
-        }
-        target = JSON.parse(labelStr);
-      }
-      console.log(`🎯 Dataset Loss (${lossFunction.toUpperCase()}) - Index: ${currentExampleIndex} (${isAutoTraining ? 'auto' : 'manual'}), ExampleID: ${example.id}, RawLabel: ${JSON.stringify(example.label)}, ParsedTarget: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
-      console.log(`🔍 Debug: Training examples array length: ${trainingExamples.length}, currentExampleIndex: ${currentExampleIndex}`);
-    } else {
-      // Manual mode: convert selectedLabel to one-hot - fresh array each time
-      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
-      console.log(`🎯 Manual Loss (${lossFunction.toUpperCase()}) - Label: ${selectedLabel}, Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
-    }
+    // Use cached target to eliminate race conditions
+    const target = getCurrentTarget(currentNetworkState, trainingMode, trainingExamples, currentExampleIndex, selectedLabelRef);
     
-    let calculatedLoss;
-    if (lossFunction === 'mse') {
-      // Mean Squared Error
-      calculatedLoss = currentNetworkState.current.outputActivations.reduce((sum, output, i) => 
-        sum + Math.pow(output - target[i], 2), 0) / 2;
-    } else {
-      // Cross-Entropy Loss
-      calculatedLoss = -target.reduce((sum: number, t: number, i: number) => {
-        const output = Math.max(1e-15, Math.min(1 - 1e-15, currentNetworkState.current.outputActivations[i]));
-        return sum + t * Math.log(output);
-      }, 0);
-    }
+    console.log(`🎯 Cross-Entropy Loss - Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+    
+    // Cross-Entropy Loss with epsilon clamping
+    const eps = 1e-7;
+    const probs = currentNetworkState.current.outputActivations;
+    const calculatedLoss = -target.reduce((sum: number, t: number, i: number) => {
+      const p = Math.max(eps, Math.min(1 - eps, probs[i]));
+      return sum + t * Math.log(p);
+    }, 0);
     
     currentNetworkState.current.loss = calculatedLoss;
     setLoss(calculatedLoss);
-    
-    // Debug info is now captured in captureDebugInfo function
   };
 
   const backpropagationOutput = () => {
-    let target: number[];
-    if (trainingMode === 'dataset') {
-      // Use current example index
-      const example = trainingExamples[currentExampleIndex];
-      if (!example) {
-        // Fallback to manual mode
-        target = selectedLabel === 0 ? [1, 0] : [0, 1];
-        return;
-      }
-      
-      // Use one-hot targets directly from training data (already one-hot)
-      // Ensure target is always an array (parse if it's a string)
-      if (Array.isArray(example.label)) {
-        target = example.label;
-      } else {
-        // Handle both regular JSON strings and double-quoted strings
-        let labelStr = example.label as string;
-        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
-          labelStr = labelStr.slice(1, -1); // Remove outer quotes
-        }
-        target = JSON.parse(labelStr);
-      }
-    } else {
-      // Manual mode: convert selectedLabel to one-hot - fresh array each time
-      target = selectedLabel === 0 ? [1, 0] : [0, 1]; // [digit_0, digit_1]
-    }
+    // Use cached target to eliminate race conditions
+    const target = getCurrentTarget(currentNetworkState, trainingMode, trainingExamples, currentExampleIndex, selectedLabelRef);
     
-    // Calculate individual output deltas based on loss function
-    let outputErrors;
-    if (lossFunction === 'mse') {
-      // MSE: δᵢ = (aᵢ - yᵢ) · σ'(zᵢ) where zᵢ is PRE-activation
-      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-        (output - target[i]) * sigmoidDerivative(currentNetworkState.current.outputPreActivations[i]));
-    } else {
-      // Cross-Entropy: δᵢ = (aᵢ - yᵢ) - simplified gradient
-      outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
-        output - target[i]);
-    }
+    // Cross-Entropy + Softmax gradient: δᵢ = pᵢ - tᵢ (clean and simple)
+    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+      output - target[i]);
     
-    console.log(`🔄 Backprop Output (${lossFunction.toUpperCase()}) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], PreActivations: [${currentNetworkState.current.outputPreActivations.map(z => z.toFixed(3))}]`);
+    // Apply gradient clipping for stability
+    const outputErrorsClipped = outputErrors.map(clip);
     
-    // Store output errors for later use
-    currentNetworkState.current.outputErrors = outputErrors;
+    console.log(`🔄 Backprop Output (Cross-Entropy) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], Clipped: [${outputErrorsClipped.map(e => e.toFixed(4))}]`);
     
-    // Update output weights and biases for each output neuron
+    // Store clipped output errors for hidden layer backprop
+    currentNetworkState.current.outputErrors = outputErrorsClipped;
+    
+    // Update output weights and biases using clipped errors
     const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
       weights.map((weight, j) => 
-        weight - learningRate * outputErrors[i] * currentNetworkState.current.hiddenActivations[j]));
+        weight - learningRate * outputErrorsClipped[i] * currentNetworkState.current.hiddenActivations[j]));
     const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
-      bias - learningRate * outputErrors[i]);
+      bias - learningRate * outputErrorsClipped[i]);
     
     // Update persistent store
     currentNetworkState.current.outputWeights = newOutputWeights;
@@ -492,24 +464,27 @@ export default function BinaryDigitTrainer() {
   };
 
   const backpropagationHidden = () => {
-    // Use stored output errors from output layer backpropagation
-    const outputErrors = currentNetworkState.current.outputErrors;
+    // Use clipped output errors from output layer backpropagation
+    const outputErrorsClipped = currentNetworkState.current.outputErrors;
     const pixelValues = getPixelValues();
     
-    // Calculate hidden errors using PRE-ACTIVATION values (matching Python)
+    // Calculate hidden errors using PRE-ACTIVATION values and clipped output errors
     // δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ) where zₕ is PRE-activation
     const hiddenErrors = currentNetworkState.current.hiddenPreActivations.map((preActivation, h) => {
-      const errorSum = outputErrors.reduce((sum, outputError, i) => 
+      const errorSum = outputErrorsClipped.reduce((sum, outputError, i) => 
         sum + outputError * currentNetworkState.current.outputWeights[i][h], 0);
       return errorSum * sigmoidDerivative(preActivation);
     });
     
-    // Update hidden weights and biases
+    // Apply gradient clipping to hidden errors as well
+    const hiddenErrorsClipped = hiddenErrors.map(clip);
+    
+    // Update hidden weights and biases using clipped errors
     const newWeights = currentNetworkState.current.weights.map((weights, i) => 
       weights.map((weight, j) => 
-        weight - learningRate * hiddenErrors[i] * pixelValues[j]));
+        weight - learningRate * hiddenErrorsClipped[i] * pixelValues[j]));
     const newBiases = currentNetworkState.current.biases.map((bias, i) => 
-      bias - learningRate * hiddenErrors[i]);
+      bias - learningRate * hiddenErrorsClipped[i]);
     
     // Update persistent store
     currentNetworkState.current.weights = newWeights;
@@ -634,9 +609,9 @@ export default function BinaryDigitTrainer() {
   const resetNetwork = () => {
     // 81→24→2 architecture: 81 inputs (9x9 grid), 24 hidden neurons, 2 output neurons
     const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
-    const newBiases = Array(24).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    const newBiases = Array(24).fill(0);
     const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
-    const newOutputBiases = Array(2).fill(0).map(() => (Math.random() - 0.5) * 0.2);
+    const newOutputBiases = Array(2).fill(0);
     
     // Update persistent state
     currentNetworkState.current = {
@@ -684,7 +659,6 @@ export default function BinaryDigitTrainer() {
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
     setCurrentExampleIndex(0);
     setCurrentEpoch(1);
-    setLossFunction('mse'); // Reset to default loss function
   };
 
   // Dataset editor functions
@@ -1018,26 +992,24 @@ export default function BinaryDigitTrainer() {
     
     const inputs = getPixelValues();
     
-    // Forward pass only (no training)
-    const hiddenSums = weights.map((neuronWeights, i) => 
-      inputs.reduce((sum, input, j) => sum + input * neuronWeights[j], 0) + biases[i]
+    // Forward pass only (no training) - use current network state
+    const hiddenSums = currentNetworkState.current.weights.map((neuronWeights, i) => 
+      inputs.reduce((sum, input, j) => sum + input * neuronWeights[j], 0) + currentNetworkState.current.biases[i]
     );
     const hiddenOutputs = hiddenSums.map(sigmoid);
     
-    const outputSums = outputWeights.map((neuronWeights, i) => 
-      hiddenOutputs.reduce((sum, hidden, j) => sum + hidden * neuronWeights[j], 0) + outputBiases[i]
+    const outputSums = currentNetworkState.current.outputWeights.map((neuronWeights, i) => 
+      hiddenOutputs.reduce((sum, hidden, j) => sum + hidden * neuronWeights[j], 0) + currentNetworkState.current.outputBiases[i]
     );
-    const outputs = outputSums.map(sigmoid);
+    const outputs = softmax(outputSums); // Use softmax for proper probabilities
     
     // Update activations for visualization
     setHiddenActivations(hiddenOutputs);
     setOutputActivations(outputs);
     
-    // Determine prediction (higher output wins)
+    // Determine prediction using softmax probabilities
     const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
-    const confidence = Math.max(...outputs);
-    
-
+    const confidence = outputs[predictedDigit]; // Use the actual probability for the predicted digit
     
     setPrediction({ digit: predictedDigit, confidence });
   };
@@ -1166,20 +1138,9 @@ export default function BinaryDigitTrainer() {
                       className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Loss Function:</span>
-                    <select
-                      value={lossFunction}
-                      onChange={(e) => setLossFunction(e.target.value as 'mse' | 'crossentropy')}
-                      className="w-24 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 bg-white"
-                    >
-                      <option value="mse">MSE</option>
-                      <option value="crossentropy">Cross-Entropy</option>
-                    </select>
-                  </div>
                   <div>Architecture: 81 → 24 → 2</div>
-                  <div>Activation: Sigmoid</div>
-                  <div>Loss: {lossFunction === 'mse' ? 'Mean Squared Error' : 'Cross-Entropy'}</div>
+                  <div>Hidden: Sigmoid, Output: Softmax</div>
+                  <div>Loss: Cross-Entropy</div>
                   <div>Dataset: {trainingExamples.length} examples</div>
                 </div>
               </div>

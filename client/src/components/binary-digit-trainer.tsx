@@ -1525,9 +1525,13 @@ export default function BinaryDigitTrainer() {
                       Training Dataset
                     </div>
                     <div className="text-xs text-green-700">
-                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {(trainingExamples[datasetIndex]?.label as number[])?.[0] === 1 ? '0' : '1'}
+                      Example {datasetIndex + 1} of {trainingExamples.length} • Target: {Array.isArray(trainingExamples[datasetIndex]?.label) 
+                        ? ((trainingExamples[datasetIndex]?.label as number[])?.[0] === 1 ? '0' : '1')
+                        : String(trainingExamples[datasetIndex]?.label || 0)}
                       <br />
-                      One-hot: [{(trainingExamples[datasetIndex]?.label as number[])?.join(',')}] (Neuron0: digit0, Neuron1: digit1)
+                      One-hot: [{Array.isArray(trainingExamples[datasetIndex]?.label) 
+                        ? (trainingExamples[datasetIndex]?.label as number[]).join(',')
+                        : trainingExamples[datasetIndex]?.label === 0 ? '1,0' : '0,1'}] (Neuron0: digit0, Neuron1: digit1)
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -1840,7 +1844,9 @@ export default function BinaryDigitTrainer() {
                             <Label htmlFor={`label-${index}`} className="text-sm">Label:</Label>
                             <select
                               id={`label-${index}`}
-                              value={(example.label as number[])?.[0] === 1 ? '0' : '1'}
+                              value={Array.isArray(example.label) 
+                                ? ((example.label as number[])?.[0] === 1 ? '0' : '1')
+                                : String(example.label || 0)}
                               onChange={(e) => updateDatasetExample(index, example.pattern as number[][] | number[], parseInt(e.target.value))}
                               className="px-2 py-1 border rounded text-sm"
                             >
@@ -1882,7 +1888,9 @@ export default function BinaryDigitTrainer() {
                         
                         <div className="text-xs text-gray-600">
                           <div>Pattern: [{pixelValues.map(v => v.toString()).join(', ')}]</div>
-                          <div className="mt-1">Click pixels to toggle. Target: {(example.label as number[])?.[0] === 1 ? '0' : '1'}</div>
+                          <div className="mt-1">Click pixels to toggle. Target: {Array.isArray(example.label) 
+                            ? ((example.label as number[])?.[0] === 1 ? '0' : '1')
+                            : String(example.label)}</div>
                           <div className="mt-1">Each pixel is 0 (white) or 1 (black)</div>
                         </div>
                       </div>

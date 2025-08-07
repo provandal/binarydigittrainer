@@ -198,7 +198,7 @@ export default function BinaryDigitTrainer() {
   const [trainingCompleted, setTrainingCompleted] = useState(false);
   
   // Debug info display
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [showDebugDialog, setShowDebugDialog] = useState(false);
   const [debugHistory, setDebugHistory] = useState<{
     iteration: number;
     label: number;
@@ -453,11 +453,7 @@ export default function BinaryDigitTrainer() {
       timestamp: new Date()
     };
     
-    setDebugHistory(prev => {
-      const updated = [...prev, debugEntry];
-      // Keep only last 50 entries to prevent memory issues
-      return updated.slice(-50);
-    });
+    setDebugHistory(prev => [...prev, debugEntry]);
   };
 
   const nextStep = (forceStep?: number) => {
@@ -572,6 +568,7 @@ export default function BinaryDigitTrainer() {
     
     // Clear debug history
     setDebugHistory([]);
+    setShowDebugDialog(false);
     setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
     setCurrentTrainingIndex(0);
     setCurrentEpoch(1);
@@ -1242,15 +1239,15 @@ export default function BinaryDigitTrainer() {
 
                   {/* Debug Info Icon */}
                   <g className="debug-icon cursor-pointer" onClick={() => {
-                    setShowDebugInfo(!showDebugInfo);
+                    setShowDebugDialog(true);
                   }}>
                     {/* Debug icon background */}
                     <circle
                       cx="680"
                       cy="25"
                       r="15"
-                      fill={showDebugInfo ? "#3B82F6" : "#6B7280"}
-                      stroke={showDebugInfo ? "#1D4ED8" : "#4B5563"}
+                      fill={showDebugDialog ? "#3B82F6" : "#6B7280"}
+                      stroke={showDebugDialog ? "#1D4ED8" : "#4B5563"}
                       strokeWidth="2"
                       opacity="0.9"
                     />
@@ -1292,66 +1289,6 @@ export default function BinaryDigitTrainer() {
                 </div>
               </div>
               
-              {/* Debug Information Panel */}
-              {showDebugInfo && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-blue-800">Debug History ({debugHistory.length} entries)</h3>
-                    <button 
-                      onClick={() => setShowDebugInfo(false)}
-                      className="text-blue-600 hover:text-blue-800 text-sm"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  
-                  {debugHistory.length === 0 ? (
-                    <div className="text-sm text-blue-600 italic">
-                      No debug data captured yet. Run some training steps to see debug information.
-                    </div>
-                  ) : (
-                    <div className="max-h-96 overflow-y-auto space-y-3">
-                      {debugHistory.slice().reverse().map((entry, index) => (
-                        <div key={index} className="p-3 bg-white border border-blue-200 rounded">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-medium text-blue-800">
-                              Iteration {entry.iteration} • {entry.timestamp.toLocaleTimeString()}
-                            </span>
-                            <span className="text-xs text-blue-600">
-                              Step {entry.step} • Label: {entry.label}
-                            </span>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 gap-2 text-xs">
-                            <div>
-                              <span className="font-medium text-blue-700">Loss:</span>
-                              <span className="ml-2 font-mono">{entry.loss.toFixed(6)}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium text-blue-700">Output Activations:</span>
-                              <div className="mt-1 font-mono text-xs">
-                                [{entry.outputActivations.map((a: number) => a.toFixed(4)).join(', ')}]
-                              </div>
-                            </div>
-                            <div>
-                              <span className="font-medium text-blue-700">Output Errors:</span>
-                              <div className="mt-1 font-mono text-xs">
-                                [{entry.outputErrors.map((e: number) => e.toFixed(4)).join(', ')}]
-                              </div>
-                            </div>
-                            <div>
-                              <span className="font-medium text-blue-700">Output Biases:</span>
-                              <div className="mt-1 font-mono text-xs">
-                                [{entry.outputBiases.map((b: number) => b.toFixed(4)).join(', ')}]
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -1767,6 +1704,81 @@ export default function BinaryDigitTrainer() {
                     </svg>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Debug History Dialog */}
+        {showDebugDialog && (
+          <div className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    Debug History ({debugHistory.length} entries)
+                  </h2>
+                  <Button 
+                    onClick={() => setShowDebugDialog(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    ×
+                  </Button>
+                </div>
+                
+                {debugHistory.length === 0 ? (
+                  <div className="text-sm text-gray-600 italic p-4 text-center">
+                    No debug data captured yet. Run some training steps to see debug information.
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Fixed Table Headers */}
+                    <div className="bg-gray-50 border-b border-gray-200">
+                      <div className="grid grid-cols-8 gap-2 p-3 text-xs font-medium text-gray-700">
+                        <div className="text-center">Iteration #</div>
+                        <div className="text-center">Time</div>
+                        <div className="text-center">Loss</div>
+                        <div className="text-center">Output Activations</div>
+                        <div className="text-center">Output Errors</div>
+                        <div className="text-center">Output Biases</div>
+                        <div className="text-center">Step #</div>
+                        <div className="text-center">Label</div>
+                      </div>
+                    </div>
+                    
+                    {/* Scrollable Data Rows */}
+                    <div className="max-h-96 overflow-y-auto">
+                      {debugHistory.map((entry, index) => (
+                        <div 
+                          key={index} 
+                          className={`grid grid-cols-8 gap-2 p-3 text-xs border-b border-gray-100 ${
+                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                          }`}
+                        >
+                          <div className="text-center font-mono">{entry.iteration}</div>
+                          <div className="text-center font-mono text-xs">
+                            {entry.timestamp.toLocaleTimeString()}
+                          </div>
+                          <div className="text-center font-mono">
+                            {entry.loss.toFixed(6)}
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputActivations.map((a: number) => a.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputErrors.map((e: number) => e.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputBiases.map((b: number) => b.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono">{entry.step}</div>
+                          <div className="text-center font-mono">{entry.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Edit3, Upload } from "lucide-react";
+import { Trash2, Plus, Edit3, Upload, ChevronDown, ChevronRight, Save, FolderOpen } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -102,6 +102,53 @@ const getCurrentTarget = (currentNetworkState: any, trainingMode: string, traini
   // Last resort: manual mode
   return selectedLabelRef.current === 0 ? [1, 0] : [0, 1];
 };
+
+// ---------- Checkpoint helpers ----------
+type Checkpoint = {
+  format: string;
+  createdAt: string;
+  architecture: { input: number; hidden: number; output: number };
+  normalize: { enabled: boolean; targetSize: number };
+  optimizer: { learningRate: number; lrDecayRate: number; minLR: number; decayEnabled: boolean };
+  stats: { epoch: number; avgLoss: number; examplesSeen: number };
+  params: {
+    weights: number[][];        // [H][I]
+    biases: number[];           // [H]
+    outputWeights: number[][];  // [O][H]
+    outputBiases: number[];     // [O]
+  };
+};
+
+function validateCheckpoint(cp: any): cp is Checkpoint {
+  if (!cp || typeof cp !== "object") return false;
+  if (cp.format !== "binary-digit-trainer-checkpoint@v1") return false;
+  const archOk = cp.architecture?.input === 81 && cp.architecture?.hidden === 24 && cp.architecture?.output === 2;
+  const w = cp?.params?.weights, b = cp?.params?.biases, wo = cp?.params?.outputWeights, bo = cp?.params?.outputBiases;
+  const shapesOk =
+    Array.isArray(w) && w.length === 24 && w.every((row: any) => Array.isArray(row) && row.length === 81) &&
+    Array.isArray(b) && b.length === 24 &&
+    Array.isArray(wo) && wo.length === 2 && wo.every((row: any) => Array.isArray(row) && row.length === 24) &&
+    Array.isArray(bo) && bo.length === 2;
+  return archOk && shapesOk;
+}
+
+function downloadBlobJSON(obj: any, filename: string) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function nowStamp() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
 
 const STEP_DESCRIPTIONS = [
   {
@@ -267,6 +314,21 @@ export default function BinaryDigitTrainer() {
     step: number;
     timestamp: Date;
   }[]>([]);
+
+  // ----- LR decay and checkpoint stats -----
+  const [lrDecayEnabled, setLrDecayEnabled] = useState(false);
+  const [lrDecayRate, setLrDecayRate] = useState(0.99);   // per epoch multiply
+  const [minLR, setMinLR] = useState(0.0005);
+  const [normalizeEnabled, setNormalizeEnabled] = useState(false); // Placeholder for normalization
+  const [targetSize, setTargetSize] = useState(7); // Placeholder for normalization
+
+  // ----- Stats for checkpoint metadata -----
+  const [examplesSeen, setExamplesSeen] = useState(0);
+  const [lastEpochAvgLoss, setLastEpochAvgLoss] = useState<number | null>(null);
+  const [completedEpochs, setCompletedEpochs] = useState(0);
+
+  // ----- Model Management UI -----
+  const [showModelManagement, setShowModelManagement] = useState(false);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -796,6 +858,91 @@ export default function BinaryDigitTrainer() {
     event.target.value = '';
   };
 
+  // ---------- Checkpoint functions ----------
+  const handleExportCheckpoint = () => {
+    const cp: Checkpoint = {
+      format: "binary-digit-trainer-checkpoint@v1",
+      createdAt: new Date().toISOString(),
+      architecture: { input: 81, hidden: 24, output: 2 },
+      normalize: { enabled: normalizeEnabled, targetSize },
+      optimizer: { learningRate, lrDecayRate, minLR, decayEnabled: lrDecayEnabled },
+      stats: { epoch: completedEpochs, avgLoss: lastEpochAvgLoss ?? NaN, examplesSeen },
+      params: {
+        weights: currentNetworkState.current.weights.map(r => [...r]),
+        biases:  [...currentNetworkState.current.biases],
+        outputWeights: currentNetworkState.current.outputWeights.map(r => [...r]),
+        outputBiases:  [...currentNetworkState.current.outputBiases]
+      }
+    };
+    downloadBlobJSON(cp, `checkpoint-${nowStamp()}.json`);
+  };
+
+  const handleImportCheckpointFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      if (!validateCheckpoint(json)) {
+        alert("Invalid checkpoint format or shape mismatch (expected 81→24→2).");
+        e.target.value = "";
+        return;
+      }
+
+      const { params, normalize, optimizer, stats } = json as Checkpoint;
+
+      // Stop any running training first
+      setIsAutoTraining(false);
+      shouldStopTraining.current = true;
+
+      // update refs first (source of truth for training)
+      currentNetworkState.current.weights = params.weights.map(r => [...r]);
+      currentNetworkState.current.biases  = [...params.biases];
+      currentNetworkState.current.outputWeights = params.outputWeights.map(r => [...r]);
+      currentNetworkState.current.outputBiases  = [...params.outputBiases];
+
+      // reset caches
+      currentNetworkState.current.hiddenActivations = Array(24).fill(0);
+      currentNetworkState.current.outputActivations = Array(2).fill(0);
+      currentNetworkState.current.hiddenPreActivations = Array(24).fill(0);
+      currentNetworkState.current.outputPreActivations = Array(2).fill(0);
+      currentNetworkState.current.loss = 0;
+      currentNetworkState.current.outputErrors = Array(2).fill(0);
+
+      // update React state to match (UI)
+      setWeights(params.weights.map(r => [...r]));
+      setBiases([...params.biases]);
+      setOutputWeights(params.outputWeights.map(r => [...r]));
+      setOutputBiases([...params.outputBiases]);
+
+      // normalization + optimizer settings (optional but helpful)
+      if (typeof normalize?.enabled === "boolean") setNormalizeEnabled(!!normalize.enabled);
+      if (typeof normalize?.targetSize === "number") setTargetSize(normalize.targetSize);
+      if (typeof optimizer?.learningRate === "number") setLearningRate(optimizer.learningRate);
+      if (typeof optimizer?.lrDecayRate === "number") setLrDecayRate(optimizer.lrDecayRate);
+      if (typeof optimizer?.minLR === "number") setMinLR(optimizer.minLR);
+      if (typeof optimizer?.decayEnabled === "boolean") setLrDecayEnabled(optimizer.decayEnabled);
+
+      // stats (for display only)
+      if (typeof stats?.avgLoss === "number") setLastEpochAvgLoss(stats.avgLoss);
+      if (typeof stats?.epoch === "number") setCompletedEpochs(stats.epoch);
+      if (typeof stats?.examplesSeen === "number") setExamplesSeen(stats.examplesSeen);
+
+      // Reset UI state
+      setStep(0);
+      setLoss(0);
+      setHiddenActivations(Array(24).fill(0));
+      setOutputActivations(Array(2).fill(0));
+      
+      alert(`Loaded checkpoint: ${file.name}`);
+    } catch (err) {
+      console.error("Import error:", err);
+      alert("Failed to import checkpoint.");
+    } finally {
+      e.target.value = ""; // allow reselecting same file
+    }
+  };
+
   // Helper functions for async training
   const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
   
@@ -929,12 +1076,15 @@ export default function BinaryDigitTrainer() {
         if (!completed) break;
         
         currentEpochLoss.current.push(currentNetworkState.current.loss);
+        setExamplesSeen(prev => prev + 1);
       }
       
       // Calculate average loss for completed epoch
       if (currentEpochLoss.current.length > 0) {
         const avg = currentEpochLoss.current.reduce((a,b) => a+b, 0) / currentEpochLoss.current.length;
         setEpochLossHistory(prev => [...prev, { epoch, averageLoss: avg }]);
+        setLastEpochAvgLoss(avg);
+        setCompletedEpochs(epoch);
         console.log(`✅ Epoch ${epoch} completed. Average loss: ${avg.toFixed(4)}`);
       }
       
@@ -1555,6 +1705,85 @@ export default function BinaryDigitTrainer() {
                 </div>
               </div>
 
+              {/* Model Management Section */}
+              <div className="mt-4">
+                <Button
+                  onClick={() => setShowModelManagement(!showModelManagement)}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-between p-2 h-auto"
+                >
+                  <span className="text-sm font-medium text-gray-700">Model Management</span>
+                  {showModelManagement ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </Button>
+                
+                {showModelManagement && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-3">
+                    {/* Checkpoint Export/Import */}
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                        Checkpoints
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={handleExportCheckpoint}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          <Save className="w-3 h-3 mr-1" />
+                          Export
+                        </Button>
+
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleImportCheckpointFile}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <Button variant="outline" size="sm" className="w-full text-xs">
+                            <FolderOpen className="w-3 h-3 mr-1" />
+                            Import
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Model Stats */}
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                        Model Stats
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Epochs:</span>
+                          <span className="font-mono">{completedEpochs}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Examples:</span>
+                          <span className="font-mono">{examplesSeen}</span>
+                        </div>
+                        <div className="flex justify-between col-span-2">
+                          <span className="text-gray-600">Last Loss:</span>
+                          <span className="font-mono">
+                            {lastEpochAvgLoss !== null ? lastEpochAvgLoss.toFixed(4) : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between col-span-2">
+                          <span className="text-gray-600">Learning Rate:</span>
+                          <span className="font-mono">{learningRate.toFixed(5)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Automated Training Controls - Only in Training Mode */}
               {mode === 'training' && trainingMode === 'dataset' && trainingExamples.length > 0 && (
                 <div className="mt-4 space-y-2">
@@ -1583,6 +1812,8 @@ export default function BinaryDigitTrainer() {
                       runStepsForCurrentSample().then((completed) => {
                         setIsAutoTraining(false);
                         if (completed) {
+                          // Track the training stats
+                          setExamplesSeen(prev => prev + 1);
                           // Move to next example
                           const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
                           setCurrentExampleIndex(nextIndex);

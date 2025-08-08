@@ -1223,193 +1223,220 @@ async function evaluateOnDataset() {
               <h2 className="text-lg font-semibold mb-4">Neural Network (81→24→2)</h2>
               
               <div className="bg-gray-50 p-4 rounded-lg overflow-auto">
-                <svg viewBox="0 0 800 600" className="w-full h-[500px]">
-                  {/* Input layer */}
-                  <g>
-                    <text x="50" y="25" className="text-sm font-medium" fill="black">Input Layer (81 pixels)</text>
-                    {Array.from({length: 9}).map((_, i) => (
-                      <g key={i}>
-                        {Array.from({length: 9}).map((_, j) => {
-                          const pixelIndex = i * 9 + j;
-                          const pixelValue = getPixelValues()[pixelIndex] || 0;
-                          const isActive = activeElements.includes('input');
-                          return (
-                            <rect
-                              key={j}
-                              x={20 + j * 12}
-                              y={40 + i * 12}
-                              width="10"
-                              height="10"
-                              fill={pixelValue > 0 ? (isActive ? "#1f2937" : "#4b5563") : "#f3f4f6"}
-                              stroke={isActive ? "#3b82f6" : "#9ca3af"}
-                              strokeWidth={isActive ? "2" : "1"}
-                              onMouseEnter={() => handlePixelHover(pixelIndex)}
-                              onMouseLeave={handlePixelLeave}
-                              className="transition-all duration-200"
-                            />
-                          );
-                        })}
+                <svg viewBox="0 0 800 1300" className="w-full h-[500px]">
+                  {/* Input Layer */}
+                  <g className="input-layer">
+                    <text x="38" y="5" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
+                    {getPixelValues().map((value, i) => (
+                      <g key={`input-${i}`}>
+                        <circle
+                          cx="75"
+                          cy={25 + i * 20}
+                          r="8"
+                          fill={value > 0.5 ? "#DC2626" : "#E5E7EB"}
+                          stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('input') ? "2" : "1"}
+                          className={activeElements.includes('input') ? "animate-pulse" : ""}
+                        />
+                        <text x="75" y={28 + i * 20} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {value}
+                        </text>
                       </g>
                     ))}
                   </g>
 
-                  {/* Hidden layer */}
-                  <g>
-                    <text x="300" y="25" className="text-sm font-medium" fill="black">Hidden Layer (24 neurons)</text>
-                    {Array.from({length: 24}).map((_, i) => {
-                      const activation = hiddenActivations[i];
-                      const isActive = activeElements.includes('hidden');
-                      const yPos = 40 + (i % 12) * 25;
-                      const xPos = i < 12 ? 300 : 330;
-                      return (
+                  {/* Hidden Layer */}
+                  <g className="hidden-layer">
+                    <text x="250" y="5" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
+                    {hiddenActivations.map((activation, i) => (
+                      <g key={`hidden-${i}`}>
                         <circle
-                          key={i}
-                          cx={xPos}
-                          cy={yPos}
-                          r="8"
-                          fill={isActive ? `rgba(59, 130, 246, ${0.3 + activation * 0.7})` : `rgba(107, 114, 128, ${0.3 + activation * 0.7})`}
-                          stroke={isActive ? "#3b82f6" : "#6b7280"}
-                          strokeWidth={isActive ? "2" : "1"}
-                          className="transition-all duration-200"
+                          cx="313"
+                          cy={25 + i * 22}
+                          r="12"
+                          fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
+                          stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('hidden') ? "2" : "1"}
+                          className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
-                      );
-                    })}
+                        <text x="313" y={29 + i * 22} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {activation.toFixed(2)}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
+
+                  {/* Output Layer */}
+                  <g className="output-layer">
+                    <text x="525" y="5" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
+                    {outputActivations.map((activation, i) => (
+                      <g key={`output-${i}`}>
+                        <circle
+                          cx="600"
+                          cy={70 + i * 120}
+                          r="25"
+                          fill={activation === Math.max(...outputActivations) ? "#10B981" : "#E5E7EB"}
+                          stroke={activeElements.includes('output') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('output') ? "5" : "3.75"}
+                          className={activeElements.includes('output') ? "animate-pulse" : ""}
+                        />
+                        <text x="600" y={77 + i * 120} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {activation.toFixed(2)}
+                        </text>
+                        <text x="638" y={73 + i * 120} fontSize="15" fill="#666" fontWeight="bold">
+                          {i}: {(activation * 100).toFixed(0)}%
+                        </text>
+                        <text x="638" y={95 + i * 120} fontSize="12" fill="#555" fontWeight="bold">
+                          bias: {outputBiases[i].toFixed(3)}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
+
+                  {/* Input to Hidden connections */}
+                  {weights.map((hiddenWeights, hiddenIdx) =>
+                    hiddenWeights.map((weight, inputIdx) => (
+                      <line
+                        key={`line-ih-${hiddenIdx}-${inputIdx}`}
+                        x1="87"
+                        y1={25 + inputIdx * 20}
+                        x2="301"
+                        y2={25 + hiddenIdx * 22}
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "1" : "0.3"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.2"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
+                      />
+                    ))
+                  )}
+
+                  {/* Hidden to Output connections */}
+                  {outputWeights.map((outputWeightArray, outputIdx) =>
+                    outputWeightArray.map((weight, hiddenIdx) => (
+                      <line
+                        key={`line-ho-${outputIdx}-${hiddenIdx}`}
+                        x1="325"
+                        y1={25 + hiddenIdx * 22}
+                        x2="572"
+                        y2={70 + outputIdx * 120}
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
+                      />
+                    ))
+                  )}
+
+                  {/* Weight detail buttons - rendered on top */}
+                  {/* Hidden layer plus buttons */}
+                  {hiddenActivations.map((activation, i) => (
+                    <g key={`hidden-plus-${i}`} className="cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'hidden', index: i});
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                    }}>
+                      {/* Green circle */}
+                      <circle
+                        cx="280"
+                        cy={25 + i * 22}
+                        r="10"
+                        fill="#10B981"
+                        stroke="#059669"
+                        strokeWidth="2"
+                        opacity="0.9"
+                      />
+                      {/* Plus symbol */}
+                      <line
+                        x1="275"
+                        y1={25 + i * 22}
+                        x2="285"
+                        y2={25 + i * 22}
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="280"
+                        y1={20 + i * 22}
+                        x2="280"
+                        y2={30 + i * 22}
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  ))}
+
+                  {/* Output layer plus buttons */}
+                  {outputActivations.map((activation, i) => (
+                    <g key={`output-plus-${i}`} className="cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'output', index: i});
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                    }}>
+                      {/* Green circle */}
+                      <circle
+                        cx="540"
+                        cy={70 + i * 120}
+                        r="12"
+                        fill="#10B981"
+                        stroke="#059669"
+                        strokeWidth="2"
+                        opacity="0.9"
+                      />
+                      {/* Plus symbol */}
+                      <line
+                        x1="534"
+                        y1={70 + i * 120}
+                        x2="546"
+                        y2={70 + i * 120}
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="540"
+                        y1={64 + i * 120}
+                        x2="540"
+                        y2={76 + i * 120}
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  ))}
+
+                  {/* Debug Info Icon */}
+                  <g className="debug-icon cursor-pointer" onClick={() => {
+                    setShowDebugDialog(true);
+                  }}>
+                    {/* Debug icon background */}
+                    <circle
+                      cx="680"
+                      cy="25"
+                      r="15"
+                      fill={showDebugDialog ? "#3B82F6" : "#6B7280"}
+                      stroke={showDebugDialog ? "#1D4ED8" : "#4B5563"}
+                      strokeWidth="2"
+                      opacity="0.9"
+                    />
+                    {/* Info icon (i) */}
+                    <text x="680" y="31" fontSize="16" fill="white" textAnchor="middle" fontWeight="bold">
+                      i
+                    </text>
+                  </g>
+
+                  {/* Legend */}
+                  <g className="legend">
+                    <text x="38" y="1200" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
+                    <circle cx="50" cy="1220" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
+                    <line x1="46" y1="1220" x2="54" y2="1220" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="50" y1="1216" x2="50" y2="1224" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <text x="65" y="1225" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
                     
-                    {/* Hidden layer weight visualization boxes */}
-                    {Array.from({length: 24}).map((_, i) => {
-                      const isActive = activeElements.includes('inputWeights');
-                      const yPos = 40 + (i % 12) * 25;
-                      const xPos = i < 12 ? 270 : 360;
-                      return (
-                        <rect
-                          key={i}
-                          x={xPos}
-                          y={yPos - 4}
-                          width="8"
-                          height="8"
-                          fill={isActive ? "#fbbf24" : "#d1d5db"}
-                          stroke={isActive ? "#f59e0b" : "#9ca3af"}
-                          strokeWidth={isActive ? "2" : "1"}
-                          className="cursor-pointer transition-all duration-200"
-                          onClick={() => setSelectedWeightBox({type: 'hidden', index: i})}
-                        />
-                      );
-                    })}
+                    {/* Debug icon legend */}
+                    <circle cx="50" cy="1245" r="8" fill="#6B7280" stroke="#4B5563" strokeWidth="1.5"/>
+                    <text x="50" y="1250" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">i</text>
+                    <text x="65" y="1250" fontSize="13" fill="#666">Click info button (top right) to view network debug information</text>
                   </g>
-
-                  {/* Output layer */}
-                  <g>
-                    <text x="550" y="25" className="text-sm font-medium" fill="black">Output Layer (2 neurons)</text>
-                    {[0, 1].map((i) => {
-                      const activation = outputActivations[i];
-                      const isActive = activeElements.includes('output');
-                      return (
-                        <g key={i}>
-                          <circle
-                            cx="580"
-                            cy={100 + i * 80}
-                            r="20"
-                            fill={isActive ? `rgba(34, 197, 94, ${0.3 + activation * 0.7})` : `rgba(107, 114, 128, ${0.3 + activation * 0.7})`}
-                            stroke={isActive ? "#22c55e" : "#6b7280"}
-                            strokeWidth={isActive ? "3" : "2"}
-                            className="transition-all duration-200"
-                          />
-                          <text x="580" y={105 + i * 80} textAnchor="middle" className="text-xs font-medium" fill="black">
-                            {i}
-                          </text>
-                          <text x="620" y={105 + i * 80} className="text-xs" fill="black">
-                            {activation.toFixed(3)}
-                          </text>
-                          
-                          {/* Output weight visualization box */}
-                          <rect
-                            x="540"
-                            y={90 + i * 80}
-                            width="12"
-                            height="12"
-                            fill={activeElements.includes('outputWeights') ? "#f97316" : "#d1d5db"}
-                            stroke={activeElements.includes('outputWeights') ? "#ea580c" : "#9ca3af"}
-                            strokeWidth={activeElements.includes('outputWeights') ? "2" : "1"}
-                            className="cursor-pointer transition-all duration-200"
-                            onClick={() => setSelectedWeightBox({type: 'output', index: i})}
-                          />
-                        </g>
-                      );
-                    })}
-                  </g>
-
-                  {/* Connection lines */}
-                  {activeElements.includes('inputWeights') && (
-                    <g opacity="0.3">
-                      {Array.from({length: 24}).map((_, hiddenIndex) => {
-                        const yPos = 40 + (hiddenIndex % 12) * 25;
-                        const xPosHidden = hiddenIndex < 12 ? 300 : 330;
-                        return Array.from({length: 81}).map((_, inputIndex) => {
-                          const inputRow = Math.floor(inputIndex / 9);
-                          const inputCol = inputIndex % 9;
-                          return (
-                            <line
-                              key={`${hiddenIndex}-${inputIndex}`}
-                              x1={20 + inputCol * 12 + 5}
-                              y1={40 + inputRow * 12 + 5}
-                              x2={xPosHidden}
-                              y2={yPos}
-                              stroke="#3b82f6"
-                              strokeWidth="0.5"
-                            />
-                          );
-                        });
-                      })}
-                    </g>
-                  )}
-
-                  {activeElements.includes('outputWeights') && (
-                    <g opacity="0.3">
-                      {[0, 1].map((outputIndex) => 
-                        Array.from({length: 24}).map((_, hiddenIndex) => {
-                          const hiddenYPos = 40 + (hiddenIndex % 12) * 25;
-                          const hiddenXPos = hiddenIndex < 12 ? 300 : 330;
-                          return (
-                            <line
-                              key={`${outputIndex}-${hiddenIndex}`}
-                              x1={hiddenXPos}
-                              y1={hiddenYPos}
-                              x2="580"
-                              y2={100 + outputIndex * 80}
-                              stroke="#22c55e"
-                              strokeWidth="1"
-                            />
-                          );
-                        })
-                      )}
-                    </g>
-                  )}
-
-                  {/* Hovered pixel info */}
-                  {hoveredPixel !== null && (
-                    <g>
-                      <text x="150" y="200" className="text-sm font-medium" fill="black">
-                        Pixel {hoveredPixel}: {getPixelValues()[hoveredPixel] || 0}
-                      </text>
-                    </g>
-                  )}
-
-                  {/* Backpropagation visualization */}
-                  {activeElements.includes('backprop') && (
-                    <g>
-                      <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                          refX="10" refY="3.5" orient="auto">
-                          <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
-                        </marker>
-                      </defs>
-                      <text x="400" y="500" className="text-sm font-medium" fill="#ef4444">
-                        ← Backpropagation (Error signals flowing backward)
-                      </text>
-                      <line x1="580" y1="140" x2="340" y2="140" stroke="#ef4444" 
-                            strokeWidth="3" markerEnd="url(#arrowhead)" opacity="0.8"/>
-                    </g>
-                  )}
                 </svg>
               </div>
 
@@ -1903,6 +1930,300 @@ async function evaluateOnDataset() {
                   Cancel
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Weight Detail Dialog */}
+        <Dialog open={selectedWeightBox !== null} onOpenChange={() => setSelectedWeightBox(null)}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedWeightBox?.type === 'hidden' 
+                  ? `Hidden Neuron ${(selectedWeightBox?.index || 0) + 1} Weights`
+                  : `Output Neuron ${(selectedWeightBox?.index || 0) + 1} Weights`
+                }
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedWeightBox && (
+              <div className="space-y-4">
+                {/* Training History Navigation */}
+                {trainingHistory.length > 0 && (
+                  <div className="flex items-center gap-4 p-3 bg-blue-50 rounded-lg">
+                    <div className="text-sm font-medium text-blue-900">
+                      View Training Iteration:
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => setWeightDialogIteration(Math.max(0, weightDialogIteration - 1))}
+                        disabled={weightDialogIteration === 0}
+                        variant="outline"
+                        size="sm"
+                      >
+                        ← Previous
+                      </Button>
+                      <span className="text-sm font-mono px-2">
+                        {weightDialogIteration + 1} / {trainingHistory.length}
+                      </span>
+                      <Button
+                        onClick={() => setWeightDialogIteration(Math.min(trainingHistory.length - 1, weightDialogIteration + 1))}
+                        disabled={weightDialogIteration === trainingHistory.length - 1}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Next →
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Weight Visualization */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {selectedWeightBox.type === 'hidden' && (
+                    <div className="space-y-6">
+                      {/* 9x9 Grid Visualization - How this hidden neuron "sees" the input */}
+                      <div>
+                        <h3 className="text-sm font-semibold mb-3 text-gray-700">
+                          How Hidden Neuron {selectedWeightBox.index + 1} "Sees" the 9×9 Input
+                        </h3>
+                        <div className="flex justify-center">
+                          <div className="grid grid-cols-9 gap-0.5 w-48 h-48 border-2 border-gray-400">
+                            {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                              const intensity = Math.abs(weight);
+                              const maxWeight = Math.max(...(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((w: number) => Math.abs(w)));
+                              const normalizedIntensity = maxWeight > 0 ? intensity / maxWeight : 0;
+                              
+                              return (
+                                <div
+                                  key={i}
+                                  className="w-full h-full flex items-center justify-center text-xs font-mono border border-gray-200"
+                                  style={{
+                                    backgroundColor: weight > 0 
+                                      ? `rgba(16, 185, 129, ${0.1 + normalizedIntensity * 0.9})` // Green for positive
+                                      : `rgba(239, 68, 68, ${0.1 + normalizedIntensity * 0.9})`,  // Red for negative
+                                    color: normalizedIntensity > 0.5 ? 'white' : 'black'
+                                  }}
+                                  title={`Weight ${i + 1}: ${weight.toFixed(4)}`}
+                                >
+                                  {normalizedIntensity > 0.3 ? weight.toFixed(2) : ''}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-center mt-2 text-xs text-gray-600">
+                          <span className="inline-block w-4 h-4 bg-green-500 mr-1"></span>
+                          Positive weights (excitatory) 
+                          <span className="inline-block w-4 h-4 bg-red-500 ml-4 mr-1"></span>
+                          Negative weights (inhibitory)
+                        </div>
+                      </div>
+
+                      {/* Individual Weight Bars */}
+                      <div>
+                        <h3 className="text-sm font-semibold mb-3 text-gray-700">Individual Weight Values</h3>
+                        <div className="h-[400px] overflow-auto">
+                          <svg viewBox="0 0 600 1850" className="w-full" style={{ minHeight: '1850px' }}>
+                              {/* Background */}
+                              <rect x="50" y="30" width="500" height="1800" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                              <line x1="300" y1="30" x2="300" y2="1830" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                              
+                              {/* Weight bars */}
+                              {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                                const barY = 45 + i * 22;
+                                const barWidth = Math.abs(weight) * 250;
+                                const barX = weight >= 0 ? 300 : 300 - barWidth;
+                                return (
+                                  <g key={i}>
+                                    <rect
+                                      x={barX}
+                                      y={barY}
+                                      width={barWidth}
+                                      height="10"
+                                      fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                      opacity="0.8"
+                                    />
+                                    <text x="20" y={barY + 8} fontSize="8" fill="#666">
+                                      Input {i + 1}:
+                                    </text>
+                                    <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 8} 
+                                          fontSize="8" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                      {weight.toFixed(3)}
+                                    </text>
+                                  </g>
+                                );
+                              })}
+                              
+                              {/* Bias visualization */}
+                              {(() => {
+                                const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
+                                const biasY = 45 + 81 * 22;
+                                const biasWidth = Math.abs(bias) * 250;
+                                const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                                return (
+                                  <g>
+                                    <rect
+                                      x={biasX}
+                                      y={biasY}
+                                      width={biasWidth}
+                                      height="12"
+                                      fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                      opacity="0.8"
+                                    />
+                                    <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
+                                      Bias:
+                                    </text>
+                                    <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
+                                          fontSize="10" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                      {bias.toFixed(3)}
+                                    </text>
+                                  </g>
+                                );
+                              })()}
+                              
+                              {/* Labels */}
+                              <text x="55" y="1845" fontSize="12" fill="#666">-1</text>
+                              <text x="295" y="1845" fontSize="12" fill="#666">0</text>
+                              <text x="535" y="1845" fontSize="12" fill="#666">+1</text>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedWeightBox.type === 'output' && (
+                    <div className="h-[400px] overflow-auto">
+                      <svg viewBox="0 0 600 600" className="w-full" style={{ minHeight: '600px' }}>
+                          {/* Background */}
+                          <rect x="50" y="30" width="500" height="540" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                          <line x1="300" y1="30" x2="300" y2="570" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                          
+                          {/* Output weights from hidden layer */}
+                          {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                            const barY = 45 + i * 22;
+                            const barWidth = Math.abs(weight) * 200;
+                            const barX = weight >= 0 ? 300 : 300 - barWidth;
+                            return (
+                              <g key={i}>
+                                <rect
+                                  x={barX}
+                                  y={barY}
+                                  width={barWidth}
+                                  height="12"
+                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={barY + 9} fontSize="9" fill="#666">
+                                  Hidden {i + 1}:
+                                </text>
+                                <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 9} 
+                                      fontSize="9" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                  {weight.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Output bias */}
+                          {(() => {
+                            const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
+                            const biasY = 45 + 24 * 22 + 10;
+                            const biasWidth = Math.abs(bias) * 200;
+                            const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                            return (
+                              <g>
+                                <rect
+                                  x={biasX}
+                                  y={biasY}
+                                  width={biasWidth}
+                                  height="14"
+                                  fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={biasY + 10} fontSize="11" fill="#666" fontWeight="bold">
+                                  Bias:
+                                </text>
+                                <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 10} 
+                                      fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                  {bias.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })()}
+                          
+                          {/* Labels */}
+                          <text x="55" y="590" fontSize="12" fill="#666">-1</text>
+                          <text x="295" y="590" fontSize="12" fill="#666">0</text>
+                          <text x="535" y="590" fontSize="12" fill="#666">+1</text>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Debug Info Dialog */}
+        <Dialog open={showDebugDialog} onOpenChange={setShowDebugDialog}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>Network Debug Information</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600">
+                Detailed network state information captured during training steps.
+              </div>
+              
+              {debugHistory.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  No debug information available. Train the network to see detailed logs.
+                </div>
+              ) : (
+                <div className="h-[60vh] overflow-auto">
+                  <div className="space-y-3">
+                    {debugHistory.slice().reverse().map((entry, index) => (
+                      <div key={entry.iteration} className="p-4 border rounded-lg bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-semibold text-sm">Iteration {entry.iteration + 1}</h3>
+                          <span className="text-xs text-gray-500">
+                            {entry.timestamp.toLocaleTimeString()}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Target (One-hot):</div>
+                            <div className="font-mono">[{entry.label.join(', ')}]</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Loss:</div>
+                            <div className="font-mono">{entry.loss.toFixed(6)}</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Output Activations:</div>
+                            <div className="font-mono">[{entry.outputActivations.map(a => a.toFixed(4)).join(', ')}]</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Output Errors:</div>
+                            <div className="font-mono">[{entry.outputErrors.map(e => e.toFixed(4)).join(', ')}]</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Output Biases:</div>
+                            <div className="font-mono">[{entry.outputBiases.map(b => b.toFixed(4)).join(', ')}]</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-700 mb-1">Training Step:</div>
+                            <div className="font-mono">{entry.step + 1}/6</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

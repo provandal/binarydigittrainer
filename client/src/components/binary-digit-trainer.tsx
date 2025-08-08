@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Edit3, Upload, Download, BarChart3, Info, Settings } from "lucide-react";
+import { Trash2, Plus, Edit3, Upload } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+
 
 // Weight initialization helper using Xavier/Glorot initialization
 const initWeight = (n_in: number, n_out: number) => 
@@ -72,381 +73,686 @@ const parseLabel = (label: any): number[] => {
     }
     return JSON.parse(labelStr);
   }
-  if (typeof label === 'number') {
-    return label === 0 ? [1, 0] : [0, 1];
+  // Fallback for any other format
+  return [1, 0];
+};
+
+// Helper function to get current target (eliminates race conditions)
+const getCurrentTarget = (currentNetworkState: any, trainingMode: string, trainingExamples: any[], currentExampleIndex: number, selectedLabelRef: any): number[] => {
+  // First check cached target from network state
+  const cached = currentNetworkState.current.currentTarget;
+  if (cached && cached.length === 2) {
+    return cached;
   }
-  throw new Error(`Invalid label format: ${label}`);
+  
+  // Fallback: rebuild target based on current mode
+  if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
+    const example = trainingExamples[currentExampleIndex];
+    if (Array.isArray(example.label)) {
+      return example.label;
+    } else {
+      let labelStr = example.label as string;
+      if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+        labelStr = labelStr.slice(1, -1);
+      }
+      return JSON.parse(labelStr);
+    }
+  }
+  
+  // Last resort: manual mode
+  return selectedLabelRef.current === 0 ? [1, 0] : [0, 1];
 };
 
-// Checkpoint interface for export/import
-interface Checkpoint {
-  format: string;
-  createdAt: string;
-  architecture: { input: number; hidden: number; output: number };
-  normalize: { enabled: boolean; targetSize: number };
-  optimizer: { learningRate: number; lrDecayRate: number; minLR: number; decayEnabled: boolean };
-  stats: { epoch: number; avgLoss: number; examplesSeen: number };
-  params: {
-    weights: number[][];
-    biases: number[];
-    outputWeights: number[][];
-    outputBiases: number[];
-  };
-}
-
-// Validation function for checkpoint
-const validateCheckpoint = (json: any): boolean => {
-  if (!json.format || json.format !== "binary-digit-trainer-checkpoint@v1") return false;
-  if (!json.params) return false;
-  const { weights, biases, outputWeights, outputBiases } = json.params;
-  return weights?.length === 24 && 
-         weights[0]?.length === 81 && 
-         biases?.length === 24 &&
-         outputWeights?.length === 2 && 
-         outputWeights[0]?.length === 24 && 
-         outputBiases?.length === 2;
-};
-
-// Helper functions for checkpoints
-const nowStamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-const downloadBlobJSON = (obj: any, filename: string) => {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+const STEP_DESCRIPTIONS = [
+  {
+    name: "Ready - Draw your digit",
+    concept: "The neural network is ready. In Training mode: draw and train step-by-step. In Predict mode: draw and get instant predictions.",
+    formula: "Input preparation: x = [x₁, x₂, ..., x₈₁] where each xᵢ ∈ [0,1]",
+    activeElements: []
+  },
+  {
+    name: "Forward Pass - Input to Hidden",
+    concept: "Each input pixel is multiplied by connection weights and summed with bias to calculate hidden neuron activations.",
+    formula: "hⱼ = σ(∑ᵢ wᵢⱼ·xᵢ + bⱼ) where σ(z) = 1/(1+e⁻ᶻ)",
+    activeElements: ["input", "hidden", "inputWeights"]
+  },
+  {
+    name: "Forward Pass - Hidden to Output", 
+    concept: "Hidden layer activations are combined using output weights and softmax to produce probability predictions for digits 0 and 1.",
+    formula: "zₖ = ∑ⱼ wⱼₖ·hⱼ + bₖ, then pₖ = softmax(zₖ)",
+    activeElements: ["hidden", "output", "outputWeights"]
+  },
+  {
+    name: "Calculate Loss",
+    concept: "The network's prediction is compared to the target label using Cross-Entropy Loss to measure accuracy.",
+    formula: "Loss = -∑ₖ tₖ·log(pₖ) where tₖ is target and pₖ is predicted probability",
+    activeElements: ["output", "loss"]
+  },
+  {
+    name: "Backpropagation - Output Layer",
+    concept: "Error signals flow backward to adjust output weights. The softmax + cross-entropy gradient is simplified.",
+    formula: "δₖ = pₖ - tₖ, Δwⱼₖ = α·clip(δₖ)·hⱼ",
+    activeElements: ["output", "outputWeights", "backprop"]
+  },
+  {
+    name: "Backpropagation - Hidden Layer",
+    concept: "Error signals propagate to hidden layer, adjusting input weights based on their contribution to the total error.",
+    formula: "δⱼ = hⱼ·(1-hⱼ)·∑ₖδₖ·wⱼₖ, Δwᵢⱼ = α·δⱼ·xᵢ",
+    activeElements: ["hidden", "inputWeights", "backprop"]
+  }
+];
 
 export default function BinaryDigitTrainer() {
-  // UI State
-  const [pixelGrid, setPixelGrid] = useState<number[][]>(initialPixelGrid);
-  const [selectedLabel, setSelectedLabel] = useState<number>(0);
-  const [learningRate, setLearningRate] = useState(0.3);
-  const [mode, setMode] = useState<'train' | 'inference'>('train');
-  const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual'); 
-  const [currentStep, setCurrentStep] = useState(0);
+  const queryClient = useQueryClient();
   
-  // Neural Network State
-  const [weights, setWeights] = useState<number[][]>(initialWeights);
-  const [biases, setBiases] = useState<number[]>(initialBiases);
-  const [outputWeights, setOutputWeights] = useState<number[][]>(initialOutputWeights);
-  const [outputBiases, setOutputBiases] = useState<number[]>(initialOutputBiases);
+  // Fetch training examples from the API
+  const { data: trainingExamples = [], isLoading: loadingExamples } = useQuery<TrainingExample[]>({
+    queryKey: ["/api/training-examples"],
+    queryFn: () => fetch("/api/training-examples").then(res => res.json()),
+  });
+
+  // Mutations for CRUD operations
+  const createExampleMutation = useMutation({
+    mutationFn: (example: InsertTrainingExample) => 
+      apiRequest("POST", "/api/training-examples", example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const updateExampleMutation = useMutation({
+    mutationFn: ({ id, example }: { id: number; example: InsertTrainingExample }) =>
+      apiRequest("PUT", `/api/training-examples/${id}`, example),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const deleteExampleMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiRequest("DELETE", `/api/training-examples/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const bulkUploadMutation = useMutation({
+    mutationFn: (data: { input: number[]; target: number[] }[]) =>
+      apiRequest("POST", "/api/training-examples/bulk-upload", data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      alert(`Successfully uploaded ${data.count} training examples!`);
+    },
+    onError: (error) => {
+      console.error("Bulk upload error:", error);
+      alert("Failed to upload training data. Please check the file format.");
+    }
+  });
+
+  const clearExamplesMutation = useMutation({
+    mutationFn: () =>
+      apiRequest("DELETE", "/api/training-examples"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
+      // Also clear any cached data to prevent stale ID issues
+      queryClient.removeQueries({ queryKey: ["/api/training-examples"] });
+    },
+  });
+
+  const [pixelGrid, setPixelGridState] = useState(initialPixelGrid);
   
-  // Training State  
-  const [hiddenActivations, setHiddenActivations] = useState<number[]>(Array(24).fill(0));
-  const [outputActivations, setOutputActivations] = useState<number[]>(Array(2).fill(0));
-  const [hiddenPreActivations, setHiddenPreActivations] = useState<number[]>(Array(24).fill(0));
-  const [outputPreActivations, setOutputPreActivations] = useState<number[]>(Array(2).fill(0));
-  const [loss, setLoss] = useState<number>(0);
-  const [outputErrors, setOutputErrors] = useState<number[]>(Array(2).fill(0));
+  // Safe setter that updates both ref (immediate) and React state (async, UI only)
+  const setPixelGrid = (grid: number[][] | number[]) => {
+    const normalized = Array.isArray(grid[0]) ? (grid as number[][]) : flatToGrid(grid as number[]);
+    pixelGridRef.current = normalized;             // <- immediate, used by training logic
+    setPixelGridState(normalized);                 // <- async, UI only
+  };
   
-  // Additional Training Context
-  const [currentInputs, setCurrentInputs] = useState<number[]>(Array(81).fill(0));
-  const [currentTarget, setCurrentTarget] = useState<number[]>([1, 0]);
+  // Safe setter for selected label
+  const setSelectedLabelSafe = (label: number) => {
+    selectedLabelRef.current = label;
+    setSelectedLabel(label);
+  };
+  const [weights, setWeights] = useState(initialWeights);
+  const [biases, setBiases] = useState(initialBiases);
+  const [outputWeights, setOutputWeights] = useState(initialOutputWeights);
+  const [outputBiases, setOutputBiases] = useState(initialOutputBiases);
+  const [hiddenActivations, setHiddenActivations] = useState(Array(24).fill(0));
+  const [outputActivations, setOutputActivations] = useState(Array(2).fill(0));
+  const [selectedLabel, setSelectedLabel] = useState(0);
+  const [step, setStep] = useState(0);
+  const [loss, setLoss] = useState(0);
+  const [learningRate, setLearningRate] = useState(0.01);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
+  const [selectedWeightBox, setSelectedWeightBox] = useState<{type: 'hidden' | 'output', index: number} | null>(null);
+  const [weightDialogIteration, setWeightDialogIteration] = useState(0);
+  const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
   
-  // Multi-example training state
+  // New state for enhanced features
+  const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-  const [completedEpochs, setCompletedEpochs] = useState(0);
-  const [examplesSeen, setExamplesSeen] = useState(0);
-  const [lastEpochAvgLoss, setLastEpochAvgLoss] = useState<number | null>(null);
+  const [stepHistory, setStepHistory] = useState<any[]>([]);
+  const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
+  const [activeElements, setActiveElements] = useState<string[]>([]);
+  const [showDatasetEditor, setShowDatasetEditor] = useState(false);
+  const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
   
-  // Async training state
+  // New state for automated training and inference mode
+  const [mode, setMode] = useState<'training' | 'inference'>('training');
   const [isAutoTraining, setIsAutoTraining] = useState(false);
-  const [trainingCompleted, setTrainingCompleted] = useState(false);
-  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(300);
+  const [autoTrainingSpeed, setAutoTrainingSpeed] = useState(50); // ms between steps - much faster for automated training
+  const [prediction, setPrediction] = useState<{digit: number, confidence: number} | null>(null);
+  const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
   const [numberOfEpochs, setNumberOfEpochs] = useState(1);
   const [currentEpoch, setCurrentEpoch] = useState(0);
-  const shouldStopTraining = useRef(false);
+  
+  // Using Cross-Entropy Loss (fixed)
+  const lossFunction = 'crossentropy';
+  
+  // Epoch loss tracking
+  const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
   const currentEpochLoss = useRef<number[]>([]);
+  const [trainingCompleted, setTrainingCompleted] = useState(false);
   
-  // Training states UI
-  const [isEpochDialogOpen, setIsEpochDialogOpen] = useState(false);
+  // Debug info display
+  const [showDebugDialog, setShowDebugDialog] = useState(false);
+  const [debugHistory, setDebugHistory] = useState<{
+    iteration: number;
+    label: number[]; // Changed to number[] for one-hot format
+    outputActivations: number[];
+    outputErrors: number[];
+    outputBiases: number[];
+    loss: number;
+    step: number;
+    timestamp: Date;
+  }[]>([]);
+
+  // Persistent training history store - independent of React state
+  const trainingHistoryStore = useRef<any[]>([]);
   
-  // Advanced features state
-  const [lrDecayEnabled, setLrDecayEnabled] = useState(false);
-  const [lrDecayRate, setLrDecayRate] = useState(0.95);
-  const [minLR, setMinLR] = useState(0.01);
-  const [isLRDialogOpen, setIsLRDialogOpen] = useState(false);
+  // Training control refs
+  const trainingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldStopTraining = useRef(false);
   
-  // Dialogs
-  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
-  const [selectedInputNeuron, setSelectedInputNeuron] = useState<number | null>(null);
-  const [selectedHiddenNeuron, setSelectedHiddenNeuron] = useState<number | null>(null);
-  const [debugInfoOpen, setDebugInfoOpen] = useState(false);
+  // Refs for synchronous access during training (eliminates async state issues)
+  const pixelGridRef = useRef<number[][]>(initialPixelGrid);
+  const selectedLabelRef = useRef<number>(0);
   
-  // Use a ref to maintain training state consistency during async operations
+  // Current network state that gets updated during training
   const currentNetworkState = useRef({
-    weights: initialWeights.map(r => [...r]),
+    weights: initialWeights.map(w => [...w]),
     biases: [...initialBiases],
-    outputWeights: initialOutputWeights.map(r => [...r]),
+    outputWeights: initialOutputWeights.map(w => [...w]),
     outputBiases: [...initialOutputBiases],
     hiddenActivations: Array(24).fill(0),
     outputActivations: Array(2).fill(0),
-    hiddenPreActivations: Array(24).fill(0),
-    outputPreActivations: Array(2).fill(0),
+    hiddenPreActivations: Array(24).fill(0), // z1 values (pre-activation)
+    outputPreActivations: Array(2).fill(0),   // z2 values (pre-activation)
     loss: 0,
     outputErrors: Array(2).fill(0),
+    // Training-specific state (isolated from React)
     currentTarget: [1, 0] as number[],
     inputs: Array(81).fill(0) as number[]
   });
 
-  // Advanced features: checkpoint export/import and model evaluation
-  const handleExportCheckpoint = () => {
-    const cp: Checkpoint = {
-      format: "binary-digit-trainer-checkpoint@v1",
-      createdAt: new Date().toISOString(),
-      architecture: { input: 81, hidden: 24, output: 2 },
-      normalize: { enabled: false, targetSize: 7 },
-      optimizer: { learningRate, lrDecayRate, minLR, decayEnabled: lrDecayEnabled },
-      stats: { epoch: completedEpochs, avgLoss: lastEpochAvgLoss ?? NaN, examplesSeen },
-      params: {
-        weights: currentNetworkState.current.weights.map(r => [...r]),
-        biases: [...currentNetworkState.current.biases],
-        outputWeights: currentNetworkState.current.outputWeights.map(r => [...r]),
-        outputBiases: [...currentNetworkState.current.outputBiases]
-      }
-    };
-    downloadBlobJSON(cp, `checkpoint-${nowStamp()}.json`);
-  };
-
-  const handleImportCheckpointFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const json = JSON.parse(text);
-      if (!validateCheckpoint(json)) {
-        alert("Invalid checkpoint format or shape mismatch (expected 81→24→2).");
-        e.target.value = "";
-        return;
-      }
-      const { params, optimizer, stats } = json as Checkpoint;
-
-      // Update refs (training source of truth)
-      currentNetworkState.current.weights = params.weights.map((r: number[]) => [...r]);
-      currentNetworkState.current.biases = [...params.biases];
-      currentNetworkState.current.outputWeights = params.outputWeights.map((r: number[]) => [...r]);
-      currentNetworkState.current.outputBiases = [...params.outputBiases];
-
-      // Reset activations
-      currentNetworkState.current.hiddenActivations = Array(24).fill(0);
-      currentNetworkState.current.outputActivations = Array(2).fill(0);
-      currentNetworkState.current.hiddenPreActivations = Array(24).fill(0);
-      currentNetworkState.current.outputPreActivations = Array(2).fill(0);
-      currentNetworkState.current.loss = 0;
-      currentNetworkState.current.outputErrors = Array(2).fill(0);
-
-      // Update UI state
-      setWeights(params.weights.map((r: number[]) => [...r]));
-      setBiases([...params.biases]);
-      setOutputWeights(params.outputWeights.map((r: number[]) => [...r]));
-      setOutputBiases([...params.outputBiases]);
-
-      // Update optimizer settings if available
-      if (optimizer?.learningRate) setLearningRate(optimizer.learningRate);
-      if (optimizer?.lrDecayRate) setLrDecayRate(optimizer.lrDecayRate);
-      if (optimizer?.minLR) setMinLR(optimizer.minLR);
-      if (typeof optimizer?.decayEnabled === "boolean") setLrDecayEnabled(optimizer.decayEnabled);
-
-      // Update stats if available
-      if (typeof stats?.avgLoss === "number") setLastEpochAvgLoss(stats.avgLoss);
-      if (typeof stats?.epoch === "number") setCompletedEpochs(stats.epoch);
-      if (typeof stats?.examplesSeen === "number") setExamplesSeen(stats.examplesSeen);
-
-      alert(`Loaded checkpoint: ${file.name}`);
-    } catch (err) {
-      console.error("Import error:", err);
-      alert("Failed to import checkpoint.");
-    } finally {
-      e.target.value = "";
-    }
-  };
-
-  const evaluateOnDataset = async () => {
-    if (!trainingExamples.length) { 
-      alert("No dataset loaded"); 
-      return; 
-    }
-    
-    let correct = 0, total = 0, lossSum = 0;
-    
-    for (const ex of trainingExamples) {
-      // Handle pattern type correctly
-      let grid: number[][];
-      if (Array.isArray((ex.pattern as any)[0])) {
-        grid = ex.pattern as number[][];
+  // Load dataset example when in dataset mode
+  useEffect(() => {
+    if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
+      const pattern = trainingExamples[currentExampleIndex].pattern as number[][] | number[];
+      // Convert flat array to 2D grid if needed
+      const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+      setPixelGrid(grid);
+      // Convert one-hot label back to integer for UI display
+      let oneHotLabel;
+      if (Array.isArray(trainingExamples[currentExampleIndex].label)) {
+        oneHotLabel = trainingExamples[currentExampleIndex].label as number[];
       } else {
-        grid = flatToGrid(ex.pattern as number[]);
+        let labelStr = trainingExamples[currentExampleIndex].label as string;
+        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
+          labelStr = labelStr.slice(1, -1);
+        }
+        oneHotLabel = JSON.parse(labelStr);
       }
-      const x = grid.flat();
+      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    }
+  }, [trainingMode, currentExampleIndex, trainingExamples]);
 
-      // Forward pass
-      const z1 = currentNetworkState.current.weights.map((w,i) => 
-        w.reduce((s,wi,j)=>s+wi*x[j], currentNetworkState.current.biases[i])
-      );
-      const h = z1.map(sigmoid);
-      const z2 = currentNetworkState.current.outputWeights.map((w,k) => 
-        w.reduce((s,wj,j)=>s+wj*h[j], currentNetworkState.current.outputBiases[k])
-      );
-      
-      // Softmax
-      const p = softmax(z2);
+  // Update active elements based on current step
+  useEffect(() => {
+    if (STEP_DESCRIPTIONS[step]) {
+      setActiveElements(STEP_DESCRIPTIONS[step].activeElements);
+    } else {
+      setActiveElements([]);
+    }
+  }, [step]);
 
-      const target = ex.label === 0 ? [1,0] : [0,1];
-      const pred = p[0] > p[1] ? 0 : 1;
-      if (pred === (target[0]===1?0:1)) correct++;
-      total++;
-      
-      // Cross-entropy loss
-      const ce = - (target[0]*Math.log(Math.max(1e-12,p[0])) + target[1]*Math.log(Math.max(1e-12,p[1])));
-      lossSum += ce;
+  // Update weight dialog iteration to show latest when training history changes
+  useEffect(() => {
+    if (trainingHistory.length > 0) {
+      setWeightDialogIteration(trainingHistory.length - 1);
+    }
+  }, [trainingHistory.length]);
+  
+  // Sync refs with state changes
+  useEffect(() => { selectedLabelRef.current = selectedLabel; }, [selectedLabel]);
+  useEffect(() => { pixelGridRef.current = pixelGrid; }, [pixelGrid]);
+
+  // Calculate pixel values - read from ref for training logic, fallback to state for UI
+  const getPixelValues = () => {
+    // In inference mode, always use the current pixel grid (fresh drawing)
+    if (mode === 'inference') {
+      return pixelGridRef.current?.flat() || pixelGrid.flat();
     }
     
-    alert(`Evaluation Results:\nAccuracy: ${(100*correct/total).toFixed(1)}%\nAverage Loss: ${(lossSum/total).toFixed(4)}\nDataset Size: ${total} examples`);
+    // During training, use cached inputs from network state if available
+    if (currentNetworkState.current.inputs && currentNetworkState.current.inputs.some(x => x !== 0)) {
+      return currentNetworkState.current.inputs;
+    }
+    // Otherwise read from ref (immediate) or state (fallback)
+    return pixelGridRef.current?.flat() || pixelGrid.flat();
   };
 
-  // Data fetching with React Query
-  const queryClient = useQueryClient();
-  
-  const { data: trainingExamples = [], isLoading: examplesLoading } = useQuery({
-    queryKey: ['/api/training-examples'],
-    enabled: trainingMode === 'dataset'
-  });
+  const togglePixel = (rowIndex: number, colIndex: number) => {
+    const newPixelGrid = [...pixelGrid];
+    newPixelGrid[rowIndex] = [...newPixelGrid[rowIndex]];
+    newPixelGrid[rowIndex][colIndex] = newPixelGrid[rowIndex][colIndex] === 0 ? 1 : 0;
+    setPixelGrid(newPixelGrid);
+    setStep(0); // Reset to first step when input changes
+  };
 
-  // Create training example mutation
-  const createExampleMutation = useMutation({
-    mutationFn: (newExample: InsertTrainingExample) => 
-      apiRequest('/api/training-examples', {
-        method: 'POST',
-        body: JSON.stringify(newExample)
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/training-examples'] });
+  const handleMouseDown = (rowIndex: number, colIndex: number) => {
+    setIsDrawing(true);
+    togglePixel(rowIndex, colIndex);
+  };
+
+  const handleMouseEnter = (rowIndex: number, colIndex: number) => {
+    if (isDrawing) {
+      togglePixel(rowIndex, colIndex);
     }
-  });
+  };
 
-  // Update training example mutation
-  const updateExampleMutation = useMutation({
-    mutationFn: ({ id, ...updates }: { id: number } & Partial<InsertTrainingExample>) =>
-      apiRequest(`/api/training-examples/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates)
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/training-examples'] });
-    }
-  });
+  const handleMouseUp = () => {
+    setIsDrawing(false);
+  };
 
-  // Delete training example mutation
-  const deleteExampleMutation = useMutation({
-    mutationFn: (id: number) => 
-      apiRequest(`/api/training-examples/${id}`, {
-        method: 'DELETE'
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/training-examples'] });
-    }
-  });
+  const handlePixelHover = (pixelIndex: number) => {
+    setHoveredPixel(pixelIndex);
+  };
 
-  // Bulk upload mutation for JSON files
-  const bulkUploadMutation = useMutation({
-    mutationFn: (examples: Array<{ input: number[], target: number[] }>) => {
-      const transformedExamples: InsertTrainingExample[] = examples.map(ex => ({
-        pattern: ex.input,
-        label: JSON.stringify(ex.target)
-      }));
-      
-      return Promise.all(
-        transformedExamples.map(example => 
-          apiRequest('/api/training-examples', {
-            method: 'POST',
-            body: JSON.stringify(example)
-          })
-        )
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/training-examples'] });
-    }
-  });
+  const handlePixelLeave = () => {
+    setHoveredPixel(null);
+  };
 
-  // Initialize network weights
-  const initializeWeights = () => {
-    const newWeights = Array.from({ length: 24 }, () => 
-      Array(81).fill(0).map(() => initWeight(81, 24))
+  const forwardPassHidden = () => {
+    const pixelValues = getPixelValues();
+    // Calculate pre-activation values (z1)
+    const newPreActivations = currentNetworkState.current.weights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * pixelValues[j], currentNetworkState.current.biases[i])
     );
+    // Apply sigmoid to get activations
+    const newActivations = newPreActivations.map(z => sigmoid(z));
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.hiddenPreActivations = newPreActivations;
+    currentNetworkState.current.hiddenActivations = newActivations;
+    setHiddenActivations(newActivations);
+  };
+
+  const forwardPassOutput = () => {
+    // Calculate pre-activation values (z2)
+    const newPreActivations = currentNetworkState.current.outputWeights.map((w, i) => 
+      w.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
+    );
+    // Apply softmax to get probability distribution
+    const newOutputActivations = softmax(newPreActivations);
+    
+    // Store both pre-activation and activation values
+    currentNetworkState.current.outputPreActivations = newPreActivations;
+    currentNetworkState.current.outputActivations = newOutputActivations;
+    setOutputActivations(newOutputActivations);
+    
+    // Debug info will be captured in backpropagationOutput after errors are calculated
+  };
+
+  const calculateLoss = () => {
+    // Use cached target to eliminate race conditions
+    const target = getCurrentTarget(currentNetworkState, trainingMode, trainingExamples, currentExampleIndex, selectedLabelRef);
+    
+    console.log(`🎯 Cross-Entropy Loss - Target: [${target}], Outputs: [${currentNetworkState.current.outputActivations.map(o => o.toFixed(3))}]`);
+    
+    // Cross-Entropy Loss with epsilon clamping
+    const eps = 1e-7;
+    const probs = currentNetworkState.current.outputActivations;
+    const calculatedLoss = -target.reduce((sum: number, t: number, i: number) => {
+      const p = Math.max(eps, Math.min(1 - eps, probs[i]));
+      return sum + t * Math.log(p);
+    }, 0);
+    
+    currentNetworkState.current.loss = calculatedLoss;
+    setLoss(calculatedLoss);
+  };
+
+  const backpropagationOutput = () => {
+    // Use cached target to eliminate race conditions
+    const target = getCurrentTarget(currentNetworkState, trainingMode, trainingExamples, currentExampleIndex, selectedLabelRef);
+    
+    // Cross-Entropy + Softmax gradient: δᵢ = pᵢ - tᵢ (clean and simple)
+    const outputErrors = currentNetworkState.current.outputActivations.map((output, i) => 
+      output - target[i]);
+    
+    // Apply gradient clipping for stability
+    const outputErrorsClipped = outputErrors.map(clip);
+    
+    console.log(`🔄 Backprop Output (Cross-Entropy) - Target: [${target}], Errors: [${outputErrors.map(e => e.toFixed(4))}], Clipped: [${outputErrorsClipped.map(e => e.toFixed(4))}]`);
+    
+    // Store clipped output errors for hidden layer backprop
+    currentNetworkState.current.outputErrors = outputErrorsClipped;
+    
+    // Update output weights and biases using clipped errors
+    const newOutputWeights = currentNetworkState.current.outputWeights.map((weights, i) => 
+      weights.map((weight, j) => 
+        weight - learningRate * outputErrorsClipped[i] * currentNetworkState.current.hiddenActivations[j]));
+    const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => 
+      bias - learningRate * outputErrorsClipped[i]);
+    
+    // Update persistent store
+    currentNetworkState.current.outputWeights = newOutputWeights;
+    currentNetworkState.current.outputBiases = newOutputBiases;
+    
+    // Update React state for display
+    setOutputWeights(newOutputWeights);
+    setOutputBiases(newOutputBiases);
+    
+    // Capture debug info right after outputErrors are computed
+    captureDebugInfo('backpropagationOutput');
+  };
+
+  const backpropagationHidden = () => {
+    // Use clipped output errors from output layer backpropagation
+    const outputErrorsClipped = currentNetworkState.current.outputErrors;
+    const pixelValues = getPixelValues();
+    
+    // Calculate hidden errors using PRE-ACTIVATION values and clipped output errors
+    // δₕ = (Σᵢ δᵢ · wᵢₕ) · σ'(zₕ) where zₕ is PRE-activation
+    const hiddenErrors = currentNetworkState.current.hiddenPreActivations.map((preActivation, h) => {
+      const errorSum = outputErrorsClipped.reduce((sum, outputError, i) => 
+        sum + outputError * currentNetworkState.current.outputWeights[i][h], 0);
+      return errorSum * sigmoidDerivative(preActivation);
+    });
+    
+    // Apply gradient clipping to hidden errors as well
+    const hiddenErrorsClipped = hiddenErrors.map(clip);
+    
+    // Update hidden weights and biases using clipped errors
+    const newWeights = currentNetworkState.current.weights.map((weights, i) => 
+      weights.map((weight, j) => 
+        weight - learningRate * hiddenErrorsClipped[i] * pixelValues[j]));
+    const newBiases = currentNetworkState.current.biases.map((bias, i) => 
+      bias - learningRate * hiddenErrorsClipped[i]);
+    
+    // Update persistent store
+    currentNetworkState.current.weights = newWeights;
+    currentNetworkState.current.biases = newBiases;
+    
+    // Update React state for display
+    setWeights(newWeights);
+    setBiases(newBiases);
+  };
+
+
+
+  // Function to capture debug information
+  const captureDebugInfo = (stage: string) => {
+    let currentLabel;
+    let currentOneHotTarget;
+    
+    // FIRST: Check if we have a cached target from async training (eliminates async state issues)
+    if (currentNetworkState.current.currentTarget) {
+      currentOneHotTarget = currentNetworkState.current.currentTarget;
+      console.log(`🔍 Debug: Using cached target from async training - Target: [${currentOneHotTarget}]`);
+    } else {
+      console.log(`🔍 Debug: NOT using cached target - cachedTarget=${currentNetworkState.current.currentTarget}`);
+      // FALLBACK: Read from React state (for manual training or when cache is unavailable)
+      if (trainingMode === 'dataset') {
+        const example = trainingExamples[currentExampleIndex];
+        if (example) {
+          // Use the current example (parse to ensure it's an array)
+          currentOneHotTarget = parseLabel(example.label);
+          console.log(`🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`);
+        } else {
+          // Convert selectedLabel to one-hot for consistency
+          currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+          console.log(`🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+        }
+      } else {
+        // Manual drawing mode, convert selected label to one-hot
+        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
+        console.log(`🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`);
+      }
+    }
+    
+    const debugEntry = {
+      iteration: trainingHistoryStore.current.length,
+      label: currentOneHotTarget as number[], // Now showing one-hot format instead of integer
+      outputActivations: [...currentNetworkState.current.outputActivations],
+      outputErrors: [...currentNetworkState.current.outputErrors],
+      outputBiases: [...currentNetworkState.current.outputBiases],
+      loss: currentNetworkState.current.loss,
+      step: step,
+      timestamp: new Date()
+    };
+    
+    setDebugHistory(prev => [...prev, debugEntry]);
+  };
+
+  const nextStep = (forceStep?: number) => {
+    let currentLoss = loss;
+    let currentHiddenActivations = hiddenActivations;
+    let currentOutputActivations = outputActivations;
+    
+    const currentStep = forceStep !== undefined ? forceStep : step;
+    console.log('nextStep executing step:', currentStep);
+    
+    switch (currentStep) {
+      case 0:
+        forwardPassHidden();
+        break;
+      case 1:
+        forwardPassOutput();
+        break;
+      case 2:
+        // Calculate loss using persistent store
+        calculateLoss();
+        break;
+      case 3:
+        backpropagationOutput();
+        break;
+      case 4:
+        console.log('Executing case 4 - backpropagation hidden (input→hidden weights)');
+        backpropagationHidden();
+        
+        // Capture training history AFTER both weight updates are complete
+        const historySnapshot = {
+          iteration: trainingHistoryStore.current.length,
+          weights: currentNetworkState.current.weights.map((w: number[]) => [...w]),
+          outputWeights: currentNetworkState.current.outputWeights.map((w: number[]) => [...w]),
+          biases: [...currentNetworkState.current.biases],
+          outputBiases: [...currentNetworkState.current.outputBiases],
+          loss: currentNetworkState.current.loss,
+          hiddenActivations: [...currentNetworkState.current.hiddenActivations],
+          outputActivations: [...currentNetworkState.current.outputActivations]
+        };
+        
+        // Store in persistent history
+        trainingHistoryStore.current.push(historySnapshot);
+        
+        // Update React state for display
+        setTrainingHistory([...trainingHistoryStore.current]);
+        
+        console.log('Captured training history after both backprop steps:', {
+          iteration: trainingHistoryStore.current.length,
+          totalSnapshots: trainingHistoryStore.current.length,
+          loss: currentNetworkState.current.loss,
+          hiddenWeight: currentNetworkState.current.weights[0][0],
+          outputWeight: currentNetworkState.current.outputWeights[0][0]
+        });
+        break;
+      case 5:
+        // Complete cycle, start over - clear the canvas for next digit
+        setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+        setStep(-1);
+        break;
+    }
+    
+    // Only update React step state if not using forceStep
+    if (forceStep === undefined) {
+      setStep((prev) => (prev + 1) % 6);
+    }
+  };
+
+  const resetNetwork = () => {
+    // 81→24→2 architecture: 81 inputs (9x9 grid), 24 hidden neurons, 2 output neurons
+    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
     const newBiases = Array(24).fill(0);
-    const newOutputWeights = Array.from({ length: 2 }, () => 
-      Array(24).fill(0).map(() => initWeight(24, 2))
-    );
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
     const newOutputBiases = Array(2).fill(0);
     
+    // Update persistent state
+    currentNetworkState.current = {
+      weights: newWeights,
+      biases: newBiases,
+      outputWeights: newOutputWeights,
+      outputBiases: newOutputBiases,
+      hiddenActivations: Array(24).fill(0),
+      outputActivations: Array(2).fill(0),
+      hiddenPreActivations: Array(24).fill(0),
+      outputPreActivations: Array(2).fill(0),
+      loss: 0,
+      outputErrors: Array(2).fill(0),
+      currentTarget: [1, 0] as number[],
+      inputs: Array(81).fill(0) as number[]
+    };
+    
+    // Clear training history
+    trainingHistoryStore.current = [];
+    
+    // Update React state
+    setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
     setWeights(newWeights);
     setBiases(newBiases);
     setOutputWeights(newOutputWeights);
     setOutputBiases(newOutputBiases);
-    
-    // Also update refs
-    currentNetworkState.current.weights = newWeights.map(r => [...r]);
-    currentNetworkState.current.biases = [...newBiases];
-    currentNetworkState.current.outputWeights = newOutputWeights.map(r => [...r]);
-    currentNetworkState.current.outputBiases = [...newOutputBiases];
-    
-    // Reset activations
     setHiddenActivations(Array(24).fill(0));
     setOutputActivations(Array(2).fill(0));
-    setHiddenPreActivations(Array(24).fill(0));
-    setOutputPreActivations(Array(2).fill(0));
     setLoss(0);
-    setOutputErrors(Array(2).fill(0));
-    setCurrentStep(0);
+    setStep(0);
+    setTrainingHistory([]);
+    setSelectedWeightBox(null);
+    setWeightDialogIteration(0);
+    setTrainingCompleted(false);
+    setEpochLossHistory([]);
     
-    // Reset training stats
-    setCompletedEpochs(0);
-    setExamplesSeen(0);
-    setLastEpochAvgLoss(null);
+    // Reset training state to ensure Automated Training section remains visible
+    shouldStopTraining.current = false;
+    setIsAutoTraining(false);
+    setMode('training');
+    
+    // Clear debug history
+    setDebugHistory([]);
+    setShowDebugDialog(false);
+    setTrainingMode('dataset'); // Keep dataset mode to show automated training controls
+    setCurrentExampleIndex(0);
+    setCurrentEpoch(1);
   };
 
-  // Safety wrapper for setSelectedLabel to prevent out-of-bounds errors
-  const setSelectedLabelSafe = (label: number) => {
-    if (label >= 0 && label <= 1) {
-      setSelectedLabel(label);
+  // Dataset editor functions
+  const addDatasetExample = () => {
+    const newExample = {
+      pattern: Array(9).fill(0).map(() => Array(9).fill(0)),
+      label: [1, 0] // Default to digit 0 in one-hot format
+    };
+    createExampleMutation.mutate(newExample);
+  };
+
+  const removeDatasetExample = (index: number) => {
+    const example = trainingExamples[index];
+    if (example?.id) {
+      deleteExampleMutation.mutate(example.id);
     }
   };
 
-  // Helper to create training examples
-  const createTrainingExample = () => {
-    if (trainingMode === 'manual') {
-      const pattern = pixelGrid;
-      const oneHotLabel = selectedLabel === 0 ? [1, 0] : [0, 1];
-      
-      const newExample: InsertTrainingExample = {
-        pattern: gridToFlat(pattern),
-        label: JSON.stringify(oneHotLabel)
-      };
-      
-      createExampleMutation.mutate(newExample);
+  const updateDatasetExample = (index: number, pattern: number[][] | number[], label: number) => {
+    const example = trainingExamples[index];
+    if (example?.id) {
+      // Convert integer label to one-hot format
+      const oneHotLabel = label === 0 ? [1, 0] : [0, 1];
+      updateExampleMutation.mutate({ 
+        id: example.id, 
+        example: { pattern, label: oneHotLabel } 
+      });
     }
   };
 
-  // Helper to get pattern display for grid visualization
-  const getPatternDisplay = (pattern: number[][] | number[]) => {
-    const flatPattern = Array.isArray(pattern[0]) ? gridToFlat(pattern as number[][]) : pattern as number[];
-    
-    // Check if it's a simple pattern (mostly zeros or ones)
-    const nonZeroCount = flatPattern.filter(x => x > 0.1).length;
-    const mostlyZero = nonZeroCount < 10;
-    const mostlyOne = nonZeroCount > 70;
-    
-    if (mostlyZero) {
-      return '◦'; // Light circle for sparse patterns
-    } else if (mostlyOne) {
-      return '●'; // Filled circle for dense patterns  
+  // Editor drawing functions
+  const handleEditorMouseDown = (exampleIndex: number, rowIndex: number, colIndex: number) => {
+    setIsDrawingInEditor(true);
+    toggleEditorPixel(exampleIndex, rowIndex, colIndex);
+  };
+
+  const handleEditorMouseEnter = (exampleIndex: number, rowIndex: number, colIndex: number) => {
+    if (isDrawingInEditor) {
+      toggleEditorPixel(exampleIndex, rowIndex, colIndex);
+    }
+  };
+
+  const handleEditorMouseUp = () => {
+    setIsDrawingInEditor(false);
+  };
+
+  const toggleEditorPixel = (exampleIndex: number, rowIndex: number, colIndex: number) => {
+    const example = trainingExamples[exampleIndex];
+    if (example?.id) {
+      const pattern = example.pattern as number[][] | number[];
+      let newPattern;
+      
+      if (Array.isArray(pattern[0])) {
+        // 2D array format
+        const grid = [...(pattern as number[][])];
+        grid[rowIndex] = [...grid[rowIndex]];
+        grid[rowIndex][colIndex] = grid[rowIndex][colIndex] ? 0 : 1;
+        newPattern = grid;
+      } else {
+        // Flat array format
+        const flatArray = [...(pattern as number[])];
+        const flatIndex = rowIndex * 9 + colIndex;
+        flatArray[flatIndex] = flatArray[flatIndex] ? 0 : 1;
+        newPattern = flatArray;
+      }
+      
+      updateExampleMutation.mutate({ 
+        id: example.id, 
+        example: { pattern: newPattern, label: example.label as number[] } 
+      });
     } else {
-      // For intermediate patterns, create a small visual preview
-      const preview: number[] = [];
+      console.warn(`No valid example found at index ${exampleIndex}`, { example, trainingExamples });
+    }
+  };
+
+  const saveDataset = () => {
+    setShowDatasetEditor(false);
+    setCurrentExampleIndex(0);
+  };
+
+  const getPatternPreview = (pattern: number[][] | number[]) => {
+    // Handle both 2D array (9x9) and flat array (81 elements) formats
+    if (Array.isArray(pattern[0])) {
+      // 2D array format
+      return (pattern as number[][]).map(row => row.reduce((sum, val) => sum + val, 0) / 9);
+    } else {
+      // Flat array format - convert to 2D preview
+      const flatPattern = pattern as number[];
+      const preview = [];
       for (let i = 0; i < 9; i++) {
         const rowSum = flatPattern.slice(i * 9, (i + 1) * 9).reduce((sum, val) => sum + val, 0);
         preview.push(rowSum / 9);
@@ -502,8 +808,85 @@ export default function BinaryDigitTrainer() {
     }
     return true;
   };
+  
+  // Automated training functions - LEGACY (will be replaced)
+  const runToNextSampleLegacy = () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log('Starting runToNextSampleLegacy for example index:', currentExampleIndex);
+    setIsAutoTraining(true);
+    
+    // Load current training example
+    const currentExample = trainingExamples[currentExampleIndex];
+    console.log('Loading example for runToNextSampleLegacy:', currentExample.label);
+    const pattern = currentExample.pattern as number[][] | number[];
+    // Convert flat array to 2D grid if needed
+    const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+    setPixelGrid(grid);
+    // Convert one-hot label back to integer for UI display
+    const oneHotLabel = parseLabel(currentExample.label);
+    console.log('Parsed label for runToNextSampleLegacy:', oneHotLabel);
+    setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    setStep(0); // Start at step 0
+    
+    // Run through all 6 steps automatically using nextStep() with forced step numbers
+    let stepCount = 0;
+    const interval = setInterval(() => {
+      if (stepCount < 6) {
+        console.log('runToNextSampleLegacy - calling nextStep(), step:', stepCount);
+        nextStep(stepCount); // Force the step number to avoid React state timing issues
+        stepCount++;
+      } else {
+        clearInterval(interval);
+        console.log('runToNextSampleLegacy completed all 6 steps. Training history length:', trainingHistoryStore.current.length);
+        // Update React step state to final step and then complete
+        setStep(0);
+        
+        // Add current loss to epoch tracking
+        currentEpochLoss.current.push(currentNetworkState.current.loss);
+        
+        // Move to next example
+        setTimeout(() => {
+          if (shouldStopTraining.current) return;
+          
+          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+          console.log(`🔄 Moving from example ${currentExampleIndex} to ${nextIndex} (total: ${trainingExamples.length})`);
+          
+          if (nextIndex === 0) {
+            // Completed one epoch
+            const newEpoch = currentEpoch + 1;
+            console.log(`✅ Completed epoch ${currentEpoch}/${numberOfEpochs}`);
+            
+            // Calculate average loss for completed epoch
+            if (currentEpochLoss.current.length > 0) {
+              const avgLoss = currentEpochLoss.current.reduce((a, b) => a + b, 0) / currentEpochLoss.current.length;
+              setEpochLossHistory(prev => [...prev, { epoch: currentEpoch, averageLoss: avgLoss }]);
+              currentEpochLoss.current = []; // Reset for next epoch
+            }
+            
+            if (newEpoch <= numberOfEpochs) {
+              // Continue to next epoch
+              setCurrentEpoch(newEpoch);
+              setCurrentExampleIndex(0);
+              console.log(`🚀 Starting epoch ${newEpoch}/${numberOfEpochs}`);
+              runToNextSampleLegacy();
+            } else {
+              // All epochs completed
+              console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+              setIsAutoTraining(false);
+              setTrainingCompleted(true);
+            }
+          } else {
+            // Continue with next example in current epoch
+            setCurrentExampleIndex(nextIndex);
+            runToNextSampleLegacy();
+          }
+        }, autoTrainingSpeed / 2);
+      }
+    }, autoTrainingSpeed);
+  };
 
-  // Multi-epoch training with LR decay
+  // New async multi-epoch training function
   const runEpochs = async () => {
     if (trainingExamples.length === 0) return;
     
@@ -518,13 +901,6 @@ export default function BinaryDigitTrainer() {
       
       currentEpochLoss.current = [];
       setCurrentEpoch(epoch);
-      
-      // Apply learning rate decay
-      if (lrDecayEnabled && epoch > 1) {
-        const newLR = Math.max(minLR, learningRate * Math.pow(lrDecayRate, epoch - 1));
-        setLearningRate(newLR);
-        console.log(`📉 LR Decay: Epoch ${epoch}, LR: ${newLR.toFixed(4)}`);
-      }
       
       // Iterate through all examples in the training set
       for (let idx = 0; idx < trainingExamples.length; idx++) {
@@ -545,25 +921,21 @@ export default function BinaryDigitTrainer() {
         setCurrentExampleIndex(idx);
         
         // Cache target and inputs in network state for training logic
-        currentNetworkState.current.currentTarget = [...oneHot];
+        currentNetworkState.current.currentTarget = oneHot;
         currentNetworkState.current.inputs = pattern.flat();
+        console.log(`🔄 CACHE SET in runEpochs: currentTarget = [${oneHot}], ExampleID = ${example.id}`);
         
         const completed = await runStepsForCurrentSample();
         if (!completed) break;
         
-        // Track loss for this epoch
         currentEpochLoss.current.push(currentNetworkState.current.loss);
-        setExamplesSeen(prev => prev + 1);
-        
-        await sleep(50); // Brief pause between examples
       }
       
-      // Calculate and store epoch statistics
+      // Calculate average loss for completed epoch
       if (currentEpochLoss.current.length > 0) {
-        const avgLoss = currentEpochLoss.current.reduce((a, b) => a + b, 0) / currentEpochLoss.current.length;
-        setLastEpochAvgLoss(avgLoss);
-        setCompletedEpochs(epoch);
-        console.log(`✅ Epoch ${epoch} completed. Avg Loss: ${avgLoss.toFixed(4)}`);
+        const avg = currentEpochLoss.current.reduce((a,b) => a+b, 0) / currentEpochLoss.current.length;
+        setEpochLossHistory(prev => [...prev, { epoch, averageLoss: avg }]);
+        console.log(`✅ Epoch ${epoch} completed. Average loss: ${avg.toFixed(4)}`);
       }
       
       if (shouldStopTraining.current) break;
@@ -571,215 +943,86 @@ export default function BinaryDigitTrainer() {
     
     setIsAutoTraining(false);
     setTrainingCompleted(true);
-    console.log(`🎯 Training completed! Total epochs: ${numberOfEpochs}`);
+    console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+  };
+  
+  // Process entire training set by calling runEpochs
+  const processTrainingSet = () => {
+    setIsEpochDialogOpen(true);
   };
 
-  // Stop training function
   const stopTraining = () => {
+    console.log('🛑 Training stopped by user');
     shouldStopTraining.current = true;
     setIsAutoTraining(false);
-    console.log("🛑 Training stopped by user");
+    setTrainingCompleted(true);
+    if (trainingIntervalRef.current) {
+      clearInterval(trainingIntervalRef.current);
+      trainingIntervalRef.current = null;
+    }
   };
 
-  // Start epoch training
-  const startEpochTraining = () => {
-    if (trainingExamples.length === 0) {
-      alert("No training examples available. Please create some examples first.");
-      return;
-    }
+  const startMultiEpochTraining = () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log(`Starting multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
     shouldStopTraining.current = false;
+    setIsAutoTraining(true);
+    setCurrentExampleIndex(0);
+    setIsEpochDialogOpen(false);
+    
+    // Reset epoch loss tracking
+    setEpochLossHistory([]);
+    currentEpochLoss.current = [];
+    setTrainingCompleted(false);
+    setCurrentEpoch(1);
+    
+    // Start the async training process
     runEpochs();
   };
 
-  // Load dataset example when in dataset mode
+  // Cleanup interval on unmount
   useEffect(() => {
-    if (trainingMode === 'dataset' && trainingExamples[currentExampleIndex]) {
-      const pattern = trainingExamples[currentExampleIndex].pattern as number[][] | number[];
-      // Convert flat array to 2D grid if needed
-      const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
-      setPixelGrid(grid);
-      // Convert one-hot label back to integer for UI display
-      let oneHotLabel;
-      if (Array.isArray(trainingExamples[currentExampleIndex].label)) {
-        oneHotLabel = trainingExamples[currentExampleIndex].label as number[];
-      } else {
-        let labelStr = trainingExamples[currentExampleIndex].label as string;
-        if (labelStr.startsWith('"') && labelStr.endsWith('"')) {
-          labelStr = labelStr.slice(1, -1);
-        }
-        oneHotLabel = JSON.parse(labelStr);
+    return () => {
+      if (trainingIntervalRef.current) {
+        clearInterval(trainingIntervalRef.current);
       }
-      setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
-    }
-  }, [trainingMode, currentExampleIndex, trainingExamples]);
-
-  // Handle pixel click
-  const handlePixelClick = (row: number, col: number) => {
-    if (mode === 'inference') return; // Don't allow editing in inference mode
-    
-    const newGrid = [...pixelGrid];
-    newGrid[row][col] = newGrid[row][col] === 0 ? 1 : 0;
-    setPixelGrid(newGrid);
-  };
-
-  // Neural network forward pass
-  const forwardPass = (inputGrid: number[][]) => {
-    const inputs = inputGrid.flat();
-    
-    // Input to hidden layer
-    const hiddenPre = weights.map((neuronWeights, i) =>
-      neuronWeights.reduce((sum, weight, j) => sum + weight * inputs[j], biases[i])
-    );
-    const hiddenAct = hiddenPre.map(sigmoid);
-    
-    // Hidden to output layer
-    const outputPre = outputWeights.map((neuronWeights, i) =>
-      neuronWeights.reduce((sum, weight, j) => sum + weight * hiddenAct[j], outputBiases[i])
-    );
-    
-    // Apply softmax to output layer for binary classification
-    const outputAct = softmax(outputPre);
-    
-    return {
-      inputs,
-      hiddenPreActivations: hiddenPre,
-      hiddenActivations: hiddenAct,
-      outputPreActivations: outputPre,
-      outputActivations: outputAct
     };
+  }, []);
+
+  // Inference mode function
+  const runInference = () => {
+    if (mode !== 'inference') return;
+    
+    const inputs = getPixelValues();
+    
+    // Forward pass only (no training) - use current network state
+    const hiddenSums = currentNetworkState.current.weights.map((neuronWeights, i) => 
+      inputs.reduce((sum, input, j) => sum + input * neuronWeights[j], 0) + currentNetworkState.current.biases[i]
+    );
+    const hiddenOutputs = hiddenSums.map(sigmoid);
+    
+    const outputSums = currentNetworkState.current.outputWeights.map((neuronWeights, i) => 
+      hiddenOutputs.reduce((sum, hidden, j) => sum + hidden * neuronWeights[j], 0) + currentNetworkState.current.outputBiases[i]
+    );
+    const outputs = softmax(outputSums); // Use softmax for proper probabilities
+    
+    // Update activations for visualization
+    setHiddenActivations(hiddenOutputs);
+    setOutputActivations(outputs);
+    
+    // Determine prediction using softmax probabilities
+    const predictedDigit = outputs[0] > outputs[1] ? 0 : 1;
+    const confidence = outputs[predictedDigit]; // Use the actual probability for the predicted digit
+    
+    setPrediction({ digit: predictedDigit, confidence });
   };
 
-  // Training step implementation
-  const nextStep = (forceStep?: number) => {
-    const stepToRun = forceStep !== undefined ? forceStep : currentStep;
-    
-    // Get current target (from dataset or manual selection)
-    const target = trainingMode === 'dataset' && trainingExamples[currentExampleIndex] 
-      ? parseLabel(trainingExamples[currentExampleIndex].label)
-      : (selectedLabel === 0 ? [1, 0] : [0, 1]);
-
-    switch (stepToRun) {
-      case 0: // Forward pass: Input to Hidden
-        const inputs = pixelGrid.flat();
-        const hiddenPre = currentNetworkState.current.weights.map((neuronWeights, i) =>
-          neuronWeights.reduce((sum, weight, j) => sum + weight * inputs[j], currentNetworkState.current.biases[i])
-        );
-        
-        currentNetworkState.current.inputs = inputs;
-        currentNetworkState.current.hiddenPreActivations = hiddenPre;
-        currentNetworkState.current.currentTarget = target;
-        
-        setCurrentInputs(inputs);
-        setHiddenPreActivations(hiddenPre);
-        setCurrentTarget(target);
-        break;
-
-      case 1: // Forward pass: Hidden Activation
-        const hiddenAct = currentNetworkState.current.hiddenPreActivations.map(sigmoid);
-        currentNetworkState.current.hiddenActivations = hiddenAct;
-        setHiddenActivations(hiddenAct);
-        break;
-
-      case 2: // Forward pass: Hidden to Output
-        const outputPre = currentNetworkState.current.outputWeights.map((neuronWeights, i) =>
-          neuronWeights.reduce((sum, weight, j) => sum + weight * currentNetworkState.current.hiddenActivations[j], currentNetworkState.current.outputBiases[i])
-        );
-        currentNetworkState.current.outputPreActivations = outputPre;
-        setOutputPreActivations(outputPre);
-        break;
-
-      case 3: // Forward pass: Output Activation (Softmax)
-        const outputAct = softmax(currentNetworkState.current.outputPreActivations);
-        currentNetworkState.current.outputActivations = outputAct;
-        setOutputActivations(outputAct);
-        
-        // Calculate loss (cross-entropy)
-        const lossValue = -currentNetworkState.current.currentTarget.reduce((sum, target, i) => 
-          sum + target * Math.log(Math.max(1e-12, outputAct[i])), 0
-        );
-        currentNetworkState.current.loss = lossValue;
-        setLoss(lossValue);
-        break;
-
-      case 4: // Backpropagation: Output layer
-        const outputErr = currentNetworkState.current.outputActivations.map((output, i) => 
-          output - currentNetworkState.current.currentTarget[i]
-        );
-        currentNetworkState.current.outputErrors = outputErr;
-        setOutputErrors(outputErr);
-        break;
-
-      case 5: // Backpropagation: Update weights
-        // Update output layer weights and biases
-        const newOutputWeights = currentNetworkState.current.outputWeights.map((neuronWeights, i) =>
-          neuronWeights.map((weight, j) => {
-            const gradient = currentNetworkState.current.outputErrors[i] * currentNetworkState.current.hiddenActivations[j];
-            return weight - learningRate * clip(gradient);
-          })
-        );
-        
-        const newOutputBiases = currentNetworkState.current.outputBiases.map((bias, i) => {
-          const gradient = currentNetworkState.current.outputErrors[i];
-          return bias - learningRate * clip(gradient);
-        });
-        
-        // Calculate hidden layer errors
-        const hiddenErrors = currentNetworkState.current.hiddenActivations.map((_, j) => {
-          const error = currentNetworkState.current.outputErrors.reduce((sum, outErr, i) => 
-            sum + outErr * currentNetworkState.current.outputWeights[i][j], 0
-          );
-          return error * sigmoidDerivative(currentNetworkState.current.hiddenPreActivations[j]);
-        });
-        
-        // Update hidden layer weights and biases
-        const newWeights = currentNetworkState.current.weights.map((neuronWeights, i) =>
-          neuronWeights.map((weight, j) => {
-            const gradient = hiddenErrors[i] * currentNetworkState.current.inputs[j];
-            return weight - learningRate * clip(gradient);
-          })
-        );
-        
-        const newBiases = currentNetworkState.current.biases.map((bias, i) => {
-          const gradient = hiddenErrors[i];
-          return bias - learningRate * clip(gradient);
-        });
-        
-        // Update ref state
-        currentNetworkState.current.weights = newWeights;
-        currentNetworkState.current.biases = newBiases;
-        currentNetworkState.current.outputWeights = newOutputWeights;
-        currentNetworkState.current.outputBiases = newOutputBiases;
-        
-        // Update UI state
-        setWeights(newWeights);
-        setBiases(newBiases);
-        setOutputWeights(newOutputWeights);
-        setOutputBiases(newOutputBiases);
-        break;
-    }
-    
-    if (forceStep === undefined) {
-      setCurrentStep((currentStep + 1) % 6);
-    }
-  };
-
-  // Run inference
+  // Auto-run inference when in inference mode and canvas changes
   useEffect(() => {
     if (mode === 'inference') {
-      const result = forwardPass(pixelGrid);
-      setCurrentInputs(result.inputs);
-      setHiddenPreActivations(result.hiddenPreActivations);
-      setHiddenActivations(result.hiddenActivations);
-      setOutputPreActivations(result.outputPreActivations);
-      setOutputActivations(result.outputActivations);
-      
-      // Calculate loss for display
-      const target = selectedLabel === 0 ? [1, 0] : [0, 1];
-      const lossValue = -target.reduce((sum, t, i) => 
-        sum + t * Math.log(Math.max(1e-12, result.outputActivations[i])), 0
-      );
-      setLoss(lossValue);
+      runInference();
     }
   }, [mode, pixelGrid]);
 
@@ -787,737 +1030,1050 @@ export default function BinaryDigitTrainer() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Binary Digit Trainer</h1>
-          <p className="text-lg text-gray-600">
-            Neural Network Architecture: 81 → 24 → 2 (Input → Hidden → Output)
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-              Epochs: {completedEpochs}
-            </span>
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-              Examples: {examplesSeen}
-            </span>
-            {lastEpochAvgLoss !== null && (
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                Avg Loss: {lastEpochAvgLoss.toFixed(4)}
-              </span>
-            )}
-            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
-              LR: {learningRate.toFixed(4)}
-            </span>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">🧠 Binary Digit Trainer</h1>
+          <p className="text-gray-600">Step-by-step Neural Network Learning Simulator</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Drawing Canvas */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardContent className="p-4">
-                <div className="mb-4">
-                  <h3 className="font-semibold mb-2">Draw Binary Digit</h3>
-                  <div className="grid grid-cols-9 gap-1 w-64 h-64 mx-auto">
-                    {pixelGrid.map((row, rowIndex) =>
-                      row.map((pixel, colIndex) => (
-                        <button
-                          key={`${rowIndex}-${colIndex}`}
-                          className={`w-6 h-6 border border-gray-300 ${
-                            pixel === 1 ? 'bg-black' : 'bg-white'
-                          } ${mode === 'inference' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                          onClick={() => handlePixelClick(rowIndex, colIndex)}
-                          disabled={mode === 'inference'}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Expected Output:</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedLabel === 0 ? "default" : "outline"}
-                      onClick={() => setSelectedLabel(0)}
-                      disabled={mode === 'inference'}
-                      className="flex-1"
-                    >
-                      0
-                    </Button>
-                    <Button
-                      variant={selectedLabel === 1 ? "default" : "outline"}
-                      onClick={() => setSelectedLabel(1)}
-                      disabled={mode === 'inference'}
-                      className="flex-1"
-                    >
-                      1
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Neural Network Visualization */}
-          <div className="lg:col-span-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold">Neural Network</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDebugInfoOpen(true)}
-                    >
-                      <Info className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center h-96 overflow-y-auto">
-                  {/* Input Layer */}
-                  <div className="flex flex-col items-center">
-                    <h4 className="text-sm font-medium mb-2">Input (81)</h4>
-                    <div className="grid grid-cols-9 gap-1">
-                      {currentInputs.slice(0, 81).map((activation, i) => (
-                        <div
-                          key={i}
-                          className={`w-3 h-3 border cursor-pointer ${
-                            activation > 0.5 ? 'bg-blue-500' : 'bg-gray-200'
-                          }`}
-                          onClick={() => setSelectedInputNeuron(selectedInputNeuron === i ? null : i)}
-                          title={`Input ${i}: ${activation.toFixed(3)}`}
-                        />
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Drawing Canvas (9×9 pixels)</h2>
+              <div 
+                className="grid grid-cols-9 gap-0 mb-4 w-48 h-48 mx-auto border-2 border-gray-400 bg-gray-100"
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                {(Array.isArray(pixelGrid[0]) ? pixelGrid : flatToGrid(pixelGrid as any)).map((row, rowIndex) => 
+                  row.map((pixel, colIndex) => (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+                      onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                      className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                        pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                      }`}
+                    />
+                  ))
+                )}
+              </div>
+              
+              <div className="text-center">
+                <p className="text-xs text-gray-600 mb-4">Click and drag to draw. Hover over pixels to see values.</p>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Target Label - Only show in training mode */}
+                {mode === 'training' && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
+                    <div className="flex gap-2 justify-center">
+                      {[0, 1].map((label) => (
+                        <label key={label} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="label"
+                            value={label}
+                            checked={selectedLabel === label}
+                            onChange={() => setSelectedLabel(label)}
+                            className="text-blue-600"
+                          />
+                          <span>Digit {label}</span>
+                        </label>
                       ))}
                     </div>
                   </div>
+                )}
+
+                {/* Mode Selection */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Mode</h3>
+                  <div className="flex gap-2 justify-center">
+                    {[
+                      { value: 'training', label: 'Training' },
+                      { value: 'inference', label: 'Predict' }
+                    ].map((modeOption) => (
+                      <label key={modeOption.value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="mode"
+                          value={modeOption.value}
+                          checked={mode === modeOption.value}
+                          onChange={() => {
+                            setMode(modeOption.value as 'training' | 'inference');
+                            if (modeOption.value === 'inference') {
+                              setStep(0);
+                              setPrediction(null);
+                              // Clear canvas for fresh drawing in inference mode
+                              setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+                            }
+                          }}
+                          className="text-blue-600"
+                        />
+                        <span>{modeOption.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prediction Display (Inference Mode) */}
+                {mode === 'inference' && prediction && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-green-800 mb-1">Prediction</h4>
+                    <div className="text-2xl font-bold text-green-700">
+                      Digit: {prediction.digit}
+                    </div>
+                    <div className="text-xs text-green-600">
+                      Confidence: {(prediction.confidence * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Network Info */}
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
+                <div className="text-xs text-gray-600 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span>Learning Rate:</span>
+                    <input
+                      type="number"
+                      value={learningRate}
+                      onChange={(e) => setLearningRate(parseFloat(e.target.value) || 0.1)}
+                      step="0.01"
+                      min="0.001"
+                      max="1.0"
+                      className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>Architecture: 81 → 24 → 2</div>
+                  <div>Hidden: Sigmoid, Output: Softmax</div>
+                  <div>Loss: Cross-Entropy</div>
+                  <div>Dataset: {trainingExamples.length} examples</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Neural Network Diagram */}
+          <Card className="col-span-2">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
+              
+              <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto">
+                <svg className="w-full" viewBox="0 0 750 1320" style={{ minHeight: '1320px', paddingTop: '0', marginTop: '0' }}>
+                  {/* Input Layer */}
+                  <g className="input-layer">
+                    <text x="38" y="5" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>
+                    {getPixelValues().map((value, i) => (
+                      <g key={`input-${i}`}>
+                        <circle
+                          cx="75"
+                          cy={25 + i * 20}
+                          r="12"
+                          fill={value > 0.5 ? "#3B82F6" : "#E5E7EB"}
+                          stroke={activeElements.includes('input') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('input') ? "2" : "1"}
+                          className={activeElements.includes('input') ? "animate-pulse" : ""}
+                        />
+                        <text x="75" y={28 + i * 20} fontSize="7" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {value}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
 
                   {/* Hidden Layer */}
-                  <div className="flex flex-col items-center">
-                    <h4 className="text-sm font-medium mb-2">Hidden (24)</h4>
-                    <div className="grid grid-cols-6 gap-1">
-                      {hiddenActivations.map((activation, i) => (
-                        <div
-                          key={i}
-                          className={`w-4 h-4 rounded-full border-2 cursor-pointer ${
-                            activation > 0.5 ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-300'
-                          }`}
-                          onClick={() => setSelectedHiddenNeuron(selectedHiddenNeuron === i ? null : i)}
-                          title={`Hidden ${i}: ${activation.toFixed(3)}`}
-                          style={{
-                            opacity: Math.max(0.3, activation)
-                          }}
+                  <g className="hidden-layer">
+                    <text x="250" y="5" fontSize="20" fill="#666" fontWeight="bold">Hidden (24)</text>
+                    {hiddenActivations.map((activation, i) => (
+                      <g key={`hidden-${i}`}>
+                        <circle
+                          cx="313"
+                          cy={25 + i * 22}
+                          r="12"
+                          fill={activation > 0.5 ? "#8B5CF6" : "#E5E7EB"}
+                          stroke={activeElements.includes('hidden') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('hidden') ? "2" : "1"}
+                          className={activeElements.includes('hidden') ? "animate-pulse" : ""}
                         />
-                      ))}
-                    </div>
-                  </div>
+                        <text x="313" y={29 + i * 22} fontSize="8" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {activation.toFixed(2)}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
 
                   {/* Output Layer */}
-                  <div className="flex flex-col items-center">
-                    <h4 className="text-sm font-medium mb-2">Output (2)</h4>
-                    <div className="space-y-2">
-                      {outputActivations.map((activation, i) => (
-                        <div
-                          key={i}
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-                            activation > 0.5 ? 'bg-red-500 border-red-600 text-white' : 'bg-gray-200 border-gray-300'
+                  <g className="output-layer">
+                    <text x="525" y="5" fontSize="20" fill="#666" fontWeight="bold">Output (2)</text>
+                    {outputActivations.map((activation, i) => (
+                      <g key={`output-${i}`}>
+                        <circle
+                          cx="600"
+                          cy={70 + i * 120}
+                          r="25"
+                          fill={activation === Math.max(...outputActivations) ? "#10B981" : "#E5E7EB"}
+                          stroke={activeElements.includes('output') ? "#F59E0B" : "#9CA3AF"}
+                          strokeWidth={activeElements.includes('output') ? "5" : "3.75"}
+                          className={activeElements.includes('output') ? "animate-pulse" : ""}
+                        />
+                        <text x="600" y={77 + i * 120} fontSize="15" fill="#000" textAnchor="middle" fontWeight="bold">
+                          {activation.toFixed(2)}
+                        </text>
+                        <text x="638" y={73 + i * 120} fontSize="15" fill="#666" fontWeight="bold">
+                          {i}: {(activation * 100).toFixed(0)}%
+                        </text>
+                        <text x="638" y={95 + i * 120} fontSize="12" fill="#555" fontWeight="bold">
+                          bias: {outputBiases[i].toFixed(3)}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
+
+                  {/* Input to Hidden connections */}
+                  {weights.map((hiddenWeights, hiddenIdx) =>
+                    hiddenWeights.map((weight, inputIdx) => (
+                      <line
+                        key={`line-ih-${hiddenIdx}-${inputIdx}`}
+                        x1="87"
+                        y1={25 + inputIdx * 20}
+                        x2="301"
+                        y2={25 + hiddenIdx * 22}
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "1" : "0.3"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.2"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
+                      />
+                    ))
+                  )}
+
+                  {/* Hidden to Output connections */}
+                  {outputWeights.map((outputWeightArray, outputIdx) =>
+                    outputWeightArray.map((weight, hiddenIdx) => (
+                      <line
+                        key={`line-ho-${outputIdx}-${hiddenIdx}`}
+                        x1="325"
+                        y1={25 + hiddenIdx * 22}
+                        x2="572"
+                        y2={70 + outputIdx * 120}
+                        stroke={activeElements.includes('connections') ? "#F59E0B" : "#9CA3AF"}
+                        strokeWidth={activeElements.includes('connections') ? "2.5" : "1.25"}
+                        opacity={activeElements.includes('connections') ? "0.8" : "0.4"}
+                        className={activeElements.includes('connections') ? "animate-pulse" : ""}
+                      />
+                    ))
+                  )}
+
+                  {/* Weight detail buttons - rendered on top */}
+                  {/* Hidden layer plus buttons */}
+                  {hiddenActivations.map((activation, i) => (
+                    <g key={`hidden-plus-${i}`} className="cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'hidden', index: i});
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                    }}>
+                      {/* Green circle */}
+                      <circle
+                        cx="280"
+                        cy={25 + i * 22}
+                        r="10"
+                        fill="#10B981"
+                        stroke="#059669"
+                        strokeWidth="2"
+                        opacity="0.9"
+                      />
+                      {/* Plus symbol */}
+                      <line
+                        x1="275"
+                        y1={25 + i * 22}
+                        x2="285"
+                        y2={25 + i * 22}
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="280"
+                        y1={20 + i * 22}
+                        x2="280"
+                        y2={30 + i * 22}
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  ))}
+
+                  {/* Output layer plus buttons */}
+                  {outputActivations.map((activation, i) => (
+                    <g key={`output-plus-${i}`} className="cursor-pointer" onClick={() => {
+                      setSelectedWeightBox({type: 'output', index: i});
+                      setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                    }}>
+                      {/* Green circle */}
+                      <circle
+                        cx="540"
+                        cy={70 + i * 120}
+                        r="12"
+                        fill="#10B981"
+                        stroke="#059669"
+                        strokeWidth="2"
+                        opacity="0.9"
+                      />
+                      {/* Plus symbol */}
+                      <line
+                        x1="534"
+                        y1={70 + i * 120}
+                        x2="546"
+                        y2={70 + i * 120}
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="540"
+                        y1={64 + i * 120}
+                        x2="540"
+                        y2={76 + i * 120}
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  ))}
+
+                  {/* Debug Info Icon */}
+                  <g className="debug-icon cursor-pointer" onClick={() => {
+                    setShowDebugDialog(true);
+                  }}>
+                    {/* Debug icon background */}
+                    <circle
+                      cx="680"
+                      cy="25"
+                      r="15"
+                      fill={showDebugDialog ? "#3B82F6" : "#6B7280"}
+                      stroke={showDebugDialog ? "#1D4ED8" : "#4B5563"}
+                      strokeWidth="2"
+                      opacity="0.9"
+                    />
+                    {/* Info icon (i) */}
+                    <text x="680" y="31" fontSize="16" fill="white" textAnchor="middle" fontWeight="bold">
+                      i
+                    </text>
+                  </g>
+
+                  {/* Legend */}
+                  <g className="legend">
+                    <text x="38" y="1200" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
+                    <circle cx="50" cy="1220" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
+                    <line x1="46" y1="1220" x2="54" y2="1220" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="50" y1="1216" x2="50" y2="1224" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <text x="65" y="1225" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
+                    
+                    {/* Debug icon legend */}
+                    <circle cx="50" cy="1245" r="8" fill="#6B7280" stroke="#4B5563" strokeWidth="1.5"/>
+                    <text x="50" y="1250" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">i</text>
+                    <text x="65" y="1250" fontSize="13" fill="#666">Click info button (top right) to view network debug information</text>
+                  </g>
+                </svg>
+              </div>
+
+              {/* Network Summary */}
+              {mode === 'training' && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Current Loss:</span>
+                      <span className="font-mono">{loss.toFixed(4)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+            </CardContent>
+          </Card>
+
+          {/* Controls - Made 50% wider */}
+          <Card className="lg:col-span-1 lg:min-w-[400px]">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
+              
+              {/* Training Mode Toggle */}
+              <div className="mb-4 flex gap-2">
+                <Button 
+                  onClick={() => { setTrainingMode('manual'); setTrainingCompleted(false); }}
+                  variant={trainingMode === 'manual' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  Manual Draw
+                </Button>
+                <Button 
+                  onClick={() => { setTrainingMode('dataset'); setTrainingCompleted(false); }}
+                  variant={trainingMode === 'dataset' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                >
+                  Training Set
+                </Button>
+              </div>
+
+              {/* Current Step Info - Show detailed info only when not auto-training and not completed */}
+              {!isAutoTraining && !trainingCompleted ? (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="text-sm font-medium text-blue-900 mb-2">
+                    Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
+                  </div>
+                  
+                  {/* Concept Explanation */}
+                  <div className="text-sm text-blue-800 mb-3">
+                    <strong>Concept:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].concept : 'Ready to begin training'}
+                  </div>
+                  
+                  {/* Mathematical Formula */}
+                  <div className="text-xs text-blue-700 font-mono bg-blue-100 p-2 rounded">
+                    <strong>Formula:</strong> {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].formula : 'Click Next Step to begin'}
+                  </div>
+                </div>
+              ) : (isAutoTraining || trainingCompleted) ? (
+                <div className="mb-4 p-4 bg-purple-50 rounded-lg">
+                  <div className="text-sm font-medium text-purple-900 mb-2">
+                    {isAutoTraining ? 'Automated Training in Progress' : 'Training Complete'}
+                  </div>
+                  <div className="text-sm text-purple-800 mb-2">
+                    {isAutoTraining 
+                      ? (numberOfEpochs > 1 ? `Epoch ${currentEpoch} of ${numberOfEpochs}` : 'Processing training examples automatically')
+                      : `Completed ${numberOfEpochs} epoch(s) with ${trainingExamples.length} samples`
+                    }
+                  </div>
+                  
+                  {/* Epoch Progress Bar (only show if multiple epochs) */}
+                  {numberOfEpochs > 1 && (
+                    <div className="mb-3">
+                      <div className="w-full bg-purple-300 rounded-full h-1.5">
+                        <div 
+                          className="bg-purple-700 h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${(currentEpoch / numberOfEpochs) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Sample Progress Bar */}
+                  <div className="w-full bg-purple-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${trainingExamples.length > 0 ? ((currentExampleIndex + 1) / trainingExamples.length) * 100 : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-purple-700 mt-2 text-center">
+                    Sample {currentExampleIndex + 1} of {trainingExamples.length}
+                    {numberOfEpochs > 1 && ` • Epoch ${currentEpoch}/${numberOfEpochs}`}
+                  </div>
+                  
+                  {/* Epoch Loss History */}
+                  {epochLossHistory.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-purple-200">
+                      <div className="text-xs font-medium text-purple-900 mb-2">Learning Progress</div>
+                      <div className="space-y-1 max-h-20 overflow-y-auto">
+                        {epochLossHistory.slice(-5).map((epochData, index) => (
+                          <div key={epochData.epoch} className="flex justify-between text-xs text-purple-800">
+                            <span>Epoch {epochData.epoch}:</span>
+                            <span className="font-mono">{epochData.averageLoss.toFixed(6)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {epochLossHistory.length > 1 && (
+                        <div className="text-xs text-purple-700 mt-2 text-center">
+                          {epochLossHistory[epochLossHistory.length - 1].averageLoss < epochLossHistory[0].averageLoss ? '📉 Loss decreasing!' : '📈 Loss trend varies'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Navigation Controls */}
+              <div className="space-y-2 mb-4">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setStep(Math.max(0, step - 1))}
+                    disabled={step === 0}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                  >
+                    ← Previous
+                  </Button>
+                  <Button 
+                    onClick={() => nextStep()}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    Next Step →
+                  </Button>
+                </div>
+                
+                <Button 
+                  onClick={resetNetwork}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  Reset Network
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowDatasetEditor(true)}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Edit3 className="w-4 h-4 mr-2" />
+                  Edit Training Set
+                </Button>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    id="bulk-upload-input"
+                  />
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                    disabled={bulkUploadMutation.isPending}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Training Set'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Automated Training Controls - Only in Training Mode */}
+              {mode === 'training' && trainingMode === 'dataset' && trainingExamples.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Automated Training</div>
+                  <Button 
+                    onClick={() => {
+                      // Single sample training using new async approach
+                      if (trainingExamples.length === 0) return;
+                      const example = trainingExamples[currentExampleIndex];
+                      const pattern = Array.isArray((example.pattern as any)[0]) 
+                        ? example.pattern as number[][] 
+                        : flatToGrid(example.pattern as number[]);
+                      const oneHot = parseLabel(example.label);
+                      const uiDigit = oneHot[0] === 1 ? 0 : 1;
+                      
+                      console.log(`🚀 Single sample training - Example ${currentExampleIndex}, Label: [${oneHot}]`);
+                      
+                      // Snapshot the sample before running steps (eliminates async state issues)
+                      setPixelGrid(pattern);
+                      setSelectedLabelSafe(uiDigit);
+                      currentNetworkState.current.currentTarget = oneHot;
+                      currentNetworkState.current.inputs = pattern.flat();
+                      console.log(`📌 CACHE SET: currentTarget = [${oneHot}], example index = ${currentExampleIndex}`);
+                      
+                      setIsAutoTraining(true);
+                      runStepsForCurrentSample().then((completed) => {
+                        setIsAutoTraining(false);
+                        if (completed) {
+                          // Move to next example
+                          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+                          setCurrentExampleIndex(nextIndex);
+                        }
+                      });
+                    }}
+                    disabled={isAutoTraining}
+                    size="sm"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
+                  </Button>
+                  <Button 
+                    onClick={processTrainingSet}
+                    disabled={isAutoTraining}
+                    size="sm"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {isAutoTraining ? 'Processing Set...' : 'Process Training Set'}
+                  </Button>
+                  
+                  {/* Stop Training Button - Only show when training is active */}
+                  {isAutoTraining && (
+                    <Button 
+                      onClick={stopTraining}
+                      size="sm"
+                      variant="outline"
+                      className="w-full border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-600"
+                    >
+                      🛑 Stop Training
+                    </Button>
+                  )}
+                  <div className="text-xs text-gray-600 text-center">
+                    Sample {currentExampleIndex + 1} of {trainingExamples.length} • Speed: {autoTrainingSpeed}ms
+                  </div>
+                </div>
+              )}
+
+              {/* Dataset Info and Navigation */}
+              {trainingMode === 'dataset' && (
+                <div className="mt-4 space-y-3">
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <div className="text-sm font-medium text-green-900 mb-1">
+                      Training Dataset
+                    </div>
+                    <div className="text-xs text-green-700">
+                      Example {currentExampleIndex + 1} of {trainingExamples.length} • Target: {Array.isArray(trainingExamples[currentExampleIndex]?.label) 
+                        ? ((trainingExamples[currentExampleIndex]?.label as number[])?.[0] === 1 ? '0' : '1')
+                        : String(trainingExamples[currentExampleIndex]?.label || 0)}
+                      <br />
+                      One-hot: [{Array.isArray(trainingExamples[currentExampleIndex]?.label) 
+                        ? (trainingExamples[currentExampleIndex]?.label as number[]).join(',')
+                        : trainingExamples[currentExampleIndex]?.label === 0 ? '1,0' : '0,1'}] (Neuron0: digit0, Neuron1: digit1)
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setCurrentExampleIndex(Math.max(0, currentExampleIndex - 1))}
+                      disabled={currentExampleIndex === 0}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      ← Prev Example
+                    </Button>
+                    <Button 
+                      onClick={() => setCurrentExampleIndex(Math.min(trainingExamples.length - 1, currentExampleIndex + 1))}
+                      disabled={currentExampleIndex === trainingExamples.length - 1}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      Next Example →
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Weight View - Below main grid */}
+        {selectedWeightBox && (
+          <div className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    {selectedWeightBox.type === 'hidden' 
+                      ? `Hidden Neuron ${selectedWeightBox.index + 1} Weights (81 input connections)`
+                      : `Output Neuron ${selectedWeightBox.index} Weights (24 hidden connections)`}
+                  </h2>
+                  <Button 
+                    onClick={() => setSelectedWeightBox(null)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    ×
+                  </Button>
+                </div>
+                
+                {trainingHistory.length > 0 && (
+                  <div className="mb-4">
+                    <label className="text-sm font-medium">Training Iteration: </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={trainingHistory.length - 1}
+                      value={weightDialogIteration}
+                      onChange={(e) => setWeightDialogIteration(parseInt(e.target.value))}
+                      className="ml-2 w-32"
+                    />
+                    <span className="ml-2 text-sm">{weightDialogIteration + 1} / {trainingHistory.length}</span>
+                  </div>
+                )}
+                
+                {/* Weight Visualization */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {selectedWeightBox.type === 'hidden' && (
+                    <div className="h-[400px] overflow-auto">
+                      <svg viewBox="0 0 600 1850" className="w-full" style={{ minHeight: '1850px' }}>
+                          {/* Background */}
+                          <rect x="50" y="30" width="500" height="1800" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                          <line x1="300" y1="30" x2="300" y2="1830" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                          
+                          {/* Weight bars */}
+                          {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                            const barY = 45 + i * 22;
+                            const barWidth = Math.abs(weight) * 250;
+                            const barX = weight >= 0 ? 300 : 300 - barWidth;
+                            return (
+                              <g key={i}>
+                                <rect
+                                  x={barX}
+                                  y={barY}
+                                  width={barWidth}
+                                  height="10"
+                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={barY + 8} fontSize="8" fill="#666">
+                                  Input {i + 1}:
+                                </text>
+                                <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 8} 
+                                      fontSize="8" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                  {weight.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Bias visualization */}
+                          {(() => {
+                            const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
+                            const biasY = 45 + 81 * 22;
+                            const biasWidth = Math.abs(bias) * 250;
+                            const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                            return (
+                              <g>
+                                <rect
+                                  x={biasX}
+                                  y={biasY}
+                                  width={biasWidth}
+                                  height="12"
+                                  fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                  opacity="0.8"
+                                />
+                                <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
+                                  Bias:
+                                </text>
+                                <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
+                                      fontSize="10" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                  {bias.toFixed(3)}
+                                </text>
+                              </g>
+                            );
+                          })()}
+                          
+                          {/* Labels */}
+                          <text x="55" y="1845" fontSize="12" fill="#666">-1</text>
+                          <text x="295" y="1845" fontSize="12" fill="#666">0</text>
+                          <text x="535" y="1845" fontSize="12" fill="#666">+1</text>
+                      </svg>
+                    </div>
+                  )}
+
+                  {selectedWeightBox.type === 'output' && (
+                    <svg width="100%" height="580" viewBox="0 0 600 580">
+                      <g>
+                        {/* Large weight box */}
+                        <rect x="50" y="30" width="500" height="540" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                        <line x1="300" y1="30" x2="300" y2="570" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                        
+                        {/* Weight bars */}
+                        {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                          const barY = 50 + i * 22;
+                          const barWidth = Math.abs(weight) * 250;
+                          const barX = weight >= 0 ? 300 : 300 - barWidth;
+                          return (
+                            <g key={i}>
+                              <rect
+                                x={barX}
+                                y={barY}
+                                width={barWidth}
+                                height="18"
+                                fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                opacity="0.8"
+                              />
+                              <text x="20" y={barY + 14} fontSize="11" fill="#666">
+                                Hidden {i + 1}:
+                              </text>
+                              <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 14} 
+                                    fontSize="11" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                {weight.toFixed(3)}
+                              </text>
+                            </g>
+                          );
+                        })}
+                        
+                        {/* Bias visualization */}
+                        {(() => {
+                          const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
+                          const biasY = 50 + 24 * 22;
+                          const biasWidth = Math.abs(bias) * 250;
+                          const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                          return (
+                            <g>
+                              <rect
+                                x={biasX}
+                                y={biasY}
+                                width={biasWidth}
+                                height="18"
+                                fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                opacity="0.8"
+                              />
+                              <text x="20" y={biasY + 14} fontSize="11" fill="#666" fontWeight="bold">
+                                Bias:
+                              </text>
+                              <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 14} 
+                                    fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                {bias.toFixed(3)}
+                              </text>
+                            </g>
+                          );
+                        })()}
+                        
+                        {/* Labels */}
+                        <text x="55" y="575" fontSize="12" fill="#666">-1</text>
+                        <text x="295" y="575" fontSize="12" fill="#666">0</text>
+                        <text x="535" y="575" fontSize="12" fill="#666">+1</text>
+                      </g>
+                    </svg>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Debug History Dialog */}
+        {showDebugDialog && (
+          <div className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    Debug History ({debugHistory.length} entries)
+                  </h2>
+                  <Button 
+                    onClick={() => setShowDebugDialog(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    ×
+                  </Button>
+                </div>
+                
+                {debugHistory.length === 0 ? (
+                  <div className="text-sm text-gray-600 italic p-4 text-center">
+                    No debug data captured yet. Run some training steps to see debug information.
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Fixed Table Headers */}
+                    <div className="bg-gray-50 border-b border-gray-200">
+                      <div className="grid grid-cols-8 gap-2 p-3 text-xs font-medium text-gray-700">
+                        <div className="text-center">Iteration #</div>
+                        <div className="text-center">Time</div>
+                        <div className="text-center">Loss</div>
+                        <div className="text-center">Output Activations</div>
+                        <div className="text-center">Output Errors</div>
+                        <div className="text-center">Output Biases</div>
+                        <div className="text-center">Step #</div>
+                        <div className="text-center">Label</div>
+                      </div>
+                    </div>
+                    
+                    {/* Scrollable Data Rows */}
+                    <div className="max-h-96 overflow-y-auto">
+                      {debugHistory.map((entry, index) => (
+                        <div 
+                          key={index} 
+                          className={`grid grid-cols-8 gap-2 p-3 text-xs border-b border-gray-100 ${
+                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                           }`}
-                          title={`Output ${i}: ${activation.toFixed(3)}`}
-                          style={{
-                            opacity: Math.max(0.3, activation)
-                          }}
                         >
-                          {i}
+                          <div className="text-center font-mono">{entry.iteration}</div>
+                          <div className="text-center font-mono text-xs">
+                            {entry.timestamp.toLocaleTimeString()}
+                          </div>
+                          <div className="text-center font-mono">
+                            {entry.loss.toFixed(6)}
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputActivations.map((a: number) => a.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputErrors.map((e: number) => e.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono text-xs">
+                            [{entry.outputBiases.map((b: number) => b.toFixed(3)).join(', ')}]
+                          </div>
+                          <div className="text-center font-mono">{entry.step}</div>
+                          <div className="text-center font-mono">[{Array.isArray(entry.label) ? entry.label.join(',') : entry.label}]</div>
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Weight Inspector */}
-                {(selectedInputNeuron !== null || selectedHiddenNeuron !== null) && (
-                  <div className="mt-4">
-                    <Button
-                      onClick={() => setWeightDialogOpen(true)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Inspect Weights
-                    </Button>
-                  </div>
                 )}
               </CardContent>
             </Card>
           </div>
+        )}
 
-          {/* Control Panel */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardContent className="p-4 space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Mode</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={mode === 'train' ? "default" : "outline"}
-                      onClick={() => setMode('train')}
-                      size="sm"
-                    >
-                      Train
-                    </Button>
-                    <Button
-                      variant={mode === 'inference' ? "default" : "outline"}
-                      onClick={() => setMode('inference')}
-                      size="sm"
-                    >
-                      Inference
-                    </Button>
-                  </div>
-                </div>
+        {/* Dataset Editor Dialog */}
+        <Dialog open={showDatasetEditor} onOpenChange={setShowDatasetEditor}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onMouseUp={handleEditorMouseUp}>
+            <DialogHeader>
+              <DialogTitle>Edit Training Dataset</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600">
+                  {trainingExamples.length} examples total • 
+                  {trainingExamples.filter((ex: TrainingExample) => {
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[0] === 1; // [1,0] = digit 0
+                  }).length} zeros, {trainingExamples.filter((ex: TrainingExample) => {
+                    const label = ex.label as number[];
+                    return Array.isArray(label) && label[1] === 1; // [0,1] = digit 1
+                  }).length} ones
+                </p>
+                <Button onClick={addDatasetExample} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Example
+                </Button>
+              </div>
 
-                {mode === 'train' && (
-                  <>
-                    <div>
-                      <h3 className="font-semibold mb-2">Training Mode</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant={trainingMode === 'manual' ? "default" : "outline"}
-                          onClick={() => setTrainingMode('manual')}
-                          size="sm"
-                        >
-                          Manual
-                        </Button>
-                        <Button
-                          variant={trainingMode === 'dataset' ? "default" : "outline"}
-                          onClick={() => setTrainingMode('dataset')}
-                          size="sm"
-                        >
-                          Dataset
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="learning-rate">Learning Rate: {learningRate.toFixed(4)}</Label>
-                      <Input
-                        id="learning-rate"
-                        type="range"
-                        min="0.001"
-                        max="1"
-                        step="0.001"
-                        value={learningRate}
-                        onChange={(e) => setLearningRate(parseFloat(e.target.value))}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    {/* Advanced Features */}
-                    <div className="space-y-2">
-                      <Button
-                        onClick={() => setIsLRDialogOpen(true)}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Settings className="w-4 h-4 mr-2" />
-                        LR Decay Settings
-                      </Button>
-                      
-                      <Button
-                        onClick={handleExportCheckpoint}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Export Checkpoint
-                      </Button>
-                      
-                      <label htmlFor="import-checkpoint" className="w-full">
-                        <Button variant="outline" size="sm" className="w-full" asChild>
-                          <span>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Import Checkpoint
-                          </span>
-                        </Button>
-                        <input
-                          id="import-checkpoint"
-                          type="file"
-                          accept=".json"
-                          onChange={handleImportCheckpointFile}
-                          className="hidden"
-                        />
-                      </label>
-                      
-                      <Button
-                        onClick={evaluateOnDataset}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        disabled={!trainingExamples.length}
-                      >
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Evaluate Model
-                      </Button>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold mb-2">Training Steps</h3>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Current Step: {currentStep + 1}/6
-                      </div>
-                      <div className="space-y-2">
-                        <Button
-                          onClick={() => nextStep()}
-                          className="w-full"
-                          disabled={isAutoTraining}
-                        >
-                          Next Step
-                        </Button>
-                        <Button
-                          onClick={initializeWeights}
-                          variant="outline"
-                          className="w-full"
-                          disabled={isAutoTraining}
-                        >
-                          Reset Network
-                        </Button>
-                      </div>
-                    </div>
-
-                    {trainingMode === 'dataset' && (
-                      <div>
-                        <h3 className="font-semibold mb-2">Batch Training</h3>
-                        <div className="space-y-2">
-                          <Button
-                            onClick={() => setIsEpochDialogOpen(true)}
-                            className="w-full"
-                            disabled={isAutoTraining || trainingExamples.length === 0}
-                          >
-                            Run Epochs
-                          </Button>
-                          {isAutoTraining && (
-                            <Button
-                              onClick={stopTraining}
-                              variant="destructive"
-                              className="w-full"
+              <div className="grid gap-4 max-h-96 overflow-y-auto">
+                {trainingExamples.map((example: TrainingExample, index: number) => {
+                  const pixelValues = getPatternPreview(example.pattern as number[][]);
+                  return (
+                    <div key={example.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium">Example {index + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor={`label-${index}`} className="text-sm">Label:</Label>
+                            <select
+                              id={`label-${index}`}
+                              value={Array.isArray(example.label) 
+                                ? ((example.label as number[])?.[0] === 1 ? '0' : '1')
+                                : String(example.label || 0)}
+                              onChange={(e) => updateDatasetExample(index, example.pattern as number[][] | number[], parseInt(e.target.value))}
+                              className="px-2 py-1 border rounded text-sm"
                             >
-                              Stop Training
-                            </Button>
-                          )}
-                        </div>
-                        
-                        {isAutoTraining && (
-                          <div className="text-sm text-center mt-2">
-                            <div>Epoch: {currentEpoch}/{numberOfEpochs}</div>
-                            <div>Sample: {currentExampleIndex + 1}/{trainingExamples.length}</div>
+                              <option value={0}>0</option>
+                              <option value={1}>1</option>
+                            </select>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {mode === 'inference' && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Prediction</h3>
-                    <div className="space-y-2">
-                      <div className="text-sm">
-                        <div>Digit 0: {(outputActivations[0] * 100).toFixed(1)}%</div>
-                        <div>Digit 1: {(outputActivations[1] * 100).toFixed(1)}%</div>
-                      </div>
-                      <div className="text-lg font-bold">
-                        Predicted: {outputActivations[0] > outputActivations[1] ? '0' : '1'}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Training Status */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">Training Progress</h3>
-              <div className="space-y-1 text-sm">
-                <div>Loss: {loss.toFixed(4)}</div>
-                <div>Step: {currentStep + 1}/6</div>
-                <div>LR: {learningRate.toFixed(4)}</div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">Network Stats</h3>
-              <div className="space-y-1 text-sm">
-                <div>Hidden Avg: {(hiddenActivations.reduce((a, b) => a + b, 0) / 24).toFixed(3)}</div>
-                <div>Output Sum: {outputActivations.reduce((a, b) => a + b, 0).toFixed(3)}</div>
-                <div>Weights: {weights.flat().length + outputWeights.flat().length}</div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">Dataset Info</h3>
-              <div className="space-y-1 text-sm">
-                <div>Examples: {trainingExamples.length}</div>
-                <div>Current: {currentExampleIndex + 1}</div>
-                <div>Mode: {trainingMode}</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Dataset Management */}
-        {trainingMode === 'dataset' && (
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Dataset Management</h3>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={createTrainingExample}
-                    disabled={createExampleMutation.isPending}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Current Pattern
-                  </Button>
-                  <label htmlFor="file-upload">
-                    <Button variant="outline" asChild>
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload JSON
-                      </span>
-                    </Button>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      accept=".json"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              {examplesLoading ? (
-                <div>Loading examples...</div>
-              ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {trainingExamples.map((example, index) => (
-                    <div
-                      key={example.id}
-                      className={`flex items-center justify-between p-2 border rounded ${
-                        index === currentExampleIndex ? 'bg-blue-50 border-blue-200' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono w-8">#{example.id}</span>
-                        <div className="text-lg">
-                          {typeof getPatternDisplay(example.pattern) === 'string' 
-                            ? getPatternDisplay(example.pattern)
-                            : '▦'
-                          }
                         </div>
-                        <span className="text-sm">
-                          Label: {Array.isArray(example.label) ? 
-                            `[${(example.label as number[]).join(',')}]` : 
-                            example.label
-                          }
-                        </span>
-                        <Button
-                          variant="ghost"
+                        <Button 
+                          onClick={() => removeDatasetExample(index)}
+                          variant="outline"
                           size="sm"
-                          onClick={() => setCurrentExampleIndex(index)}
-                        >
-                          Select
-                        </Button>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const newPattern = gridToFlat(pixelGrid);
-                            const newLabel = JSON.stringify(selectedLabel === 0 ? [1, 0] : [0, 1]);
-                            updateExampleMutation.mutate({
-                              id: example.id,
-                              pattern: newPattern,
-                              label: newLabel
-                            });
-                          }}
-                          disabled={updateExampleMutation.isPending}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteExampleMutation.mutate(example.id)}
-                          disabled={deleteExampleMutation.isPending}
+                          className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
+                      
+                      <div className="flex items-center gap-4">
+                        {/* 9x9 pixel grid */}
+                        <div className="grid grid-cols-9 gap-0 w-32 h-32 border-2 border-gray-400 bg-gray-100">
+                          {(() => {
+                            const pattern = example.pattern as number[][] | number[];
+                            const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+                            return grid.map((row: number[], rowIndex: number) => 
+                              row.map((pixel: number, colIndex: number) => (
+                                <div
+                                  key={`${rowIndex}-${colIndex}`}
+                                  className={`w-full h-full border border-gray-200 cursor-crosshair select-none transition-colors duration-100 ${
+                                    pixel ? "bg-gray-800" : "bg-white hover:bg-gray-100"
+                                  }`}
+                                  onMouseDown={() => handleEditorMouseDown(index, rowIndex, colIndex)}
+                                  onMouseEnter={() => handleEditorMouseEnter(index, rowIndex, colIndex)}
+                                />
+                              ))
+                            );
+                          })()}
+                        </div>
+                        
+                        <div className="text-xs text-gray-600">
+                          <div>Pattern (81 pixels): [{(() => {
+                            const pattern = example.pattern as number[][] | number[];
+                            const flatPattern = Array.isArray(pattern[0]) ? (pattern as number[][]).flat() : pattern as number[];
+                            return flatPattern.slice(0, 12).map(v => v.toString()).join(',') + (flatPattern.length > 12 ? '...' : '');
+                          })()}]</div>
+                          <div className="mt-1">Click pixels to toggle. Target: {Array.isArray(example.label) 
+                            ? ((example.label as number[])?.[0] === 1 ? '0' : '1')
+                            : String(example.label)}</div>
+                          <div className="mt-1">Each pixel is 0 (white) or 1 (black)</div>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Learning Rate Decay Dialog */}
-        <Dialog open={isLRDialogOpen} onOpenChange={setIsLRDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Learning Rate Decay Settings</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={lrDecayEnabled}
-                  onChange={(e) => setLrDecayEnabled(e.target.checked)}
-                  id="lr-decay-enabled"
-                />
-                <Label htmlFor="lr-decay-enabled">Enable Learning Rate Decay</Label>
+                  );
+                })}
               </div>
-              
-              {lrDecayEnabled && (
-                <>
-                  <div>
-                    <Label htmlFor="lr-decay-rate">Decay Rate: {lrDecayRate}</Label>
-                    <Input
-                      id="lr-decay-rate"
-                      type="range"
-                      min="0.8"
-                      max="0.99"
-                      step="0.01"
-                      value={lrDecayRate}
-                      onChange={(e) => setLrDecayRate(parseFloat(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="min-lr">Minimum LR: {minLR}</Label>
-                    <Input
-                      id="min-lr"
-                      type="range"
-                      min="0.001"
-                      max="0.1"
-                      step="0.001"
-                      value={minLR}
-                      onChange={(e) => setMinLR(parseFloat(e.target.value))}
-                    />
-                  </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    New LR = Current LR × {lrDecayRate}^(epoch-1), minimum: {minLR}
-                  </div>
-                </>
-              )}
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Button onClick={saveDataset} className="flex-1">
+                  Save Changes
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowDatasetEditor(false);
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Epoch Training Dialog */}
+        {/* Epoch Selection Dialog */}
         <Dialog open={isEpochDialogOpen} onOpenChange={setIsEpochDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Multi-Epoch Training</DialogTitle>
+              <DialogTitle>Select Number of Epochs</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="num-epochs">Number of Epochs</Label>
+              <div className="text-sm text-gray-600">
+                An epoch is one complete pass through all {trainingExamples.length} training examples.
+                Multiple epochs help the neural network learn patterns better.
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="epochs">Number of Epochs:</Label>
                 <Input
-                  id="num-epochs"
+                  id="epochs"
                   type="number"
                   min="1"
                   max="100"
                   value={numberOfEpochs}
-                  onChange={(e) => setNumberOfEpochs(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setNumberOfEpochs(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full"
                 />
               </div>
-              <div>
-                <Label htmlFor="training-speed">Training Speed (ms between steps)</Label>
-                <Input
-                  id="training-speed"
-                  type="number"
-                  min="50"
-                  max="2000"
-                  step="50"
-                  value={autoTrainingSpeed}
-                  onChange={(e) => setAutoTrainingSpeed(parseInt(e.target.value) || 300)}
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                This will train on all {trainingExamples.length} examples for {numberOfEpochs} epoch(s).
-              </div>
-              <Button onClick={startEpochTraining} className="w-full">
-                Start Training
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Weight Dialog */}
-        <Dialog open={weightDialogOpen} onOpenChange={setWeightDialogOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Weight Inspector</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {selectedInputNeuron !== null && (
-                <div>
-                  <h4 className="font-semibold mb-2">Input Neuron {selectedInputNeuron} → Hidden Layer</h4>
-                  
-                  {/* 9x9 Grid Visualization */}
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium mb-2">Weight Grid (9×9)</h5>
-                    <div className="grid grid-cols-9 gap-1 w-64 h-64 mx-auto">
-                      {Array.from({ length: 81 }, (_, i) => {
-                        const weightSum = weights.reduce((sum, neuronWeights) => 
-                          sum + neuronWeights[selectedInputNeuron], 0
-                        );
-                        const avgWeight = weightSum / 24;
-                        const intensity = Math.abs(avgWeight);
-                        const isPositive = avgWeight >= 0;
-                        
-                        return (
-                          <div
-                            key={i}
-                            className={`w-6 h-6 border border-gray-300 ${
-                              i === selectedInputNeuron ? 'border-red-500 border-2' : ''
-                            }`}
-                            style={{
-                              backgroundColor: isPositive 
-                                ? `rgba(34, 197, 94, ${Math.min(1, intensity * 2)})` 
-                                : `rgba(239, 68, 68, ${Math.min(1, intensity * 2)})`
-                            }}
-                            title={`Position ${i}: ${avgWeight.toFixed(4)}`}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Individual Weight Bars */}
-                  <div className="grid grid-cols-12 gap-1">
-                    {weights.map((neuronWeights, hiddenIndex) => {
-                      const weight = neuronWeights[selectedInputNeuron];
-                      const maxWeight = Math.max(...weights.flat().map(Math.abs));
-                      const intensity = Math.abs(weight) / maxWeight;
-                      const isPositive = weight >= 0;
-                      
-                      return (
-                        <div key={hiddenIndex} className="text-center">
-                          <div className="text-xs mb-1">H{hiddenIndex}</div>
-                          <div
-                            className={`h-16 w-4 mx-auto border ${
-                              isPositive ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                            style={{ opacity: intensity }}
-                            title={`Weight: ${weight.toFixed(4)}`}
-                          />
-                          <div className="text-xs mt-1">{weight.toFixed(2)}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {selectedHiddenNeuron !== null && (
-                <div>
-                  <h4 className="font-semibold mb-2">Hidden Neuron {selectedHiddenNeuron} → Output Layer</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {outputWeights.map((neuronWeights, outputIndex) => {
-                      const weight = neuronWeights[selectedHiddenNeuron];
-                      const maxWeight = Math.max(...outputWeights.flat().map(Math.abs));
-                      const intensity = Math.abs(weight) / maxWeight;
-                      const isPositive = weight >= 0;
-                      
-                      return (
-                        <div key={outputIndex} className="text-center">
-                          <div className="text-sm mb-1">Output {outputIndex}</div>
-                          <div
-                            className={`h-24 w-8 mx-auto border ${
-                              isPositive ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                            style={{ opacity: intensity }}
-                            title={`Weight: ${weight.toFixed(4)}`}
-                          />
-                          <div className="text-sm mt-1">{weight.toFixed(4)}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Debug Info Dialog */}
-        <Dialog open={debugInfoOpen} onOpenChange={setDebugInfoOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Debug Information</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              <div>
-                <h4 className="font-semibold">Current Inputs</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{currentInputs.slice(0, 10).map(x => x.toFixed(3)).join(', ')}...]
-                </div>
+              
+              <div className="text-xs text-gray-500">
+                Total training steps: {numberOfEpochs} × {trainingExamples.length} = {numberOfEpochs * trainingExamples.length}
               </div>
               
-              <div>
-                <h4 className="font-semibold">Hidden Pre-activations</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{hiddenPreActivations.slice(0, 8).map(x => x.toFixed(3)).join(', ')}...]
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold">Hidden Activations</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{hiddenActivations.slice(0, 8).map(x => x.toFixed(3)).join(', ')}...]
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold">Output Pre-activations</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{outputPreActivations.map(x => x.toFixed(3)).join(', ')}]
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold">Output Activations (Softmax)</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{outputActivations.map(x => x.toFixed(3)).join(', ')}]
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold">Target & Loss</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  Target: [{currentTarget.map(x => x.toFixed(3)).join(', ')}]<br/>
-                  Loss: {loss.toFixed(6)}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold">Output Errors</h4>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  [{outputErrors.map(x => x.toFixed(3)).join(', ')}]
-                </div>
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={startMultiEpochTraining}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                >
+                  Start Training
+                </Button>
+                <Button 
+                  onClick={() => setIsEpochDialogOpen(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
           </DialogContent>

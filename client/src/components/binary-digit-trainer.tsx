@@ -340,6 +340,11 @@ export default function BinaryDigitTrainer() {
 
   // Calculate pixel values - read from ref for training logic, fallback to state for UI
   const getPixelValues = () => {
+    // In inference mode, always use the current pixel grid (fresh drawing)
+    if (mode === 'inference') {
+      return pixelGridRef.current?.flat() || pixelGrid.flat();
+    }
+    
     // During training, use cached inputs from network state if available
     if (currentNetworkState.current.inputs && currentNetworkState.current.inputs.some(x => x !== 0)) {
       return currentNetworkState.current.inputs;
@@ -1371,20 +1376,16 @@ export default function BinaryDigitTrainer() {
               </div>
 
               {/* Network Summary */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Prediction:</span>
-                    <span className="font-bold">
-                      Digit {outputActivations[0] > outputActivations[1] ? 0 : 1}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Loss (MSE):</span>
-                    <span className="font-mono">{loss.toFixed(4)}</span>
+              {mode === 'training' && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Current Loss:</span>
+                      <span className="font-mono">{loss.toFixed(4)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               
             </CardContent>
           </Card>

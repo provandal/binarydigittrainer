@@ -1063,24 +1063,27 @@ export default function BinaryDigitTrainer() {
               </div>
               
               <div className="space-y-3">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
-                  <div className="flex gap-2 justify-center">
-                    {[0, 1].map((label) => (
-                      <label key={label} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="label"
-                          value={label}
-                          checked={selectedLabel === label}
-                          onChange={() => setSelectedLabel(label)}
-                          className="text-blue-600"
-                        />
-                        <span>Digit {label}</span>
-                      </label>
-                    ))}
+                {/* Target Label - Only show in training mode */}
+                {mode === 'training' && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
+                    <div className="flex gap-2 justify-center">
+                      {[0, 1].map((label) => (
+                        <label key={label} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="label"
+                            value={label}
+                            checked={selectedLabel === label}
+                            onChange={() => setSelectedLabel(label)}
+                            className="text-blue-600"
+                          />
+                          <span>Digit {label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Mode Selection */}
                 <div>

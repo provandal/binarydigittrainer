@@ -40,6 +40,8 @@ Preferred communication style: Simple, everyday language.
 - **Automated Training**: "Run to Next Sample" button cycles through all training examples automatically
 - **Inference Mode**: Real-time prediction mode where users draw digits and get instant predictions
 - **Dataset Editor**: Comprehensive editor for creating, editing, and managing training examples
+- **Checkpoint System**: Full model state export/import with comprehensive metadata
+- **Learning Rate Decay**: Exponential decay scheduler with visual feedback
 - **Educational Focus**: Designed for learning neural network fundamentals, not performance
 
 ## Database Schema

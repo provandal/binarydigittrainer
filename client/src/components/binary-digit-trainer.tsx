@@ -332,6 +332,7 @@ export default function BinaryDigitTrainer() {
 
   // ----- Model Management UI -----
   const [showModelManagement, setShowModelManagement] = useState(false);
+  const [lastCheckpointLoaded, setLastCheckpointLoaded] = useState<string | null>(null);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -723,6 +724,7 @@ export default function BinaryDigitTrainer() {
     setExamplesSeen(0);
     setLastEpochAvgLoss(null);
     setCompletedEpochs(0);
+    setLastCheckpointLoaded(null);
     
     // Reset training state to ensure Automated Training section remains visible
     shouldStopTraining.current = false;
@@ -943,6 +945,7 @@ export default function BinaryDigitTrainer() {
       setHiddenActivations(Array(24).fill(0));
       setOutputActivations(Array(2).fill(0));
       setLrHistory([]); // Reset learning rate history when loading checkpoint
+      setLastCheckpointLoaded(file.name); // Track the loaded checkpoint
       
       alert(`Loaded checkpoint: ${file.name}`);
     } catch (err) {
@@ -1857,12 +1860,20 @@ export default function BinaryDigitTrainer() {
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="flex justify-between">
+                          <span className="text-gray-600">Architecture:</span>
+                          <span className="font-mono">81→24→2</span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-gray-600">Epochs:</span>
                           <span className="font-mono">{completedEpochs}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Examples:</span>
                           <span className="font-mono">{examplesSeen}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Current LR:</span>
+                          <span className="font-mono">{learningRate.toFixed(5)}</span>
                         </div>
                         <div className="flex justify-between col-span-2">
                           <span className="text-gray-600">Last Loss:</span>
@@ -1871,9 +1882,31 @@ export default function BinaryDigitTrainer() {
                           </span>
                         </div>
                         <div className="flex justify-between col-span-2">
-                          <span className="text-gray-600">Learning Rate:</span>
-                          <span className="font-mono">{learningRate.toFixed(5)}</span>
+                          <span className="text-gray-600">Normalization:</span>
+                          <span className="font-mono">
+                            {normalizeEnabled ? `Enabled (${targetSize}x${targetSize})` : 'Disabled'}
+                          </span>
                         </div>
+                        {lrDecayEnabled && (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Decay Rate:</span>
+                              <span className="font-mono">{lrDecayRate}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Min LR:</span>
+                              <span className="font-mono">{minLR}</span>
+                            </div>
+                          </>
+                        )}
+                        {lastCheckpointLoaded && (
+                          <div className="flex justify-between col-span-2 pt-1 border-t">
+                            <span className="text-gray-600">Last Loaded:</span>
+                            <span className="font-mono text-xs truncate max-w-24" title={lastCheckpointLoaded}>
+                              {lastCheckpointLoaded}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

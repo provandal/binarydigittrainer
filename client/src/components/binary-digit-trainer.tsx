@@ -336,6 +336,7 @@ export default function BinaryDigitTrainer() {
   
   // ----- Activation Explorer UI -----
   const [showInputOverlay, setShowInputOverlay] = useState(false);
+  const [useGlobalScale, setUseGlobalScale] = useState(false);
 
   // ----- Canvas utility functions -----
   const clearCanvas = () => {
@@ -482,14 +483,16 @@ export default function BinaryDigitTrainer() {
   };
 
   // Heatmap component (tiny, fast, no dependencies)
-  function Heatmap9x9({ grid, cell = 18, showInputOverlay = false, inputGrid = null }: { 
+  function Heatmap9x9({ grid, cell = 18, showInputOverlay = false, inputGrid = null, globalMaxAbs = null }: { 
     grid: number[][]; 
     cell?: number; 
     showInputOverlay?: boolean;
     inputGrid?: number[][] | null;
+    globalMaxAbs?: number | null;
   }) {
     const flat = grid.flat();
-    const maxAbs = flat.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    const localMaxAbs = flat.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    const maxAbs = globalMaxAbs !== null ? globalMaxAbs : localMaxAbs;
     return (
       <div className="inline-grid" style={{ gridTemplateColumns: `repeat(9, ${cell}px)` }}>
         {grid.map((row, r) =>
@@ -2170,7 +2173,7 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           {/* Input Overlay Toggle */}
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
                             <input
                               type="checkbox"
                               id="input-overlay"
@@ -2183,13 +2186,43 @@ export default function BinaryDigitTrainer() {
                             </label>
                           </div>
 
+                          {/* Global Scale Toggle */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id="global-scale"
+                              checked={useGlobalScale}
+                              onChange={(e) => setUseGlobalScale(e.target.checked)}
+                              className="rounded"
+                            />
+                            <label htmlFor="global-scale" className="text-xs text-gray-600 cursor-pointer">
+                              Use global scale
+                            </label>
+                          </div>
+
                           {/* Weight template as heatmap */}
                           <div className="mb-3">
                             {(() => {
                               const w81 = (trainingHistory[weightDialogIteration]?.weights?.[selectedWeightBox.index]) ?? weights[selectedWeightBox.index];
                               const grid = vec81ToGrid9(w81);
                               const inputGrid = showInputOverlay ? pixelGrid : null;
-                              return <Heatmap9x9 grid={grid} showInputOverlay={showInputOverlay} inputGrid={inputGrid} />;
+                              
+                              // Calculate global max if needed
+                              let globalMaxAbs = null;
+                              if (useGlobalScale) {
+                                const allWeights = (trainingHistory[weightDialogIteration]?.weights) ?? weights;
+                                globalMaxAbs = allWeights.reduce((max, neuronWeights) => {
+                                  const neuronMax = neuronWeights.reduce((m, w) => Math.max(m, Math.abs(w)), 0);
+                                  return Math.max(max, neuronMax);
+                                }, 0);
+                              }
+                              
+                              return <Heatmap9x9 
+                                grid={grid} 
+                                showInputOverlay={showInputOverlay} 
+                                inputGrid={inputGrid}
+                                globalMaxAbs={globalMaxAbs}
+                              />;
                             })()}
                           </div>
 
@@ -2283,7 +2316,7 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           {/* Input Overlay Toggle for Output View */}
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
                             <input
                               type="checkbox"
                               id="output-input-overlay"
@@ -2293,6 +2326,20 @@ export default function BinaryDigitTrainer() {
                             />
                             <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
                               Show input overlay
+                            </label>
+                          </div>
+
+                          {/* Global Scale Toggle for Output View */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id="output-global-scale"
+                              checked={useGlobalScale}
+                              onChange={(e) => setUseGlobalScale(e.target.checked)}
+                              className="rounded"
+                            />
+                            <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
+                              Use global scale
                             </label>
                           </div>
                           
@@ -2305,6 +2352,16 @@ export default function BinaryDigitTrainer() {
                               .map((w, i) => ({ i, w, aw: Math.abs(w) }))
                               .sort((a, b) => b.aw - a.aw)
                               .slice(0, 6); // top-6
+
+                            // Calculate global max if needed
+                            let globalMaxAbs = null;
+                            if (useGlobalScale) {
+                              const allWeights = (trainingHistory[weightDialogIteration]?.weights) ?? weights;
+                              globalMaxAbs = allWeights.reduce((max, neuronWeights) => {
+                                const neuronMax = neuronWeights.reduce((m, w) => Math.max(m, Math.abs(w)), 0);
+                                return Math.max(max, neuronMax);
+                              }, 0);
+                            }
 
                             return (
                               <div className="grid grid-cols-3 gap-4 mb-4">
@@ -2326,7 +2383,8 @@ export default function BinaryDigitTrainer() {
                                         grid={grid} 
                                         cell={12} 
                                         showInputOverlay={showInputOverlay} 
-                                        inputGrid={showInputOverlay ? pixelGrid : null} 
+                                        inputGrid={showInputOverlay ? pixelGrid : null}
+                                        globalMaxAbs={globalMaxAbs}
                                       />
                                     </div>
                                   );

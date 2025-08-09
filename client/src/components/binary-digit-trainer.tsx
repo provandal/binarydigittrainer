@@ -2423,7 +2423,7 @@ export default function BinaryDigitTrainer() {
                     <div>
                       <div className="flex gap-6">
                         {/* Left side: Top Contributors with mini thumbnails */}
-                        <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
+                        <div className="w-1/3 flex-shrink-0">
                           <div className="flex items-baseline justify-between mb-4">
                             <h3 className="text-sm font-semibold">
                               {viewMode === 'decision' 
@@ -2471,7 +2471,7 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="flex flex-wrap gap-2">
+                                  <div className="grid grid-cols-3 gap-2">
                                     {contributors.map(({ idx, contrib, w0, w1, h }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[idx]) ?? weights[idx];
                                       const grid = vec81ToGrid9(w81);
@@ -2573,7 +2573,7 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="flex flex-wrap gap-2">
+                                  <div className="grid grid-cols-3 gap-2">
                                     {contributors.map(({ i, w }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
                                       const grid = vec81ToGrid9(w81);

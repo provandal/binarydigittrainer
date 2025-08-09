@@ -2379,62 +2379,26 @@ export default function BinaryDigitTrainer() {
                       <div className="flex gap-6">
                         {/* Left side: Top Contributors with mini thumbnails */}
                         <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
-                          <div className="flex items-baseline justify-between mb-2">
+                          <div className="flex items-baseline justify-between mb-4">
                             <h3 className="text-sm font-semibold">Top Contributors (Hidden → Output {selectedWeightBox.index})</h3>
-                          </div>
-
-                          {/* Input Overlay Toggle for Output View */}
-                          <div className="flex items-center gap-2 mb-2">
-                            <input
-                              type="checkbox"
-                              id="output-input-overlay"
-                              checked={showInputOverlay}
-                              onChange={(e) => setShowInputOverlay(e.target.checked)}
-                              className="rounded"
-                            />
-                            <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
-                              Show input overlay
-                            </label>
-                          </div>
-
-                          {/* Global Scale Toggle for Output View */}
-                          <div className="flex items-center gap-2 mb-2">
-                            <input
-                              type="checkbox"
-                              id="output-global-scale"
-                              checked={useGlobalScale}
-                              onChange={(e) => setUseGlobalScale(e.target.checked)}
-                              className="rounded"
-                            />
-                            <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
-                              Use global scale
-                            </label>
-                          </div>
-
-                          {/* Color Scheme Selector for Output View */}
-                          <div className="mb-3">
-                            <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
-                            <select
-                              value={colorScheme}
-                              onChange={(e) => setColorScheme(e.target.value as any)}
-                              className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
-                            >
-                              <option value="blue-red">Blue/Red (default)</option>
-                              <option value="blue-orange">Blue/Orange</option>
-                              <option value="green-purple">Green/Purple</option>
-                              <option value="high-contrast">High contrast</option>
-                            </select>
                           </div>
                           
                           {(() => {
                             const k = selectedWeightBox.index; // 0 for "digit 0", 1 for "digit 1"
                             const ow = (trainingHistory[weightDialogIteration]?.outputWeights?.[k]) ?? outputWeights[k];
 
-                            // sort hidden units by |weight| desc
-                            const idx = ow
-                              .map((w, i) => ({ i, w, aw: Math.abs(w) }))
-                              .sort((a, b) => b.aw - a.aw)
-                              .slice(0, 6); // top-6
+                            // Separate positive and negative weights
+                            const positiveWeights = ow
+                              .map((w, i) => ({ i, w }))
+                              .filter(({ w }) => w > 0)
+                              .sort((a, b) => b.w - a.w)
+                              .slice(0, 6);
+
+                            const negativeWeights = ow
+                              .map((w, i) => ({ i, w }))
+                              .filter(({ w }) => w < 0)
+                              .sort((a, b) => a.w - b.w) // Most negative first
+                              .slice(0, 6);
 
                             // Calculate global max if needed
                             let globalMaxAbs = null;
@@ -2446,41 +2410,111 @@ export default function BinaryDigitTrainer() {
                               }, 0);
                             }
 
-                            return (
-                              <div className="grid grid-cols-3 gap-4 mb-4">
-                                {idx.map(({ i, w }) => {
-                                  const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
-                                  const grid = vec81ToGrid9(w81);
-                                  return (
-                                    <div 
-                                      key={i} 
-                                      className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
-                                      onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
-                                      title="Click to view detailed analysis of this hidden neuron"
-                                    >
-                                      <div className="flex items-center justify-between text-xs mb-1">
-                                        <span className="font-medium">Hidden {i + 1}</span>
-                                        <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
+                            const renderContributorGrid = (contributors: Array<{i: number, w: number}>, title: string, description: string) => (
+                              <div className="mb-6">
+                                <div className="mb-3">
+                                  <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
+                                  <p className="text-xs text-gray-600">{description}</p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                  {contributors.map(({ i, w }) => {
+                                    const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
+                                    const grid = vec81ToGrid9(w81);
+                                    return (
+                                      <div 
+                                        key={i} 
+                                        className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                                        onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
+                                        title="Click to view detailed analysis of this hidden neuron"
+                                      >
+                                        <div className="flex items-center justify-between text-xs mb-1">
+                                          <span className="font-medium">Hidden {i + 1}</span>
+                                          <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
+                                        </div>
+                                        <Heatmap9x9 
+                                          grid={grid} 
+                                          cell={12} 
+                                          showInputOverlay={showInputOverlay} 
+                                          inputGrid={showInputOverlay ? pixelGrid : null}
+                                          globalMaxAbs={globalMaxAbs}
+                                        />
                                       </div>
-                                      <Heatmap9x9 
-                                        grid={grid} 
-                                        cell={12} 
-                                        showInputOverlay={showInputOverlay} 
-                                        inputGrid={showInputOverlay ? pixelGrid : null}
-                                        globalMaxAbs={globalMaxAbs}
-                                      />
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+
+                            return (
+                              <div>
+                                {/* Excitatory Contributors */}
+                                {positiveWeights.length > 0 && renderContributorGrid(
+                                  positiveWeights,
+                                  "Excitatory Contributors",
+                                  "These patterns make the neuron more likely to fire (positive weights)"
+                                )}
+
+                                {/* Inhibitory Contributors */}
+                                {negativeWeights.length > 0 && renderContributorGrid(
+                                  negativeWeights,
+                                  "Inhibitory Contributors", 
+                                  "These patterns make the neuron less likely to fire (negative weights)"
+                                )}
+
+                                {/* Controls moved below both classes */}
+                                <div className="border-t pt-4 mt-4">
+                                  {/* Input Overlay Toggle for Output View */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                      type="checkbox"
+                                      id="output-input-overlay"
+                                      checked={showInputOverlay}
+                                      onChange={(e) => setShowInputOverlay(e.target.checked)}
+                                      className="rounded"
+                                    />
+                                    <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
+                                      Show input overlay
+                                    </label>
+                                  </div>
+
+                                  {/* Global Scale Toggle for Output View */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                      type="checkbox"
+                                      id="output-global-scale"
+                                      checked={useGlobalScale}
+                                      onChange={(e) => setUseGlobalScale(e.target.checked)}
+                                      className="rounded"
+                                    />
+                                    <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
+                                      Use global scale
+                                    </label>
+                                  </div>
+
+                                  {/* Color Scheme Selector for Output View */}
+                                  <div className="mb-3">
+                                    <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
+                                    <select
+                                      value={colorScheme}
+                                      onChange={(e) => setColorScheme(e.target.value as any)}
+                                      className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                                    >
+                                      <option value="blue-red">Blue/Red (default)</option>
+                                      <option value="blue-orange">Blue/Orange</option>
+                                      <option value="green-purple">Green/Purple</option>
+                                      <option value="high-contrast">High contrast</option>
+                                    </select>
+                                  </div>
+
+                                  <p className="text-xs text-gray-600 max-w-[400px]">
+                                    Bars show connection strength from each hidden unit to this output. Thumbnails show each 
+                                    hidden unit's input template. Together they explain how mid-level patterns combine to vote 
+                                    for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.
+                                  </p>
+                                </div>
                               </div>
                             );
                           })()}
-                          
-                          <p className="text-xs text-gray-600 max-w-[400px]">
-                            Bars show connection strength from each hidden unit to this output. Thumbnails show each 
-                            hidden unit's input template. Together they explain how mid-level patterns combine to vote 
-                            for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.
-                          </p>
                         </div>
 
                         {/* Right side: Weight Details */}

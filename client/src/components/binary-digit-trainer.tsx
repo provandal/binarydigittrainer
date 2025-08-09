@@ -1544,20 +1544,29 @@ export default function BinaryDigitTrainer() {
                     </text>
                   </g>
 
-                  {/* Legend */}
-                  <g className="legend">
-                    <text x="38" y="1200" fontSize="16" fill="#666" fontWeight="bold">Weight Details:</text>
-                    <circle cx="50" cy="1220" r="8" fill="#10B981" stroke="#059669" strokeWidth="1.5"/>
-                    <line x1="46" y1="1220" x2="54" y2="1220" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="50" y1="1216" x2="50" y2="1224" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                    <text x="65" y="1225" fontSize="13" fill="#666">Click green plus button to view detailed weights for each neuron</text>
-                    
-                    {/* Debug icon legend */}
-                    <circle cx="50" cy="1245" r="8" fill="#6B7280" stroke="#4B5563" strokeWidth="1.5"/>
-                    <text x="50" y="1250" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">i</text>
-                    <text x="65" y="1250" fontSize="13" fill="#666">Click info button (top right) to view network debug information</text>
-                  </g>
+
                 </svg>
+              </div>
+
+              {/* Weight Details Legend */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm">
+                  <div className="font-medium text-gray-700 mb-2">Weight Details:</div>
+                  <div className="space-y-2 text-xs text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">+</span>
+                      </div>
+                      <span>Click green plus button to view detailed weights for each neuron</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-gray-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">i</span>
+                      </div>
+                      <span>Click info button (top right) to view network debug information</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Network Summary */}

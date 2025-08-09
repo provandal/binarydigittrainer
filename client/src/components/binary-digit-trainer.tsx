@@ -326,6 +326,9 @@ export default function BinaryDigitTrainer() {
   const [examplesSeen, setExamplesSeen] = useState(0);
   const [lastEpochAvgLoss, setLastEpochAvgLoss] = useState<number | null>(null);
   const [completedEpochs, setCompletedEpochs] = useState(0);
+  
+  // ----- Learning rate history for visualization -----
+  const [lrHistory, setLrHistory] = useState<{epoch: number, learningRate: number}[]>([]);
 
   // ----- Model Management UI -----
   const [showModelManagement, setShowModelManagement] = useState(false);
@@ -714,6 +717,12 @@ export default function BinaryDigitTrainer() {
     setWeightDialogIteration(0);
     setTrainingCompleted(false);
     setEpochLossHistory([]);
+    setLrHistory([]);
+    
+    // Reset training stats  
+    setExamplesSeen(0);
+    setLastEpochAvgLoss(null);
+    setCompletedEpochs(0);
     
     // Reset training state to ensure Automated Training section remains visible
     shouldStopTraining.current = false;
@@ -933,6 +942,7 @@ export default function BinaryDigitTrainer() {
       setLoss(0);
       setHiddenActivations(Array(24).fill(0));
       setOutputActivations(Array(2).fill(0));
+      setLrHistory([]); // Reset learning rate history when loading checkpoint
       
       alert(`Loaded checkpoint: ${file.name}`);
     } catch (err) {
@@ -1086,6 +1096,20 @@ export default function BinaryDigitTrainer() {
         setLastEpochAvgLoss(avg);
         setCompletedEpochs(epoch);
         console.log(`✅ Epoch ${epoch} completed. Average loss: ${avg.toFixed(4)}`);
+        
+        // Apply learning rate decay
+        if (lrDecayEnabled) {
+          setLearningRate(prev => {
+            const next = Math.max(minLR, prev * lrDecayRate);
+            console.log(`[LR Decay] lr: ${prev.toFixed(6)} → ${next.toFixed(6)}`);
+            // Track learning rate history
+            setLrHistory(prevHistory => [...prevHistory, {epoch, learningRate: next}]);
+            return next;
+          });
+        } else {
+          // Track learning rate even without decay for consistency
+          setLrHistory(prevHistory => [...prevHistory, {epoch, learningRate: learningRate}]);
+        }
       }
       
       if (shouldStopTraining.current) break;
@@ -1751,6 +1775,78 @@ export default function BinaryDigitTrainer() {
                             Import
                           </Button>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Learning Rate Decay Controls */}
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                        Learning Rate Decay
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="lr-decay-enabled"
+                            checked={lrDecayEnabled}
+                            onChange={(e) => setLrDecayEnabled(e.target.checked)}
+                            className="rounded"
+                          />
+                          <label htmlFor="lr-decay-enabled" className="text-xs text-gray-700">
+                            Enable decay (per epoch)
+                          </label>
+                        </div>
+                        
+                        {lrDecayEnabled && (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="space-y-1">
+                              <label className="text-gray-600">Decay rate</label>
+                              <input
+                                type="number"
+                                step="0.001"
+                                min="0.90"
+                                max="0.999"
+                                value={lrDecayRate}
+                                onChange={e => setLrDecayRate(parseFloat(e.target.value) || 0.99)}
+                                className="w-full text-xs border rounded px-2 py-1"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-gray-600">Min LR</label>
+                              <input
+                                type="number"
+                                step="0.0001"
+                                min="0.0001"
+                                max="0.1"
+                                value={minLR}
+                                onChange={e => setMinLR(parseFloat(e.target.value) || 0.0005)}
+                                className="w-full text-xs border rounded px-2 py-1"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Learning Rate History Chart */}
+                        {lrHistory.length > 1 && (
+                          <div className="mt-2 p-2 bg-white rounded border">
+                            <div className="text-xs text-gray-600 mb-1">LR over epochs</div>
+                            <div className="h-12 flex items-end gap-0.5">
+                              {lrHistory.slice(-10).map((point, i) => {
+                                const maxLR = Math.max(...lrHistory.map(p => p.learningRate));
+                                const height = (point.learningRate / maxLR) * 100;
+                                return (
+                                  <div key={i} className="flex-1 bg-blue-200 min-w-1" 
+                                       style={{height: `${height}%`}}
+                                       title={`Epoch ${point.epoch}: ${point.learningRate.toFixed(5)}`}>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Last 10 epochs (hover for values)
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 

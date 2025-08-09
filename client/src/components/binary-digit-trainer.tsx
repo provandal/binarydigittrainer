@@ -1337,8 +1337,13 @@ export default function BinaryDigitTrainer() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
               
-              <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto">
-                <svg className="w-full" viewBox="0 0 750 1320" style={{ minHeight: '1320px', paddingTop: '0', marginTop: '0' }}>
+              <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto flex items-start">
+                <svg 
+                  className="block w-full self-start" 
+                  viewBox="0 0 750 1320" 
+                  preserveAspectRatio="xMinYMin meet"
+                  style={{ minHeight: 1320 }}
+                >
                   {/* Input Layer */}
                   <g className="input-layer">
                     <text x="38" y="5" fontSize="20" fill="#666" fontWeight="bold">Input (81)</text>

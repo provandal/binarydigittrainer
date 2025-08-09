@@ -389,6 +389,26 @@ export default function BinaryDigitTrainer() {
     }
   };
 
+  // ----- Color scheme descriptions -----
+  const getColorSchemeDescription = (scheme: string) => {
+    switch (scheme) {
+      case 'blue-red':
+        return "Blue indicates positive values, the darker the color the more positive the value. Red indicates negative values, the darker the color the more negative the value.";
+      
+      case 'blue-orange':
+        return "Blue indicates positive values, the darker the color the more positive the value. Orange indicates negative values, the darker the color the more negative the value.";
+      
+      case 'green-purple':
+        return "Green indicates positive values, the darker the color the more positive the value. Purple indicates negative values, the darker the color the more negative the value.";
+      
+      case 'high-contrast':
+        return "Light gray indicates positive values, the darker the color the more positive the value. Dark gray indicates negative values, the darker the color the more negative the value.";
+      
+      default:
+        return "Blue indicates positive values, the darker the color the more positive the value. Red indicates negative values, the darker the color the more negative the value.";
+    }
+  };
+
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
   
@@ -2288,6 +2308,9 @@ export default function BinaryDigitTrainer() {
                               <option value="green-purple">Green/Purple</option>
                               <option value="high-contrast">High contrast</option>
                             </select>
+                            <div className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded">
+                              {getColorSchemeDescription(colorScheme)}
+                            </div>
                           </div>
 
                           {/* Weight template as heatmap */}
@@ -2673,6 +2696,9 @@ export default function BinaryDigitTrainer() {
                                 <option value="green-purple">Green/Purple</option>
                                 <option value="high-contrast">High contrast</option>
                               </select>
+                              <div className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded">
+                                {getColorSchemeDescription(colorScheme)}
+                              </div>
                             </div>
                           </div>
                         </div>

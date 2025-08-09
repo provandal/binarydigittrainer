@@ -337,6 +337,7 @@ export default function BinaryDigitTrainer() {
   // ----- Activation Explorer UI -----
   const [showInputOverlay, setShowInputOverlay] = useState(false);
   const [useGlobalScale, setUseGlobalScale] = useState(false);
+  const [colorScheme, setColorScheme] = useState<'blue-red' | 'blue-orange' | 'green-purple' | 'high-contrast'>('blue-red');
 
   // ----- Canvas utility functions -----
   const clearCanvas = () => {
@@ -467,18 +468,48 @@ export default function BinaryDigitTrainer() {
     return g;
   };
 
-  // Simple diverging color map: negative=red, zero=white, positive=blue
-  const weightColor = (x: number, maxAbs: number) => {
+  // Diverging color map with multiple scheme support
+  const weightColor = (x: number, maxAbs: number, scheme: string = colorScheme) => {
     const a = maxAbs || 1e-6;
     const t = Math.max(-1, Math.min(1, x / a)); // normalize to [-1,1]
-    if (t >= 0) {
-      // white -> blue
-      const c = Math.round(255 * t);
-      return `rgb(${255 - c}, ${255 - c}, 255)`;
-    } else {
-      // white -> red
-      const c = Math.round(255 * (-t));
-      return `rgb(255, ${255 - c}, ${255 - c})`;
+    const intensity = Math.abs(t);
+    const c = Math.round(255 * intensity);
+    
+    switch (scheme) {
+      case 'blue-red':
+        if (t >= 0) {
+          return `rgb(${255 - c}, ${255 - c}, 255)`; // Blue: positive
+        } else {
+          return `rgb(255, ${255 - c}, ${255 - c})`; // Red: negative
+        }
+      
+      case 'blue-orange':
+        if (t >= 0) {
+          return `rgb(${255 - c}, ${255 - c}, 255)`; // Blue: positive
+        } else {
+          return `rgb(255, ${255 - Math.round(c * 0.6)}, ${255 - c})`; // Orange: negative
+        }
+      
+      case 'green-purple':
+        if (t >= 0) {
+          return `rgb(${255 - c}, 255, ${255 - c})`; // Green: positive
+        } else {
+          return `rgb(${255 - Math.round(c * 0.3)}, ${255 - c}, 255)`; // Purple: negative
+        }
+      
+      case 'high-contrast':
+        if (t >= 0) {
+          return `rgb(${255 - c}, ${255 - c}, ${255 - c})`; // Light gray to white: positive
+        } else {
+          return `rgb(${c}, ${c}, ${c})`; // Dark gray to black: negative
+        }
+      
+      default:
+        if (t >= 0) {
+          return `rgb(${255 - c}, ${255 - c}, 255)`;
+        } else {
+          return `rgb(255, ${255 - c}, ${255 - c})`;
+        }
     }
   };
 
@@ -501,7 +532,7 @@ export default function BinaryDigitTrainer() {
             const baseStyle = {
               width: cell, 
               height: cell, 
-              background: weightColor(v, maxAbs),
+              background: weightColor(v, maxAbs, colorScheme),
               opacity: showInputOverlay && !isInputActive ? 0.3 : 1,
               border: showInputOverlay && isInputActive ? '2px solid #000' : '1px solid rgba(255,255,255,0.4)'
             };
@@ -2187,7 +2218,7 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           {/* Global Scale Toggle */}
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
                             <input
                               type="checkbox"
                               id="global-scale"
@@ -2198,6 +2229,21 @@ export default function BinaryDigitTrainer() {
                             <label htmlFor="global-scale" className="text-xs text-gray-600 cursor-pointer">
                               Use global scale
                             </label>
+                          </div>
+
+                          {/* Color Scheme Selector */}
+                          <div className="mb-3">
+                            <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
+                            <select
+                              value={colorScheme}
+                              onChange={(e) => setColorScheme(e.target.value as any)}
+                              className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                            >
+                              <option value="blue-red">Blue/Red (default)</option>
+                              <option value="blue-orange">Blue/Orange</option>
+                              <option value="green-purple">Green/Purple</option>
+                              <option value="high-contrast">High contrast</option>
+                            </select>
                           </div>
 
                           {/* Weight template as heatmap */}
@@ -2330,7 +2376,7 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           {/* Global Scale Toggle for Output View */}
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
                             <input
                               type="checkbox"
                               id="output-global-scale"
@@ -2341,6 +2387,21 @@ export default function BinaryDigitTrainer() {
                             <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
                               Use global scale
                             </label>
+                          </div>
+
+                          {/* Color Scheme Selector for Output View */}
+                          <div className="mb-3">
+                            <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
+                            <select
+                              value={colorScheme}
+                              onChange={(e) => setColorScheme(e.target.value as any)}
+                              className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                            >
+                              <option value="blue-red">Blue/Red (default)</option>
+                              <option value="blue-orange">Blue/Orange</option>
+                              <option value="green-purple">Green/Purple</option>
+                              <option value="high-contrast">High contrast</option>
+                            </select>
                           </div>
                           
                           {(() => {

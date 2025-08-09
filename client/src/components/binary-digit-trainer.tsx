@@ -2483,13 +2483,7 @@ export default function BinaryDigitTrainer() {
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >
                                           <div className="text-xs mb-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                              <span className="font-medium">Hidden {idx + 1}</span>
-                                              <span className="font-mono text-blue-600">{contrib.toFixed(3)}</span>
-                                            </div>
-                                            <div className="text-gray-500 text-xs">
-                                              h={h.toFixed(2)}, w₀-w₁={(w0-w1).toFixed(3)}
-                                            </div>
+                                            <span className="font-medium">Hidden {idx + 1}</span>
                                           </div>
                                           <Heatmap9x9 
                                             grid={grid} 
@@ -2498,6 +2492,14 @@ export default function BinaryDigitTrainer() {
                                             inputGrid={showInputOverlay ? pixelGrid : null}
                                             globalMaxAbs={globalMaxAbs}
                                           />
+                                          <div className="text-xs text-center mt-1">
+                                            <div className="font-mono text-blue-600 font-medium">
+                                              Contrib: {contrib.toFixed(3)}
+                                            </div>
+                                            <div className="text-gray-500 text-xs">
+                                              h={h.toFixed(2)}, w₀-w₁={(w0-w1).toFixed(3)}
+                                            </div>
+                                          </div>
                                         </div>
                                       );
                                     })}
@@ -2582,9 +2584,8 @@ export default function BinaryDigitTrainer() {
                                           onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >
-                                          <div className="flex items-center justify-between text-xs mb-1">
+                                          <div className="text-xs mb-1">
                                             <span className="font-medium">Hidden {i + 1}</span>
-                                            <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
                                           </div>
                                           <Heatmap9x9 
                                             grid={grid} 
@@ -2593,6 +2594,9 @@ export default function BinaryDigitTrainer() {
                                             inputGrid={showInputOverlay ? pixelGrid : null}
                                             globalMaxAbs={globalMaxAbs}
                                           />
+                                          <div className="text-xs text-center mt-1 text-gray-600">
+                                            <span className="font-mono">Weight: {w.toFixed(3)}</span>
+                                          </div>
                                         </div>
                                       );
                                     })}

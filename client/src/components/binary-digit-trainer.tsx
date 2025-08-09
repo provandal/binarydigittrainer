@@ -337,6 +337,12 @@ export default function BinaryDigitTrainer() {
   // ----- Activation Explorer UI -----
   const [showInputOverlay, setShowInputOverlay] = useState(false);
 
+  // ----- Canvas utility functions -----
+  const clearCanvas = () => {
+    setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+    setPrediction(null);
+  };
+
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
   
@@ -1296,7 +1302,15 @@ export default function BinaryDigitTrainer() {
               </div>
               
               <div className="text-center">
-                <p className="text-xs text-gray-600 mb-4">Click and drag to draw. Hover over pixels to see values.</p>
+                <p className="text-xs text-gray-600 mb-2">Click and drag to draw. Hover over pixels to see values.</p>
+                <Button 
+                  onClick={clearCanvas}
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                >
+                  Clear Canvas
+                </Button>
               </div>
               
               <div className="space-y-3">
@@ -1328,7 +1342,7 @@ export default function BinaryDigitTrainer() {
                   <div className="flex gap-2 justify-center">
                     {[
                       { value: 'training', label: 'Training' },
-                      { value: 'inference', label: 'Predict' }
+                      { value: 'inference', label: 'Inferencing' }
                     ].map((modeOption) => (
                       <label key={modeOption.value} className="flex items-center gap-2 cursor-pointer">
                         <input

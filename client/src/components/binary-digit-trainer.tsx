@@ -359,7 +359,7 @@ export default function BinaryDigitTrainer() {
   const [showInputOverlay, setShowInputOverlay] = useState(false);
   const [useGlobalScale, setUseGlobalScale] = useState(false);
   const [colorScheme, setColorScheme] = useState<'blue-red' | 'blue-orange' | 'green-purple' | 'high-contrast'>('blue-red');
-  const [viewMode, setViewMode] = useState<'decision' | 'logit'>('decision'); // Default to decision view
+  const [viewMode, setViewMode] = useState<'decision' | 'logit'>('logit'); // Default to logit view
 
   // ----- Canvas utility functions -----
   const clearCanvas = () => {
@@ -2409,38 +2409,7 @@ export default function BinaryDigitTrainer() {
                             </h3>
                           </div>
 
-                          {/* View Mode Toggle */}
-                          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-4 mb-2">
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name="viewMode"
-                                  value="decision"
-                                  checked={viewMode === 'decision'}
-                                  onChange={(e) => setViewMode('decision')}
-                                  className="text-blue-600"
-                                />
-                                <span className="text-sm font-medium">Decision (which class wins)</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name="viewMode"
-                                  value="logit"
-                                  checked={viewMode === 'logit'}
-                                  onChange={(e) => setViewMode('logit')}
-                                  className="text-blue-600"
-                                />
-                                <span className="text-sm font-medium">Output score (before probability)</span>
-                              </label>
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {viewMode === 'decision' 
-                                ? 'Shows contributions to z₀−z₁, which controls the 0-vs-1 choice'
-                                : 'Shows contributions to z_k = Σ w_{j→k}h_j + b_k before probabilities'}
-                            </div>
-                          </div>
+
                           
                           {(() => {
                             // Calculate global max if needed
@@ -2630,6 +2599,39 @@ export default function BinaryDigitTrainer() {
 
                           {/* Controls moved below both classes */}
                           <div className="border-t pt-4 mt-4">
+                            {/* View Mode Toggle */}
+                            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-4 mb-2">
+                                <label className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name="viewMode"
+                                    value="logit"
+                                    checked={viewMode === 'logit'}
+                                    onChange={(e) => setViewMode('logit')}
+                                    className="text-blue-600"
+                                  />
+                                  <span className="text-sm font-medium">Output score (before probability)</span>
+                                </label>
+                                <label className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name="viewMode"
+                                    value="decision"
+                                    checked={viewMode === 'decision'}
+                                    onChange={(e) => setViewMode('decision')}
+                                    className="text-blue-600"
+                                  />
+                                  <span className="text-sm font-medium">Decision (which class wins)</span>
+                                </label>
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {viewMode === 'decision' 
+                                  ? 'Shows contributions to z₀−z₁, which controls the 0-vs-1 choice'
+                                  : 'Shows contributions to z_k = Σ w_{j→k}h_j + b_k before probabilities'}
+                              </div>
+                            </div>
+
                             {/* Input Overlay Toggle for Output View */}
                             <div className="flex items-center gap-2 mb-2">
                               <input

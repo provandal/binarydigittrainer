@@ -450,6 +450,48 @@ export default function BinaryDigitTrainer() {
     setHoveredPixel(null);
   };
 
+  // Turn 81 weights into a 9x9 matrix
+  const vec81ToGrid9 = (v: number[]) => {
+    const g: number[][] = [];
+    for (let r = 0; r < 9; r++) g.push(v.slice(r * 9, (r + 1) * 9));
+    return g;
+  };
+
+  // Simple diverging color map: negative=blue, zero=white, positive=red
+  const weightColor = (x: number, maxAbs: number) => {
+    const a = maxAbs || 1e-6;
+    const t = Math.max(-1, Math.min(1, x / a)); // normalize to [-1,1]
+    if (t >= 0) {
+      // white -> red
+      const c = Math.round(255 * t);
+      return `rgb(255, ${255 - c}, ${255 - c})`;
+    } else {
+      // white -> blue
+      const c = Math.round(255 * (-t));
+      return `rgb(${255 - c}, ${255 - c}, 255)`;
+    }
+  };
+
+  // Heatmap component (tiny, fast, no dependencies)
+  function Heatmap9x9({ grid, cell = 18 }: { grid: number[][]; cell?: number }) {
+    const flat = grid.flat();
+    const maxAbs = flat.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    return (
+      <div className="inline-grid" style={{ gridTemplateColumns: `repeat(9, ${cell}px)` }}>
+        {grid.map((row, r) =>
+          row.map((v, c) => (
+            <div
+              key={`${r}-${c}`}
+              title={v.toFixed(3)}
+              style={{ width: cell, height: cell, background: weightColor(v, maxAbs) }}
+              className="border border-white/40"
+            />
+          ))
+        )}
+      </div>
+    );
+  }
+
   const forwardPassHidden = () => {
     const pixelValues = getPixelValues();
     // Calculate pre-activation values (z1)
@@ -2076,15 +2118,122 @@ export default function BinaryDigitTrainer() {
                 {/* Weight Visualization */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   {selectedWeightBox.type === 'hidden' && (
-                    <div className="h-[400px] overflow-auto">
-                      <svg viewBox="0 0 600 1850" className="w-full" style={{ minHeight: '1850px' }}>
-                          {/* Background */}
-                          <rect x="50" y="30" width="500" height="1800" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                          <line x1="300" y1="30" x2="300" y2="1830" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                    <div className="flex gap-6">
+                      {/* Left side: Activation Explorer with 9x9 heatmap */}
+                      <div className="flex-shrink-0">
+                        <div className="mb-4">
+                          <div className="flex items-baseline justify-between mb-2">
+                            <h3 className="text-sm font-semibold">Activation Explorer</h3>
+                            <div className="text-xs text-gray-600 font-mono">
+                              {(() => {
+                                const z = currentNetworkState.current.hiddenPreActivations?.[selectedWeightBox.index] ?? 0;
+                                const a = currentNetworkState.current.hiddenActivations?.[selectedWeightBox.index] ?? 0;
+                                return `z: ${z.toFixed(3)} \u00A0\u00A0 a: ${a.toFixed(3)}`;
+                              })()}
+                            </div>
+                          </div>
+
+                          {/* Weight template as heatmap */}
+                          <div className="mb-3">
+                            {(() => {
+                              const w81 = (trainingHistory[weightDialogIteration]?.weights?.[selectedWeightBox.index]) ?? weights[selectedWeightBox.index];
+                              const grid = vec81ToGrid9(w81);
+                              return <Heatmap9x9 grid={grid} />;
+                            })()}
+                          </div>
+
+                          <p className="text-xs text-gray-600 max-w-[200px]">
+                            The colors visualize this neuron's input weights (red=positive, blue=negative). Red pixels 
+                            push activation up when the corresponding input pixel is on; blue pulls it down.
+                            Scrub the "Training Iteration" slider above to watch this template evolve.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right side: Weight bars (fixed spacing and bias visibility) */}
+                      <div className="flex-grow">
+                        <h3 className="text-sm font-semibold mb-2">Weight Details</h3>
+                        <div className="h-[400px] overflow-auto">
+                          <svg viewBox="0 0 600 1350" className="w-full" style={{ minHeight: '1350px' }}>
+                              {/* Background */}
+                              <rect x="50" y="30" width="500" height="1300" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                              <line x1="300" y1="30" x2="300" y2="1330" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                              
+                              {/* Weight bars - reduced spacing from 22px to 15px */}
+                              {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                                const barY = 45 + i * 15;
+                                const barWidth = Math.abs(weight) * 250;
+                                const barX = weight >= 0 ? 300 : 300 - barWidth;
+                                return (
+                                  <g key={i}>
+                                    <rect
+                                      x={barX}
+                                      y={barY}
+                                      width={barWidth}
+                                      height="10"
+                                      fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                      opacity="0.8"
+                                    />
+                                    <text x="20" y={barY + 8} fontSize="8" fill="#666">
+                                      Input {i + 1}:
+                                    </text>
+                                    <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 8} 
+                                          fontSize="8" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                      {weight.toFixed(3)}
+                                    </text>
+                                  </g>
+                                );
+                              })}
+                              
+                              {/* Bias visualization - fixed positioning */}
+                              {(() => {
+                                const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
+                                const biasY = 45 + 81 * 15 + 10; // Add extra space for bias
+                                const biasWidth = Math.abs(bias) * 250;
+                                const biasX = bias >= 0 ? 300 : 300 - biasWidth;
+                                return (
+                                  <g>
+                                    <rect
+                                      x={biasX}
+                                      y={biasY}
+                                      width={biasWidth}
+                                      height="12"
+                                      fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                      opacity="0.8"
+                                    />
+                                    <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
+                                      Bias:
+                                    </text>
+                                    <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
+                                          fontSize="10" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                      {bias.toFixed(3)}
+                                    </text>
+                                  </g>
+                                );
+                              })()}
+                              
+                              {/* Labels */}
+                              <text x="55" y="1325" fontSize="12" fill="#666">-1</text>
+                              <text x="295" y="1325" fontSize="12" fill="#666">0</text>
+                              <text x="535" y="1325" fontSize="12" fill="#666">+1</text>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedWeightBox.type === 'output' && (
+                    <div>
+                      <h3 className="text-sm font-semibold mb-4">Output Neuron {selectedWeightBox.index} Weight Details</h3>
+                      <svg width="100%" height="450" viewBox="0 0 600 450">
+                        <g>
+                          {/* Large weight box */}
+                          <rect x="50" y="30" width="500" height="410" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                          <line x1="300" y1="30" x2="300" y2="440" stroke="#666" strokeWidth="2" opacity="0.5"/>
                           
-                          {/* Weight bars */}
-                          {(trainingHistory[weightDialogIteration]?.weights[selectedWeightBox.index] || weights[selectedWeightBox.index]).map((weight: number, i: number) => {
-                            const barY = 45 + i * 22;
+                          {/* Weight bars - reduced spacing from 22px to 16px */}
+                          {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
+                            const barY = 50 + i * 16;
                             const barWidth = Math.abs(weight) * 250;
                             const barX = weight >= 0 ? 300 : 300 - barWidth;
                             return (
@@ -2093,25 +2242,25 @@ export default function BinaryDigitTrainer() {
                                   x={barX}
                                   y={barY}
                                   width={barWidth}
-                                  height="10"
+                                  height="12"
                                   fill={weight > 0 ? "#10B981" : "#EF4444"}
                                   opacity="0.8"
                                 />
-                                <text x="20" y={barY + 8} fontSize="8" fill="#666">
-                                  Input {i + 1}:
+                                <text x="20" y={barY + 9} fontSize="10" fill="#666">
+                                  Hidden {i + 1}:
                                 </text>
-                                <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 8} 
-                                      fontSize="8" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
+                                <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 9} 
+                                      fontSize="10" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
                                   {weight.toFixed(3)}
                                 </text>
                               </g>
                             );
                           })}
                           
-                          {/* Bias visualization */}
+                          {/* Bias visualization - fixed positioning */}
                           {(() => {
-                            const bias = (trainingHistory[weightDialogIteration]?.biases && trainingHistory[weightDialogIteration]?.biases[selectedWeightBox.index]) || biases[selectedWeightBox.index];
-                            const biasY = 45 + 81 * 22;
+                            const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
+                            const biasY = 50 + 24 * 16 + 10; // Add extra space for bias
                             const biasWidth = Math.abs(bias) * 250;
                             const biasX = bias >= 0 ? 300 : 300 - biasWidth;
                             return (
@@ -2120,15 +2269,15 @@ export default function BinaryDigitTrainer() {
                                   x={biasX}
                                   y={biasY}
                                   width={biasWidth}
-                                  height="12"
+                                  height="14"
                                   fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
                                   opacity="0.8"
                                 />
-                                <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
+                                <text x="20" y={biasY + 10} fontSize="11" fill="#666" fontWeight="bold">
                                   Bias:
                                 </text>
-                                <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 9} 
-                                      fontSize="10" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
+                                <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 10} 
+                                      fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
                                   {bias.toFixed(3)}
                                 </text>
                               </g>
@@ -2136,79 +2285,12 @@ export default function BinaryDigitTrainer() {
                           })()}
                           
                           {/* Labels */}
-                          <text x="55" y="1845" fontSize="12" fill="#666">-1</text>
-                          <text x="295" y="1845" fontSize="12" fill="#666">0</text>
-                          <text x="535" y="1845" fontSize="12" fill="#666">+1</text>
+                          <text x="55" y="435" fontSize="12" fill="#666">-1</text>
+                          <text x="295" y="435" fontSize="12" fill="#666">0</text>
+                          <text x="535" y="435" fontSize="12" fill="#666">+1</text>
+                        </g>
                       </svg>
                     </div>
-                  )}
-
-                  {selectedWeightBox.type === 'output' && (
-                    <svg width="100%" height="580" viewBox="0 0 600 580">
-                      <g>
-                        {/* Large weight box */}
-                        <rect x="50" y="30" width="500" height="540" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                        <line x1="300" y1="30" x2="300" y2="570" stroke="#666" strokeWidth="2" opacity="0.5"/>
-                        
-                        {/* Weight bars */}
-                        {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
-                          const barY = 50 + i * 22;
-                          const barWidth = Math.abs(weight) * 250;
-                          const barX = weight >= 0 ? 300 : 300 - barWidth;
-                          return (
-                            <g key={i}>
-                              <rect
-                                x={barX}
-                                y={barY}
-                                width={barWidth}
-                                height="18"
-                                fill={weight > 0 ? "#10B981" : "#EF4444"}
-                                opacity="0.8"
-                              />
-                              <text x="20" y={barY + 14} fontSize="11" fill="#666">
-                                Hidden {i + 1}:
-                              </text>
-                              <text x={weight >= 0 ? barX + barWidth + 5 : barX - 5} y={barY + 14} 
-                                    fontSize="11" fill="#333" textAnchor={weight >= 0 ? "start" : "end"}>
-                                {weight.toFixed(3)}
-                              </text>
-                            </g>
-                          );
-                        })}
-                        
-                        {/* Bias visualization */}
-                        {(() => {
-                          const bias = (trainingHistory[weightDialogIteration]?.outputBiases && trainingHistory[weightDialogIteration]?.outputBiases[selectedWeightBox.index]) || outputBiases[selectedWeightBox.index];
-                          const biasY = 50 + 24 * 22;
-                          const biasWidth = Math.abs(bias) * 250;
-                          const biasX = bias >= 0 ? 300 : 300 - biasWidth;
-                          return (
-                            <g>
-                              <rect
-                                x={biasX}
-                                y={biasY}
-                                width={biasWidth}
-                                height="18"
-                                fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
-                                opacity="0.8"
-                              />
-                              <text x="20" y={biasY + 14} fontSize="11" fill="#666" fontWeight="bold">
-                                Bias:
-                              </text>
-                              <text x={bias >= 0 ? biasX + biasWidth + 5 : biasX - 5} y={biasY + 14} 
-                                    fontSize="11" fill="#333" textAnchor={bias >= 0 ? "start" : "end"} fontWeight="bold">
-                                {bias.toFixed(3)}
-                              </text>
-                            </g>
-                          );
-                        })()}
-                        
-                        {/* Labels */}
-                        <text x="55" y="575" fontSize="12" fill="#666">-1</text>
-                        <text x="295" y="575" fontSize="12" fill="#666">0</text>
-                        <text x="535" y="575" fontSize="12" fill="#666">+1</text>
-                      </g>
-                    </svg>
                   )}
                 </div>
               </CardContent>

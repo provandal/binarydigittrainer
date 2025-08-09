@@ -345,6 +345,28 @@ export default function BinaryDigitTrainer() {
     setPrediction(null);
   };
 
+  // ----- Color scheme helper for bar graphs -----
+  const getBarColor = (weight: number, scheme: string = colorScheme) => {
+    const isPositive = weight > 0;
+    
+    switch (scheme) {
+      case 'blue-red':
+        return isPositive ? "#3B82F6" : "#EF4444"; // Blue : Red
+      
+      case 'blue-orange':
+        return isPositive ? "#3B82F6" : "#F97316"; // Blue : Orange
+      
+      case 'green-purple':
+        return isPositive ? "#22C55E" : "#A855F7"; // Green : Purple
+      
+      case 'high-contrast':
+        return isPositive ? "#6B7280" : "#1F2937"; // Light gray : Dark gray
+      
+      default:
+        return isPositive ? "#3B82F6" : "#EF4444";
+    }
+  };
+
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
   
@@ -2301,7 +2323,7 @@ export default function BinaryDigitTrainer() {
                                       y={barY}
                                       width={barWidth}
                                       height="10"
-                                      fill={weight > 0 ? "#3B82F6" : "#EF4444"}
+                                      fill={getBarColor(weight)}
                                       opacity="0.8"
                                     />
                                     <text x="20" y={barY + 8} fontSize="8" fill="#666">
@@ -2328,7 +2350,7 @@ export default function BinaryDigitTrainer() {
                                       y={biasY}
                                       width={biasWidth}
                                       height="12"
-                                      fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                      fill={getBarColor(bias)}
                                       opacity="0.8"
                                     />
                                     <text x="20" y={biasY + 9} fontSize="10" fill="#666" fontWeight="bold">
@@ -2482,7 +2504,7 @@ export default function BinaryDigitTrainer() {
                                       y={barY}
                                       width={barWidth}
                                       height="12"
-                                      fill={weight > 0 ? "#3B82F6" : "#EF4444"}
+                                      fill={getBarColor(weight)}
                                       opacity="0.8"
                                     />
                                     <text x="20" y={barY + 9} fontSize="10" fill="#666">
@@ -2509,7 +2531,7 @@ export default function BinaryDigitTrainer() {
                                       y={biasY}
                                       width={biasWidth}
                                       height="14"
-                                      fill={bias > 0 ? "#8B5CF6" : "#EC4899"}
+                                      fill={getBarColor(bias)}
                                       opacity="0.8"
                                     />
                                     <text x="20" y={biasY + 10} fontSize="11" fill="#666" fontWeight="bold">

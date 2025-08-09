@@ -2264,7 +2264,23 @@ export default function BinaryDigitTrainer() {
                       <div className="flex gap-6">
                         {/* Left side: Top Contributors with mini thumbnails */}
                         <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
-                          <h3 className="text-sm font-semibold mb-4">Top Contributors (Hidden → Output {selectedWeightBox.index})</h3>
+                          <div className="flex items-baseline justify-between mb-2">
+                            <h3 className="text-sm font-semibold">Top Contributors (Hidden → Output {selectedWeightBox.index})</h3>
+                          </div>
+
+                          {/* Input Overlay Toggle for Output View */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id="output-input-overlay"
+                              checked={showInputOverlay}
+                              onChange={(e) => setShowInputOverlay(e.target.checked)}
+                              className="rounded"
+                            />
+                            <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
+                              Show input overlay
+                            </label>
+                          </div>
                           
                           {(() => {
                             const k = selectedWeightBox.index; // 0 for "digit 0", 1 for "digit 1"
@@ -2292,7 +2308,12 @@ export default function BinaryDigitTrainer() {
                                         <span className="font-medium">Hidden {i + 1}</span>
                                         <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
                                       </div>
-                                      <Heatmap9x9 grid={grid} cell={12} />
+                                      <Heatmap9x9 
+                                        grid={grid} 
+                                        cell={12} 
+                                        showInputOverlay={showInputOverlay} 
+                                        inputGrid={showInputOverlay ? pixelGrid : null} 
+                                      />
                                     </div>
                                   );
                                 })}

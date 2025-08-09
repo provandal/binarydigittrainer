@@ -2582,7 +2582,7 @@ export default function BinaryDigitTrainer() {
                             </g>
                           </svg>
                           
-                          <p className="text-xs text-gray-600 mt-4 max-w-[500px]">
+                          <p className="text-xs text-gray-600 mt-4 max-w-[500px] ml-20">
                             Bars show connection strength from each hidden unit to this output. Thumbnails show each 
                             hidden unit's input template. Together they explain how mid-level patterns combine to vote 
                             for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.

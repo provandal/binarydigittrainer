@@ -2506,11 +2506,7 @@ export default function BinaryDigitTrainer() {
                                     </select>
                                   </div>
 
-                                  <p className="text-xs text-gray-600 max-w-[400px]">
-                                    Bars show connection strength from each hidden unit to this output. Thumbnails show each 
-                                    hidden unit's input template. Together they explain how mid-level patterns combine to vote 
-                                    for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.
-                                  </p>
+
                                 </div>
                               </div>
                             );
@@ -2585,6 +2581,12 @@ export default function BinaryDigitTrainer() {
                               <text x="535" y="485" fontSize="12" fill="#666">+1</text>
                             </g>
                           </svg>
+                          
+                          <p className="text-xs text-gray-600 mt-4 max-w-[500px]">
+                            Bars show connection strength from each hidden unit to this output. Thumbnails show each 
+                            hidden unit's input template. Together they explain how mid-level patterns combine to vote 
+                            for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.
+                          </p>
                         </div>
                       </div>
                     </div>

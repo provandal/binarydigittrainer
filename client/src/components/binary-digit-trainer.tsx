@@ -333,6 +333,9 @@ export default function BinaryDigitTrainer() {
   // ----- Model Management UI -----
   const [showModelManagement, setShowModelManagement] = useState(false);
   const [lastCheckpointLoaded, setLastCheckpointLoaded] = useState<string | null>(null);
+  
+  // ----- Activation Explorer UI -----
+  const [showInputOverlay, setShowInputOverlay] = useState(false);
 
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
@@ -473,20 +476,35 @@ export default function BinaryDigitTrainer() {
   };
 
   // Heatmap component (tiny, fast, no dependencies)
-  function Heatmap9x9({ grid, cell = 18 }: { grid: number[][]; cell?: number }) {
+  function Heatmap9x9({ grid, cell = 18, showInputOverlay = false, inputGrid = null }: { 
+    grid: number[][]; 
+    cell?: number; 
+    showInputOverlay?: boolean;
+    inputGrid?: number[][] | null;
+  }) {
     const flat = grid.flat();
     const maxAbs = flat.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
     return (
       <div className="inline-grid" style={{ gridTemplateColumns: `repeat(9, ${cell}px)` }}>
         {grid.map((row, r) =>
-          row.map((v, c) => (
-            <div
-              key={`${r}-${c}`}
-              title={v.toFixed(3)}
-              style={{ width: cell, height: cell, background: weightColor(v, maxAbs) }}
-              className="border border-white/40"
-            />
-          ))
+          row.map((v, c) => {
+            const isInputActive = inputGrid?.[r]?.[c] === 1;
+            const baseStyle = {
+              width: cell, 
+              height: cell, 
+              background: weightColor(v, maxAbs),
+              opacity: showInputOverlay && !isInputActive ? 0.3 : 1,
+              border: showInputOverlay && isInputActive ? '2px solid #000' : '1px solid rgba(255,255,255,0.4)'
+            };
+            return (
+              <div
+                key={`${r}-${c}`}
+                title={`Weight: ${v.toFixed(3)}${showInputOverlay ? `, Input: ${isInputActive ? '1' : '0'}` : ''}`}
+                style={baseStyle}
+                className="transition-opacity duration-200"
+              />
+            );
+          })
         )}
       </div>
     );
@@ -2137,12 +2155,27 @@ export default function BinaryDigitTrainer() {
                             </div>
                           </div>
 
+                          {/* Input Overlay Toggle */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id="input-overlay"
+                              checked={showInputOverlay}
+                              onChange={(e) => setShowInputOverlay(e.target.checked)}
+                              className="rounded"
+                            />
+                            <label htmlFor="input-overlay" className="text-xs text-gray-600 cursor-pointer">
+                              Show input overlay
+                            </label>
+                          </div>
+
                           {/* Weight template as heatmap */}
                           <div className="mb-3">
                             {(() => {
                               const w81 = (trainingHistory[weightDialogIteration]?.weights?.[selectedWeightBox.index]) ?? weights[selectedWeightBox.index];
                               const grid = vec81ToGrid9(w81);
-                              return <Heatmap9x9 grid={grid} />;
+                              const inputGrid = showInputOverlay ? pixelGrid : null;
+                              return <Heatmap9x9 grid={grid} showInputOverlay={showInputOverlay} inputGrid={inputGrid} />;
                             })()}
                           </div>
 
@@ -2277,11 +2310,11 @@ export default function BinaryDigitTrainer() {
                         {/* Right side: Weight Details */}
                         <div className="flex-grow">
                           <h3 className="text-sm font-semibold mb-4">Weight Details</h3>
-                          <svg width="100%" height="450" viewBox="0 0 600 450">
+                          <svg width="100%" height="500" viewBox="0 0 600 500">
                             <g>
                               {/* Large weight box */}
-                              <rect x="50" y="30" width="500" height="410" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
-                              <line x1="300" y1="30" x2="300" y2="440" stroke="#666" strokeWidth="2" opacity="0.5"/>
+                              <rect x="50" y="30" width="500" height="460" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
+                              <line x1="300" y1="30" x2="300" y2="490" stroke="#666" strokeWidth="2" opacity="0.5"/>
                               
                               {/* Weight bars - reduced spacing from 22px to 16px */}
                               {(trainingHistory[weightDialogIteration]?.outputWeights[selectedWeightBox.index] || outputWeights[selectedWeightBox.index]).map((weight: number, i: number) => {
@@ -2337,9 +2370,9 @@ export default function BinaryDigitTrainer() {
                               })()}
                               
                               {/* Labels */}
-                              <text x="55" y="435" fontSize="12" fill="#666">-1</text>
-                              <text x="295" y="435" fontSize="12" fill="#666">0</text>
-                              <text x="535" y="435" fontSize="12" fill="#666">+1</text>
+                              <text x="55" y="485" fontSize="12" fill="#666">-1</text>
+                              <text x="295" y="485" fontSize="12" fill="#666">0</text>
+                              <text x="535" y="485" fontSize="12" fill="#666">+1</text>
                             </g>
                           </svg>
                         </div>

@@ -2478,7 +2478,7 @@ export default function BinaryDigitTrainer() {
                                       return (
                                         <div 
                                           key={idx} 
-                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit mx-auto"
                                           onClick={() => setSelectedWeightBox({ type: 'hidden', index: idx })}
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >
@@ -2580,7 +2580,7 @@ export default function BinaryDigitTrainer() {
                                       return (
                                         <div 
                                           key={i} 
-                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit mx-auto"
                                           onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >

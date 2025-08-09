@@ -43,7 +43,8 @@ Preferred communication style: Simple, everyday language.
 - **Checkpoint System**: Full model state export/import with comprehensive metadata
 - **Learning Rate Decay**: Exponential decay scheduler with visual feedback
 - **Activation Explorer**: Interactive 9×9 heatmap visualization of neuron weight templates with time scrubbing
-- **Top Contributors Analysis**: Output neuron view showing most influential hidden neurons with clickable mini thumbnails
+- **Top Contributors Analysis**: Output neuron view with excitatory/inhibitory classification showing most influential hidden neurons with clickable mini thumbnails
+- **Unified Color Schemes**: Consistent color-blind friendly options (Blue/Orange, Green/Purple, High contrast) across all visualizations
 - **Educational Focus**: Designed for learning neural network fundamentals, not performance
 
 ## Database Schema

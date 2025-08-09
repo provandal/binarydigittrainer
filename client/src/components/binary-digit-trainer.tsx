@@ -1340,9 +1340,9 @@ export default function BinaryDigitTrainer() {
               <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto flex items-start">
                 <svg 
                   className="block w-full self-start" 
-                  viewBox="0 0 750 1320" 
+                  viewBox="0 -20 750 1340" 
                   preserveAspectRatio="xMinYMin meet"
-                  style={{ minHeight: 1320 }}
+                  style={{ minHeight: 1340 }}
                 >
                   {/* Input Layer */}
                   <g className="input-layer">

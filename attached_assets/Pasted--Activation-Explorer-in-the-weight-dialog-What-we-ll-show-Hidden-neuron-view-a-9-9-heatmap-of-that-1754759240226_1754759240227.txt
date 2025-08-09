@@ -1,0 +1,142 @@
+“Activation Explorer” in the weight dialog
+What we’ll show
+Hidden neuron view: a 9×9 heatmap of that neuron’s 81 input weights. Scrubbing the existing training-history slider shows how its “template” evolves over time. If a canvas drawing is present, optionally overlay pixel contributions so you can see why it fires.
+
+Output neuron view: a “Top contributors” list—hidden neurons with largest |weight| into this output—each with a mini 9×9 heatmap. This makes it clear which mid-level features are driving the 0/1 decision.
+
+Drop-in helpers (put near your other small helpers)
+tsx
+Copy
+Edit
+// Turn 81 weights into a 9x9 matrix
+const vec81ToGrid9 = (v: number[]) => {
+  const g: number[][] = [];
+  for (let r = 0; r < 9; r++) g.push(v.slice(r * 9, (r + 1) * 9));
+  return g;
+};
+
+// Simple diverging color map: negative=blue, zero=white, positive=red
+const weightColor = (x: number, maxAbs: number) => {
+  const a = maxAbs || 1e-6;
+  const t = Math.max(-1, Math.min(1, x / a)); // normalize to [-1,1]
+  if (t >= 0) {
+    // white -> red
+    const c = Math.round(255 * t);
+    return `rgb(255, ${255 - c}, ${255 - c})`;
+  } else {
+    // white -> blue
+    const c = Math.round(255 * (-t));
+    return `rgb(${255 - c}, ${255 - c}, 255)`;
+  }
+};
+Heatmap component (tiny, fast, no dependencies)
+tsx
+Copy
+Edit
+function Heatmap9x9({ grid, cell = 18 }: { grid: number[][]; cell?: number }) {
+  const flat = grid.flat();
+  const maxAbs = flat.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  return (
+    <div className="inline-grid" style={{ gridTemplateColumns: `repeat(9, ${cell}px)` }}>
+      {grid.map((row, r) =>
+        row.map((v, c) => (
+          <div
+            key={`${r}-${c}`}
+            title={v.toFixed(3)}
+            style={{ width: cell, height: cell, background: weightColor(v, maxAbs) }}
+            className="border border-white/40"
+          />
+        ))
+      )}
+    </div>
+  );
+}
+Hidden neuron: Activation Explorer section
+In your weight dialog where you render the hidden neuron’s bar chart, add this below the bars:
+
+tsx
+Copy
+Edit
+{selectedWeightBox.type === 'hidden' && (() => {
+  // Choose weights from history (scrubbed by your existing slider), fallback to live
+  const w81 =
+    (trainingHistory[weightDialogIteration]?.weights?.[selectedWeightBox.index]) ??
+    weights[selectedWeightBox.index];
+  const grid = vec81ToGrid9(w81);
+
+  // Optional: show current pre-activation/activation for this neuron if available
+  const z = currentNetworkState.current.hiddenPreActivations?.[selectedWeightBox.index] ?? 0;
+  const a = currentNetworkState.current.hiddenActivations?.[selectedWeightBox.index] ?? 0;
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-baseline justify-between mb-2">
+        <h3 className="text-sm font-semibold">Activation Explorer</h3>
+        <div className="text-xs text-gray-600 font-mono">
+          z: {z.toFixed(3)} &nbsp; a: {a.toFixed(3)}
+        </div>
+      </div>
+
+      {/* Weight template as heatmap */}
+      <Heatmap9x9 grid={grid} />
+
+      <p className="mt-2 text-xs text-gray-600">
+        The colors visualize this neuron’s input weights (red=positive, blue=negative). Red pixels
+        push activation up when the corresponding input pixel is on; blue pulls it down.
+        Scrub the “Training Iteration” slider above to watch this template evolve.
+      </p>
+    </div>
+  );
+})()}
+Why this helps: for binary images, a hidden neuron’s weight vector is directly interpretable as a pattern template. You’ll start to see “loop”, “vertical stroke”, “corner” detectors emerge as training proceeds.
+
+Output neuron: Top contributors + thumbnails
+In the weight dialog where you render the output neuron’s bars, add this block below the bars:
+
+tsx
+Copy
+Edit
+{selectedWeightBox.type === 'output' && (() => {
+  const k = selectedWeightBox.index; // 0 for "digit 0", 1 for "digit 1"
+  const ow = (trainingHistory[weightDialogIteration]?.outputWeights?.[k]) ?? outputWeights[k];
+
+  // sort hidden units by |weight| desc
+  const idx = ow
+    .map((w, i) => ({ i, w, aw: Math.abs(w) }))
+    .sort((a, b) => b.aw - a.aw)
+    .slice(0, 6); // top-6
+
+  return (
+    <div className="mt-6">
+      <h3 className="text-sm font-semibold mb-2">Top Contributors (Hidden → Output {k})</h3>
+      <div className="grid grid-cols-3 gap-4">
+        {idx.map(({ i, w }) => {
+          const w81 =
+            (trainingHistory[weightDialogIteration]?.weights?.[i]) ??
+            weights[i];
+          const grid = vec81ToGrid9(w81);
+          return (
+            <div key={i} className="p-2 bg-white rounded border">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span>Hidden {i + 1}</span>
+                <span className="font-mono">{w.toFixed(3)}</span>
+              </div>
+              <Heatmap9x9 grid={grid} cell={12} />
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-gray-600">
+        Bars show connection strength from each hidden unit to this output. Thumbnails show each
+        hidden unit’s input template. Together they explain how mid-level patterns combine to vote
+        for “0” or “1”.
+      </p>
+    </div>
+  );
+})()}
+Tip: when you click a thumbnail, you could focus the dialog on that hidden neuron’s full-size heatmap (just call setSelectedWeightBox({ type:'hidden', index: i })).
+
+Optional polish
+Add a “Show input overlay” toggle that dims the heatmap cells except where the current input has 1s; those cells get a thin outline. That makes the dot-product intuition pop: “these red pixels are lit → big positive z”.
+
+Add a “Normalize scale” switch: per-neuron (max per map) vs global (same scale across time) to make evolution comparisons honest.

@@ -457,18 +457,18 @@ export default function BinaryDigitTrainer() {
     return g;
   };
 
-  // Simple diverging color map: negative=blue, zero=white, positive=red
+  // Simple diverging color map: negative=red, zero=white, positive=green
   const weightColor = (x: number, maxAbs: number) => {
     const a = maxAbs || 1e-6;
     const t = Math.max(-1, Math.min(1, x / a)); // normalize to [-1,1]
     if (t >= 0) {
-      // white -> red
+      // white -> green
       const c = Math.round(255 * t);
-      return `rgb(255, ${255 - c}, ${255 - c})`;
+      return `rgb(${255 - c}, 255, ${255 - c})`;
     } else {
-      // white -> blue
+      // white -> red
       const c = Math.round(255 * (-t));
-      return `rgb(${255 - c}, ${255 - c}, 255)`;
+      return `rgb(255, ${255 - c}, ${255 - c})`;
     }
   };
 
@@ -2100,20 +2100,24 @@ export default function BinaryDigitTrainer() {
                   </Button>
                 </div>
                 
-                {trainingHistory.length > 0 && (
-                  <div className="mb-4">
-                    <label className="text-sm font-medium">Training Iteration: </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max={trainingHistory.length - 1}
-                      value={weightDialogIteration}
-                      onChange={(e) => setWeightDialogIteration(parseInt(e.target.value))}
-                      className="ml-2 w-32"
-                    />
-                    <span className="ml-2 text-sm">{weightDialogIteration + 1} / {trainingHistory.length}</span>
-                  </div>
-                )}
+                <div className="mb-4">
+                  <label className="text-sm font-medium">Training Iteration: </label>
+                  {trainingHistory.length > 0 ? (
+                    <>
+                      <input
+                        type="range"
+                        min="0"
+                        max={trainingHistory.length - 1}
+                        value={weightDialogIteration}
+                        onChange={(e) => setWeightDialogIteration(parseInt(e.target.value))}
+                        className="ml-2 w-32"
+                      />
+                      <span className="ml-2 text-sm">{weightDialogIteration + 1} / {trainingHistory.length}</span>
+                    </>
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-500">Training iteration information is not available for models loaded by checkpoint</span>
+                  )}
+                </div>
                 
                 {/* Weight Visualization */}
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -2143,8 +2147,8 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           <p className="text-xs text-gray-600 max-w-[200px]">
-                            The colors visualize this neuron's input weights (red=positive, blue=negative). Red pixels 
-                            push activation up when the corresponding input pixel is on; blue pulls it down.
+                            The colors visualize this neuron's input weights (green=positive, red=negative). Green pixels 
+                            push activation up when the corresponding input pixel is on; red pulls it down.
                             Scrub the "Training Iteration" slider above to watch this template evolve.
                           </p>
                         </div>

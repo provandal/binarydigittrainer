@@ -457,14 +457,14 @@ export default function BinaryDigitTrainer() {
     return g;
   };
 
-  // Simple diverging color map: negative=red, zero=white, positive=green
+  // Simple diverging color map: negative=red, zero=white, positive=blue
   const weightColor = (x: number, maxAbs: number) => {
     const a = maxAbs || 1e-6;
     const t = Math.max(-1, Math.min(1, x / a)); // normalize to [-1,1]
     if (t >= 0) {
-      // white -> green
+      // white -> blue
       const c = Math.round(255 * t);
-      return `rgb(${255 - c}, 255, ${255 - c})`;
+      return `rgb(${255 - c}, ${255 - c}, 255)`;
     } else {
       // white -> red
       const c = Math.round(255 * (-t));
@@ -2147,7 +2147,7 @@ export default function BinaryDigitTrainer() {
                           </div>
 
                           <p className="text-xs text-gray-600 max-w-[200px]">
-                            The colors visualize this neuron's input weights (green=positive, red=negative). Green pixels 
+                            The colors visualize this neuron's input weights (blue=positive, red=negative). Blue pixels 
                             push activation up when the corresponding input pixel is on; red pulls it down.
                             Scrub the "Training Iteration" slider above to watch this template evolve.
                           </p>
@@ -2175,7 +2175,7 @@ export default function BinaryDigitTrainer() {
                                       y={barY}
                                       width={barWidth}
                                       height="10"
-                                      fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                      fill={weight > 0 ? "#3B82F6" : "#EF4444"}
                                       opacity="0.8"
                                     />
                                     <text x="20" y={barY + 8} fontSize="8" fill="#666">
@@ -2247,7 +2247,7 @@ export default function BinaryDigitTrainer() {
                                   y={barY}
                                   width={barWidth}
                                   height="12"
-                                  fill={weight > 0 ? "#10B981" : "#EF4444"}
+                                  fill={weight > 0 ? "#3B82F6" : "#EF4444"}
                                   opacity="0.8"
                                 />
                                 <text x="20" y={barY + 9} fontSize="10" fill="#666">

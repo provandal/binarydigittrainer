@@ -77,6 +77,27 @@ const parseLabel = (label: any): number[] => {
   return [1, 0];
 };
 
+// Decision contribution types and helpers
+type DecisionContrib = { 
+  idx: number; 
+  contrib: number; 
+  w0: number; 
+  w1: number; 
+  h: number 
+};
+
+const getDecisionContribs = (hiddenActivations: number[], outputWeights: number[][]): DecisionContrib[] => {
+  const w0 = outputWeights[0];
+  const w1 = outputWeights[1];
+  return w0.map((w0j, j) => ({ 
+    idx: j, 
+    contrib: (w0j - w1[j]) * hiddenActivations[j], 
+    w0: w0j, 
+    w1: w1[j], 
+    h: hiddenActivations[j] 
+  }));
+};
+
 // Helper function to get current target (eliminates race conditions)
 const getCurrentTarget = (currentNetworkState: any, trainingMode: string, trainingExamples: any[], currentExampleIndex: number, selectedLabelRef: any): number[] => {
   // First check cached target from network state
@@ -338,6 +359,7 @@ export default function BinaryDigitTrainer() {
   const [showInputOverlay, setShowInputOverlay] = useState(false);
   const [useGlobalScale, setUseGlobalScale] = useState(false);
   const [colorScheme, setColorScheme] = useState<'blue-red' | 'blue-orange' | 'green-purple' | 'high-contrast'>('blue-red');
+  const [viewMode, setViewMode] = useState<'decision' | 'logit'>('decision'); // Default to decision view
 
   // ----- Canvas utility functions -----
   const clearCanvas = () => {
@@ -2380,26 +2402,47 @@ export default function BinaryDigitTrainer() {
                         {/* Left side: Top Contributors with mini thumbnails */}
                         <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
                           <div className="flex items-baseline justify-between mb-4">
-                            <h3 className="text-sm font-semibold">Top Contributors (Hidden → Output {selectedWeightBox.index})</h3>
+                            <h3 className="text-sm font-semibold">
+                              {viewMode === 'decision' 
+                                ? 'Decision Contributors (0 vs 1)' 
+                                : `Output ${selectedWeightBox.index} — Logit (z₀${selectedWeightBox.index === 0 ? '₀' : '₁'})`}
+                            </h3>
+                          </div>
+
+                          {/* View Mode Toggle */}
+                          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-4 mb-2">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="viewMode"
+                                  value="decision"
+                                  checked={viewMode === 'decision'}
+                                  onChange={(e) => setViewMode('decision')}
+                                  className="text-blue-600"
+                                />
+                                <span className="text-sm font-medium">Decision (which class wins)</span>
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="viewMode"
+                                  value="logit"
+                                  checked={viewMode === 'logit'}
+                                  onChange={(e) => setViewMode('logit')}
+                                  className="text-blue-600"
+                                />
+                                <span className="text-sm font-medium">Output score (before probability)</span>
+                              </label>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {viewMode === 'decision' 
+                                ? 'Shows contributions to z₀−z₁, which controls the 0-vs-1 choice'
+                                : 'Shows contributions to z_k = Σ w_{j→k}h_j + b_k before probabilities'}
+                            </div>
                           </div>
                           
                           {(() => {
-                            const k = selectedWeightBox.index; // 0 for "digit 0", 1 for "digit 1"
-                            const ow = (trainingHistory[weightDialogIteration]?.outputWeights?.[k]) ?? outputWeights[k];
-
-                            // Separate positive and negative weights
-                            const positiveWeights = ow
-                              .map((w, i) => ({ i, w }))
-                              .filter(({ w }) => w > 0)
-                              .sort((a, b) => b.w - a.w)
-                              .slice(0, 6);
-
-                            const negativeWeights = ow
-                              .map((w, i) => ({ i, w }))
-                              .filter(({ w }) => w < 0)
-                              .sort((a, b) => a.w - b.w) // Most negative first
-                              .slice(0, 6);
-
                             // Calculate global max if needed
                             let globalMaxAbs = null;
                             if (useGlobalScale) {
@@ -2410,107 +2453,226 @@ export default function BinaryDigitTrainer() {
                               }, 0);
                             }
 
-                            const renderContributorGrid = (contributors: Array<{i: number, w: number}>, title: string, description: string) => (
-                              <div className="mb-6">
-                                <div className="mb-3">
-                                  <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
-                                  <p className="text-xs text-gray-600">{description}</p>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                  {contributors.map(({ i, w }) => {
-                                    const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
-                                    const grid = vec81ToGrid9(w81);
-                                    return (
-                                      <div 
-                                        key={i} 
-                                        className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
-                                        onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
-                                        title="Click to view detailed analysis of this hidden neuron"
-                                      >
-                                        <div className="flex items-center justify-between text-xs mb-1">
-                                          <span className="font-medium">Hidden {i + 1}</span>
-                                          <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
+                            if (viewMode === 'decision') {
+                              // Decision mode: Calculate decision contributions
+                              const hiddenActivs = (trainingHistory[weightDialogIteration]?.hiddenActivations) ?? currentNetworkState.current.hiddenActivations;
+                              const outputWeightsData = [
+                                (trainingHistory[weightDialogIteration]?.outputWeights?.[0]) ?? outputWeights[0],
+                                (trainingHistory[weightDialogIteration]?.outputWeights?.[1]) ?? outputWeights[1]
+                              ];
+                              
+                              const decisionContribs = getDecisionContribs(hiddenActivs, outputWeightsData);
+                              
+                              const helpsZero = decisionContribs
+                                .filter(c => c.contrib > 0)
+                                .sort((a, b) => b.contrib - a.contrib)
+                                .slice(0, 6);
+                              
+                              const helpsOne = decisionContribs
+                                .filter(c => c.contrib < 0)
+                                .sort((a, b) => a.contrib - b.contrib)
+                                .slice(0, 6);
+
+                              const renderDecisionGrid = (contributors: DecisionContrib[], title: string, description: string) => (
+                                <div className="mb-6">
+                                  <div className="mb-3">
+                                    <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
+                                    <p className="text-xs text-gray-600">{description}</p>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-4">
+                                    {contributors.map(({ idx, contrib, w0, w1, h }) => {
+                                      const w81 = (trainingHistory[weightDialogIteration]?.weights?.[idx]) ?? weights[idx];
+                                      const grid = vec81ToGrid9(w81);
+                                      return (
+                                        <div 
+                                          key={idx} 
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                                          onClick={() => setSelectedWeightBox({ type: 'hidden', index: idx })}
+                                          title="Click to view detailed analysis of this hidden neuron"
+                                        >
+                                          <div className="text-xs mb-1">
+                                            <div className="flex items-center justify-between mb-1">
+                                              <span className="font-medium">Hidden {idx + 1}</span>
+                                              <span className="font-mono text-blue-600">{contrib.toFixed(3)}</span>
+                                            </div>
+                                            <div className="text-gray-500 text-xs">
+                                              h={h.toFixed(2)}, w₀-w₁={(w0-w1).toFixed(3)}
+                                            </div>
+                                          </div>
+                                          <Heatmap9x9 
+                                            grid={grid} 
+                                            cell={12} 
+                                            showInputOverlay={showInputOverlay} 
+                                            inputGrid={showInputOverlay ? pixelGrid : null}
+                                            globalMaxAbs={globalMaxAbs}
+                                          />
                                         </div>
-                                        <Heatmap9x9 
-                                          grid={grid} 
-                                          cell={12} 
-                                          showInputOverlay={showInputOverlay} 
-                                          inputGrid={showInputOverlay ? pixelGrid : null}
-                                          globalMaxAbs={globalMaxAbs}
-                                        />
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+
+                              return (
+                                <div>
+                                  {/* Helps classify as 0 */}
+                                  {helpsZero.length > 0 && renderDecisionGrid(
+                                    helpsZero,
+                                    "Helps classify as 0",
+                                    "These patterns push the decision toward digit 0 (positive contributions)"
+                                  )}
+
+                                  {/* Helps classify as 1 */}
+                                  {helpsOne.length > 0 && renderDecisionGrid(
+                                    helpsOne,
+                                    "Helps classify as 1", 
+                                    "These patterns push the decision toward digit 1 (negative contributions)"
+                                  )}
+
+                                  {/* Decision Bias Contribution */}
+                                  {(() => {
+                                    const b0 = (trainingHistory[weightDialogIteration]?.outputBiases?.[0]) ?? outputBiases[0];
+                                    const b1 = (trainingHistory[weightDialogIteration]?.outputBiases?.[1]) ?? outputBiases[1];
+                                    const biasDelta = b0 - b1;
+                                    return (
+                                      <div className="mb-6 border-t pt-4">
+                                        <div className="mb-3">
+                                          <h4 className="text-sm font-medium text-gray-800 mb-1">Bias Contribution</h4>
+                                          <p className="text-xs text-gray-600">How much the bias terms contribute to the decision</p>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded">
+                                          <div className="text-sm">
+                                            <span className="font-medium">Decision bias (b₀ - b₁): </span>
+                                            <span className={`font-mono ${biasDelta >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                                              {biasDelta.toFixed(3)}
+                                            </span>
+                                          </div>
+                                          <div className="text-xs text-gray-600 mt-1">
+                                            b₀={b0.toFixed(3)}, b₁={b1.toFixed(3)}
+                                          </div>
+                                        </div>
                                       </div>
                                     );
-                                  })}
+                                  })()}
                                 </div>
-                              </div>
-                            );
+                              );
+                            } else {
+                              // Logit mode: Original excitatory/inhibitory view
+                              const k = selectedWeightBox.index;
+                              const ow = (trainingHistory[weightDialogIteration]?.outputWeights?.[k]) ?? outputWeights[k];
 
-                            return (
-                              <div>
-                                {/* Excitatory Contributors */}
-                                {positiveWeights.length > 0 && renderContributorGrid(
-                                  positiveWeights,
-                                  "Excitatory Contributors",
-                                  "These patterns make the neuron more likely to fire (positive weights)"
-                                )}
+                              const positiveWeights = ow
+                                .map((w, i) => ({ i, w }))
+                                .filter(({ w }) => w > 0)
+                                .sort((a, b) => b.w - a.w)
+                                .slice(0, 6);
 
-                                {/* Inhibitory Contributors */}
-                                {negativeWeights.length > 0 && renderContributorGrid(
-                                  negativeWeights,
-                                  "Inhibitory Contributors", 
-                                  "These patterns make the neuron less likely to fire (negative weights)"
-                                )}
+                              const negativeWeights = ow
+                                .map((w, i) => ({ i, w }))
+                                .filter(({ w }) => w < 0)
+                                .sort((a, b) => a.w - b.w)
+                                .slice(0, 6);
 
-                                {/* Controls moved below both classes */}
-                                <div className="border-t pt-4 mt-4">
-                                  {/* Input Overlay Toggle for Output View */}
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                      type="checkbox"
-                                      id="output-input-overlay"
-                                      checked={showInputOverlay}
-                                      onChange={(e) => setShowInputOverlay(e.target.checked)}
-                                      className="rounded"
-                                    />
-                                    <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
-                                      Show input overlay
-                                    </label>
-                                  </div>
-
-                                  {/* Global Scale Toggle for Output View */}
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <input
-                                      type="checkbox"
-                                      id="output-global-scale"
-                                      checked={useGlobalScale}
-                                      onChange={(e) => setUseGlobalScale(e.target.checked)}
-                                      className="rounded"
-                                    />
-                                    <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
-                                      Use global scale
-                                    </label>
-                                  </div>
-
-                                  {/* Color Scheme Selector for Output View */}
+                              const renderContributorGrid = (contributors: Array<{i: number, w: number}>, title: string, description: string) => (
+                                <div className="mb-6">
                                   <div className="mb-3">
-                                    <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
-                                    <select
-                                      value={colorScheme}
-                                      onChange={(e) => setColorScheme(e.target.value as any)}
-                                      className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
-                                    >
-                                      <option value="blue-red">Blue/Red (default)</option>
-                                      <option value="blue-orange">Blue/Orange</option>
-                                      <option value="green-purple">Green/Purple</option>
-                                      <option value="high-contrast">High contrast</option>
-                                    </select>
+                                    <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
+                                    <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-
-
+                                  <div className="grid grid-cols-3 gap-4">
+                                    {contributors.map(({ i, w }) => {
+                                      const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
+                                      const grid = vec81ToGrid9(w81);
+                                      return (
+                                        <div 
+                                          key={i} 
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                                          onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
+                                          title="Click to view detailed analysis of this hidden neuron"
+                                        >
+                                          <div className="flex items-center justify-between text-xs mb-1">
+                                            <span className="font-medium">Hidden {i + 1}</span>
+                                            <span className="font-mono text-gray-600">{w.toFixed(3)}</span>
+                                          </div>
+                                          <Heatmap9x9 
+                                            grid={grid} 
+                                            cell={12} 
+                                            showInputOverlay={showInputOverlay} 
+                                            inputGrid={showInputOverlay ? pixelGrid : null}
+                                            globalMaxAbs={globalMaxAbs}
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            );
+                              );
+
+                              return (
+                                <div>
+                                  {/* Excitatory Contributors */}
+                                  {positiveWeights.length > 0 && renderContributorGrid(
+                                    positiveWeights,
+                                    "Excitatory Contributors",
+                                    "These patterns make the neuron more likely to fire (positive weights)"
+                                  )}
+
+                                  {/* Inhibitory Contributors */}
+                                  {negativeWeights.length > 0 && renderContributorGrid(
+                                    negativeWeights,
+                                    "Inhibitory Contributors", 
+                                    "These patterns make the neuron less likely to fire (negative weights)"
+                                  )}
+                                </div>
+                              );
+                            }
                           })()}
+
+                          {/* Controls moved below both classes */}
+                          <div className="border-t pt-4 mt-4">
+                            {/* Input Overlay Toggle for Output View */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <input
+                                type="checkbox"
+                                id="output-input-overlay"
+                                checked={showInputOverlay}
+                                onChange={(e) => setShowInputOverlay(e.target.checked)}
+                                className="rounded"
+                              />
+                              <label htmlFor="output-input-overlay" className="text-xs text-gray-600 cursor-pointer">
+                                Show input overlay
+                              </label>
+                            </div>
+
+                            {/* Global Scale Toggle for Output View */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <input
+                                type="checkbox"
+                                id="output-global-scale"
+                                checked={useGlobalScale}
+                                onChange={(e) => setUseGlobalScale(e.target.checked)}
+                                className="rounded"
+                              />
+                              <label htmlFor="output-global-scale" className="text-xs text-gray-600 cursor-pointer">
+                                Use global scale
+                              </label>
+                            </div>
+
+                            {/* Color Scheme Selector for Output View */}
+                            <div className="mb-3">
+                              <label className="text-xs text-gray-600 block mb-1">Color scheme:</label>
+                              <select
+                                value={colorScheme}
+                                onChange={(e) => setColorScheme(e.target.value as any)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+                              >
+                                <option value="blue-red">Blue/Red (default)</option>
+                                <option value="blue-orange">Blue/Orange</option>
+                                <option value="green-purple">Green/Purple</option>
+                                <option value="high-contrast">High contrast</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Right side: Weight Details */}

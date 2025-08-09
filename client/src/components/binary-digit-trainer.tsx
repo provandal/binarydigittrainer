@@ -2471,14 +2471,14 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-4">
+                                  <div className="flex flex-wrap gap-2">
                                     {contributors.map(({ idx, contrib, w0, w1, h }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[idx]) ?? weights[idx];
                                       const grid = vec81ToGrid9(w81);
                                       return (
                                         <div 
                                           key={idx} 
-                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit mx-auto"
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit"
                                           onClick={() => setSelectedWeightBox({ type: 'hidden', index: idx })}
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >
@@ -2573,14 +2573,14 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-4">
+                                  <div className="flex flex-wrap gap-2">
                                     {contributors.map(({ i, w }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
                                       const grid = vec81ToGrid9(w81);
                                       return (
                                         <div 
                                           key={i} 
-                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit mx-auto"
+                                          className="p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 transition-colors w-fit"
                                           onClick={() => setSelectedWeightBox({ type: 'hidden', index: i })}
                                           title="Click to view detailed analysis of this hidden neuron"
                                         >

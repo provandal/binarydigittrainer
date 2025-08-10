@@ -410,6 +410,22 @@ export default function BinaryDigitTrainer() {
     }
   };
 
+  // Helper to get the positive color name for current scheme
+  const getPositiveColorName = (scheme: string = colorScheme) => {
+    switch (scheme) {
+      case 'blue-red':
+        return "blue";
+      case 'blue-orange':
+        return "blue";
+      case 'green-purple':
+        return "green";
+      case 'high-contrast':
+        return "light gray";
+      default:
+        return "blue";
+    }
+  };
+
   // Persistent training history store - independent of React state
   const trainingHistoryStore = useRef<any[]>([]);
   
@@ -2628,14 +2644,14 @@ export default function BinaryDigitTrainer() {
                                   {positiveWeights.length > 0 && renderContributorGrid(
                                     positiveWeights,
                                     "Excitatory Contributors",
-                                    "These patterns make the neuron more likely to fire (positive weights)"
+                                    `Patterns consisting of strongly positive values (${getPositiveColorName()}) make the neuron more likely to fire`
                                   )}
 
                                   {/* Inhibitory Contributors */}
                                   {negativeWeights.length > 0 && renderContributorGrid(
                                     negativeWeights,
                                     "Inhibitory Contributors", 
-                                    "These patterns make the neuron less likely to fire (negative weights)"
+                                    `Patterns consisting of strongly positive values (${getPositiveColorName()}) make the neuron less likely to fire`
                                   )}
                                 </div>
                               );

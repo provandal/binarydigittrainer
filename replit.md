@@ -45,6 +45,7 @@ Preferred communication style: Simple, everyday language.
 - **Activation Explorer**: Interactive 9×9 heatmap visualization of neuron weight templates with time scrubbing
 - **Top Contributors Analysis**: Output neuron view with excitatory/inhibitory classification showing most influential hidden neurons with clickable mini thumbnails
 - **Unified Color Schemes**: Consistent color-blind friendly options (Blue/Orange, Green/Purple, High contrast) across all visualizations
+- **Mini-Tutorials System**: Comprehensive help icons with mathematical explanations for all UI elements and training steps
 - **Educational Focus**: Designed for learning neural network fundamentals, not performance
 
 ## Database Schema
@@ -75,3 +76,16 @@ Preferred communication style: Simple, everyday language.
 - **TypeScript**: Static type checking for enhanced developer experience
 - **ESBuild**: Fast JavaScript bundler for production builds
 - **Replit Integration**: Development environment optimizations for Replit platform
+
+# Feature Backlog
+
+## Phase 2: Enhanced Educational Features (Next Priority)
+- **Visual Enhancements**: Input overlay on heatmaps, drivers vs suppressors lists, bias line items, per-neuron saturation indicators
+- **Interactive Learning**: Guided walkthrough demo mode (8-minute structured tutorial), challenge mode, achievement system
+- **Misclassification Analysis**: Replay feature for wrong predictions with highlighted contributors
+
+## Future Enhancements
+- **Advanced Training**: Multiple learning rates per layer, momentum/adaptive algorithms (Adam, RMSprop), batch training, early stopping
+- **Enhanced Visualization**: Loss surface 3D visualization, weight evolution animations, gradient flow visualization
+- **Performance Improvements**: WebWorker training, GPU acceleration via WebGL, model compression demonstrations
+- **Advanced Network Features**: Regularization techniques, activation function comparisons, network pruning, transfer learning examples

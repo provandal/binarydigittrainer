@@ -128,8 +128,8 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
   },
 
   // Training Steps
-  step0: {
-    title: "Step 0 — Forward Pass: Input → Hidden",
+  step1: {
+    title: "Step 1 — Forward Pass: Input → Hidden",
     html: `
       <p><strong>Compute hidden pre‑activations:</strong> z<sup>(h)</sup><sub>j</sub> = ∑<sub>i=1</sub><sup>81</sup> W<sub>i→j</sub> x<sub>i</sub> + b<sup>(h)</sup><sub>j</sub></p>
       <ul>
@@ -145,8 +145,8 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
     `
   },
   
-  step1: {
-    title: "Step 1 — Forward Pass: Hidden → Output",
+  step2: {
+    title: "Step 2 — Forward Pass: Hidden → Output",
     html: `
       <p><strong>Compute output logits:</strong> z<sub>k</sub> = ∑<sub>j=1</sub><sup>24</sup> w<sub>j→k</sub> h<sub>j</sub> + b<sub>k</sub></p>
       <ul>
@@ -161,20 +161,20 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
     `
   },
   
-  step2: {
-    title: "Step 2 — Compute Loss",
+  step3: {
+    title: "Step 3 — Compute Loss",
     html: `
       <p><strong>Targets (one‑hot):</strong> y=[1,0] for digit 0, [0,1] for digit 1.</p>
       <p><strong>Cross‑Entropy (recommended):</strong> L = -∑<sub>k</sub> y<sub>k</sub> log p<sub>k</sub></p>
       <ul>
-        <li><strong>Where values come from:</strong> <code>selectedLabel</code> or dataset → target <em>y</em>; Step 1 gives <em>p<sub>k</sub></em>.</li>
+        <li><strong>Where values come from:</strong> <code>selectedLabel</code> or dataset → target <em>y</em>; Step 2 gives <em>p<sub>k</sub></em>.</li>
       </ul>
       <p><strong>(If MSE used):</strong> L=½∑<sub>k</sub> (a<sub>k</sub>-y<sub>k</sub>)², where a<sub>k</sub>=σ(z<sub>k</sub>).</p>
     `
   },
   
-  step3: {
-    title: "Step 3 — Backprop: Output Layer",
+  step4: {
+    title: "Step 4 — Backprop: Output Layer",
     html: `
       <p><strong>Error signal (with softmax + cross‑entropy):</strong> δ<sub>k</sub> = p<sub>k</sub> - y<sub>k</sub></p>
       <ul>
@@ -182,13 +182,13 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
       </ul>
       <p><strong>Parameter updates:</strong> w<sub>j→k</sub> ← w<sub>j→k</sub> - η δ<sub>k</sub> h<sub>j</sub>, &nbsp;&nbsp;&nbsp;&nbsp; b<sub>k</sub> ← b<sub>k</sub> - η δ<sub>k</sub></p>
       <ul>
-        <li>Uses <em>h<sub>j</sub></em> from Step 0 and <em>η</em> from the Learning Rate field.</li>
+        <li>Uses <em>h<sub>j</sub></em> from Step 1 and <em>η</em> from the Learning Rate field.</li>
       </ul>
     `
   },
   
-  step4: {
-    title: "Step 4 — Backprop: Hidden Layer",
+  step5: {
+    title: "Step 5 — Backprop: Hidden Layer",
     html: `
       <p><strong>Hidden error signal:</strong> δ<sup>(h)</sup><sub>j</sub> = σ'(z<sup>(h)</sup><sub>j</sub>) ∑<sub>k</sub> δ<sub>k</sub> w<sub>j→k</sub></p>
       <ul>
@@ -199,8 +199,8 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
     `
   },
   
-  step5: {
-    title: "Step 5 — Next Sample / Reset",
+  step6: {
+    title: "Step 6 — Next Sample / Reset",
     html: `
       <p>Advance to the next example (or clear the canvas in manual mode). If using epochs, loop until all samples are processed.</p>
       <p><strong>Tip:</strong> When auto‑training, prefer a loop that passes the <strong>index explicitly</strong> rather than relying on asynchronous state updates.</p>

@@ -1799,7 +1799,7 @@ export default function BinaryDigitTrainer() {
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">
                   <div className="text-sm font-medium text-blue-900 mb-2 flex items-center">
                     Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
-                    {step < 6 && <HelpIcon k={`step${step}` as keyof typeof MINI_TUTORIALS} />}
+                    {step < 6 && <HelpIcon k={`step${step + 1}` as keyof typeof MINI_TUTORIALS} />}
                   </div>
                   
                   {/* Concept Explanation */}

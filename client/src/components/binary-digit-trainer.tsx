@@ -8,6 +8,7 @@ import { Trash2, Plus, Edit3, Upload, ChevronDown, ChevronRight, Save, FolderOpe
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { HelpIcon } from "@/components/HelpIcon";
 
 
 // Weight initialization helper using Xavier/Glorot initialization
@@ -1436,7 +1437,10 @@ export default function BinaryDigitTrainer() {
 
                 {/* Mode Selection */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Mode</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    Mode
+                    <HelpIcon k="mode" />
+                  </h3>
                   <div className="flex gap-2 justify-center">
                     {[
                       { value: 'training', label: 'Training' },
@@ -1484,7 +1488,10 @@ export default function BinaryDigitTrainer() {
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Network Info</h3>
                 <div className="text-xs text-gray-600 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span>Learning Rate:</span>
+                    <span className="flex items-center">
+                      Learning Rate:
+                      <HelpIcon k="learningRate" />
+                    </span>
                     <input
                       type="number"
                       value={learningRate}
@@ -1762,6 +1769,12 @@ export default function BinaryDigitTrainer() {
               <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
               
               {/* Training Mode Toggle */}
+              <div className="mb-2">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  Training Mode
+                  <HelpIcon k="trainingMode" />
+                </h3>
+              </div>
               <div className="mb-4 flex gap-2">
                 <Button 
                   onClick={() => { setTrainingMode('manual'); setTrainingCompleted(false); }}
@@ -1784,8 +1797,9 @@ export default function BinaryDigitTrainer() {
               {/* Current Step Info - Show detailed info only when not auto-training and not completed */}
               {!isAutoTraining && !trainingCompleted ? (
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                  <div className="text-sm font-medium text-blue-900 mb-2">
+                  <div className="text-sm font-medium text-blue-900 mb-2 flex items-center">
                     Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
+                    {step < 6 && <HelpIcon k={`step${step}` as keyof typeof MINI_TUTORIALS} />}
                   </div>
                   
                   {/* Concept Explanation */}
@@ -1938,8 +1952,9 @@ export default function BinaryDigitTrainer() {
                   <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-3">
                     {/* Checkpoint Export/Import */}
                     <div className="space-y-2">
-                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      <div className="text-xs font-medium text-gray-600 uppercase tracking-wide flex items-center">
                         Checkpoints
+                        <HelpIcon k="checkpoints" />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
@@ -2257,7 +2272,10 @@ export default function BinaryDigitTrainer() {
                       <div className="flex-shrink-0">
                         <div className="mb-4">
                           <div className="flex items-baseline justify-between mb-2">
-                            <h3 className="text-sm font-semibold">Activation Explorer</h3>
+                            <h3 className="text-sm font-semibold flex items-center">
+                              Activation Explorer
+                              <HelpIcon k="activationExplorer" />
+                            </h3>
                             <div className="text-xs text-gray-600 font-mono">
                               {(() => {
                                 const z = currentNetworkState.current.hiddenPreActivations?.[selectedWeightBox.index] ?? 0;
@@ -2627,6 +2645,12 @@ export default function BinaryDigitTrainer() {
                           {/* Controls moved below both classes */}
                           <div className="border-t pt-4 mt-4">
                             {/* View Mode Toggle */}
+                            <div className="mb-2">
+                              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                View Mode
+                                <HelpIcon k="decisionVsLogit" />
+                              </h4>
+                            </div>
                             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-4 mb-2">
                                 <label className="flex items-center gap-2">
@@ -2993,7 +3017,10 @@ export default function BinaryDigitTrainer() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="epochs">Number of Epochs:</Label>
+                <Label htmlFor="epochs" className="flex items-center">
+                  Number of Epochs:
+                  <HelpIcon k="epochs" />
+                </Label>
                 <Input
                   id="epochs"
                   type="number"

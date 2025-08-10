@@ -298,6 +298,10 @@ export default function BinaryDigitTrainer() {
   const [weightDialogIteration, setWeightDialogIteration] = useState(0);
   const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
   
+  // Guided tour and about dialog state
+  const [isGuidedTourOpen, setIsGuidedTourOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  
   // New state for enhanced features
   const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
@@ -1387,9 +1391,25 @@ export default function BinaryDigitTrainer() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🧠 Binary Digit Trainer</h1>
           <p className="text-gray-600">Step-by-step Neural Network Learning Simulator</p>
+          
+          {/* Action buttons in top right */}
+          <div className="absolute top-0 right-0 flex gap-2">
+            <button
+              onClick={() => setIsGuidedTourOpen(true)}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Take Guided Tour
+            </button>
+            <button
+              onClick={() => setIsAboutOpen(true)}
+              className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+            >
+              About
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -3067,6 +3087,88 @@ export default function BinaryDigitTrainer() {
                   Cancel
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* About Dialog */}
+        <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
+          <DialogContent className="max-w-md">
+            <div className="text-center space-y-4">
+              <h2 className="text-xl font-bold">About Binary Digit Trainer</h2>
+              
+              <div className="text-sm text-gray-600 space-y-3">
+                <p>
+                  An educational neural network training platform for binary digit recognition,
+                  featuring comprehensive step-by-step visualization and interactive learning tools.
+                </p>
+                
+                <div className="border-t pt-3">
+                  <h3 className="font-medium text-gray-800 mb-2">Created by</h3>
+                  <div className="space-y-1">
+                    <div>
+                      <strong>Erik Smith</strong><br />
+                      <a href="mailto:erik.smith@dell.com" className="text-blue-600 hover:underline">
+                        erik.smith@dell.com
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-t pt-3">
+                  <h3 className="font-medium text-gray-800 mb-2">Co-created with</h3>
+                  <div>
+                    <strong>Replit Agent</strong><br />
+                    <span className="text-xs">
+                      AI-powered development assistant providing implementation, 
+                      architecture design, and educational content creation
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setIsAboutOpen(false)}
+                className="w-full mt-4"
+              >
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Guided Tour Dialog */}
+        <Dialog open={isGuidedTourOpen} onOpenChange={setIsGuidedTourOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Guided Tour - Coming Soon!</h2>
+              
+              <div className="text-sm text-gray-600 space-y-3">
+                <p>
+                  The interactive guided tour will walk you through all the key features of the Binary Digit Trainer:
+                </p>
+                
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Manual training: Draw characters and train one at a time</li>
+                  <li>Dataset stepping: Load training set and step through examples</li>
+                  <li>Multi-epoch training: Process entire datasets over multiple epochs</li>
+                  <li>Checkpoint save/load: Preserve and restore model states</li>
+                  <li>Inference mode: Test trained models on new drawings</li>
+                  <li>Weight visualization: Explore network internals and contributors</li>
+                </ul>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  💡 <strong>Tip:</strong> In the meantime, click the ? icons throughout the interface 
+                  for detailed explanations of each feature and mathematical concepts.
+                </p>
+              </div>
+              
+              <Button 
+                onClick={() => setIsGuidedTourOpen(false)}
+                className="w-full mt-4"
+              >
+                Close
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

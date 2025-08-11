@@ -319,6 +319,7 @@ export default function BinaryDigitTrainer() {
   const tourTriggerRef = useRef<(() => void) | null>(null);
   const clicksThisCycleRef = useRef(0);
   const cycleDoneRef = useRef(false);
+  const datasetLoadedRef = useRef(false);
   const isDrawingRef = useRef(false);
   const changedCellsRef = useRef(0);
 
@@ -353,10 +354,26 @@ export default function BinaryDigitTrainer() {
     console.log('🔍 Tour validation - tourTrainingCycleCompleted:', tourTrainingCycleCompleted);
     return tourTrainingCycleCompleted;
   };
-  const checkDatasetLoaded = () => tourDatasetLoaded;
-  const checkNextSampleClicked = () => tourNextSampleClicked;
-  const checkEpochTrainingStarted = () => tourEpochStarted;
-  const checkCheckpointSaved = () => tourCheckpointSaved;
+  const checkDatasetLoaded = () => {
+    const result = datasetLoadedRef.current === true;
+    console.log('🔍 TOUR: checkDatasetLoaded - datasetLoadedRef.current:', datasetLoadedRef.current, 'result:', result);
+    return result;
+  };
+  const checkNextSampleClicked = () => {
+    const result = tourNextSampleClicked;
+    console.log('🔍 TOUR: checkNextSampleClicked - tourNextSampleClicked:', tourNextSampleClicked, 'result:', result);
+    return result;
+  };
+  const checkEpochTrainingStarted = () => {
+    const result = tourEpochStarted;
+    console.log('🔍 TOUR: checkEpochTrainingStarted - tourEpochStarted:', tourEpochStarted, 'result:', result);
+    return result;
+  };
+  const checkCheckpointSaved = () => {
+    const result = tourCheckpointSaved;
+    console.log('🔍 TOUR: checkCheckpointSaved - tourCheckpointSaved:', tourCheckpointSaved, 'result:', result);
+    return result;
+  };
   const checkInferenceModeActive = () => mode === 'inference';
   const checkWeightVisualizationOpened = () => tourWeightVisualizationOpened;
 
@@ -409,6 +426,10 @@ export default function BinaryDigitTrainer() {
     setTourEpochStarted(false);
     setTourCheckpointSaved(false);
     setTourWeightVisualizationOpened(false);
+    
+    // Reset tour refs
+    cycleDoneRef.current = false;
+    datasetLoadedRef.current = false;
   };
   
   // New state for enhanced features
@@ -1996,7 +2017,9 @@ export default function BinaryDigitTrainer() {
                   onClick={() => { 
                     setTrainingMode('dataset'); 
                     setTrainingCompleted(false); 
-                    setTourDatasetLoaded(true); // Tour tracking
+                    setTourDatasetLoaded(true); // Tour tracking - React state
+                    datasetLoadedRef.current = true; // Tour tracking - immediate ref
+                    console.log('🎯 TOUR: Training Set clicked! Setting both state and ref to true');
                   }}
                   variant={trainingMode === 'dataset' ? 'default' : 'outline'}
                   size="sm"

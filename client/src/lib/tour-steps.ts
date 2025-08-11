@@ -112,7 +112,7 @@ export const createTourSteps = (
   },
   {
     id: 'dataset-training',
-    title: 'Step 6: Training Set Mode',
+    title: 'Step 7: Training Set Mode',
     content: `
       <p>Now let's try <strong>training set mode</strong>. We'll load the pre-built training examples and step through them automatically.</p>
       <p>Switch to "Training Set" mode to access training examples with both 0s and 1s.</p>
@@ -125,7 +125,7 @@ export const createTourSteps = (
   },
   {
     id: 'next-sample',
-    title: 'Step 7: Run to Next Sample',
+    title: 'Step 8: Run to Next Sample',
     content: `
       <p>With training set mode active, you can now step through training examples automatically.</p>
       <p>The "Run to Next Sample" button will:</p>
@@ -142,7 +142,7 @@ export const createTourSteps = (
   },
   {
     id: 'multi-epoch',
-    title: 'Step 8: Multi-Epoch Training',
+    title: 'Step 9: Multi-Epoch Training',
     content: `
       <p>For serious training, you can process the entire training set multiple times using <strong>epochs</strong>.</p>
       <p>An epoch means going through every training example once. Multiple epochs help the network learn better patterns.</p>
@@ -154,7 +154,7 @@ export const createTourSteps = (
   },
   {
     id: 'checkpoints',
-    title: 'Step 9: Save Your Progress',
+    title: 'Step 10: Save Your Progress',
     content: `
       <p>Checkpoints let you save and restore your trained model.</p>
       <p><strong>Save contains:</strong></p>
@@ -172,7 +172,7 @@ export const createTourSteps = (
   },
   {
     id: 'inference-mode',
-    title: 'Step 10: Test Your Model',
+    title: 'Step 11: Test Your Model',
     content: `
       <p>Switch to <strong>Inference Mode</strong> to test your trained network!</p>
       <p>In inference mode:</p>
@@ -190,7 +190,7 @@ export const createTourSteps = (
   },
   {
     id: 'test-drawing',
-    title: 'Step 11: Draw and Test',
+    title: 'Step 12: Draw and Test',
     content: `
       <p>Perfect! Now you're in inference mode. Draw a digit and watch the network predict what it is.</p>
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
@@ -200,7 +200,7 @@ export const createTourSteps = (
   },
   {
     id: 'weight-visualization',
-    title: 'Step 12: Explore Network Internals',
+    title: 'Step 13: Explore Network Internals',
     content: `
       <p>The final feature is <strong>weight visualization</strong>. Click on any output neuron in the network diagram to see:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">

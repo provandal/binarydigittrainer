@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -119,89 +118,87 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       {/* Overlay for highlighting */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40 pointer-events-none" />
       
-      {/* Tour Dialog */}
-      <Dialog open={isOpen} onOpenChange={() => {}} modal={false}>
-        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-        >
-          <DialogTitle className="sr-only">Guided Tour Step {currentStep + 1}</DialogTitle>
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between tour-dialog-header">
-              <div className="flex items-center space-x-2">
-                <h3 className="font-semibold">Guided Tour</h3>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  Step {currentStep + 1} of {tourSteps.length}
-                </span>
+      {/* Custom Tour Modal */}
+      <div className="fixed top-16 right-4 max-w-md w-full z-50">
+        <div className="bg-white rounded-lg shadow-xl border max-h-[calc(100vh-8rem)] overflow-hidden">
+          <div className="overflow-y-auto max-h-[calc(100vh-8rem)]">
+            <div className="space-y-4 p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between tour-dialog-header">
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-semibold">Guided Tour</h3>
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    Step {currentStep + 1} of {tourSteps.length}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleClose}>
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={handleClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
 
-            {/* Content */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">{step.title}</h4>
-              
-              <div className="text-sm text-gray-600 space-y-2">
-                <div dangerouslySetInnerHTML={{ __html: step.content }} />
+              {/* Content */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">{step.title}</h4>
                 
-                {step.action && step.waitForAction && (
-                  <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-3">
-                    <div className="text-xs font-medium text-blue-700 mb-1">
-                      Action Required:
-                    </div>
-                    <div className="text-xs text-blue-600">
-                      {step.action}
-                    </div>
-                    {!validationPassed && (
-                      <div className="text-xs text-orange-600 mt-1">
-                        ⏳ Waiting for you to complete this action...
+                <div className="text-sm text-gray-600 space-y-2">
+                  <div dangerouslySetInnerHTML={{ __html: step.content }} />
+                  
+                  {step.action && step.waitForAction && (
+                    <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-3">
+                      <div className="text-xs font-medium text-blue-700 mb-1">
+                        Action Required:
                       </div>
-                    )}
-                    {validationPassed && (
-                      <div className="text-xs text-green-600 mt-1">
-                        ✓ Action completed! You can proceed.
+                      <div className="text-xs text-blue-600">
+                        {step.action}
                       </div>
-                    )}
-                  </div>
+                      {!validationPassed && (
+                        <div className="text-xs text-orange-600 mt-1">
+                          ⏳ Waiting for you to complete this action...
+                        </div>
+                      )}
+                      {validationPassed && (
+                        <div className="text-xs text-green-600 mt-1">
+                          ✓ Action completed! You can proceed.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="flex justify-between pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 0}
+                >
+                  <ArrowLeft className="h-3 w-3 mr-1" />
+                  Previous
+                </Button>
+
+                {isLastStep ? (
+                  <Button size="sm" onClick={handleClose}>
+                    Finish Tour
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={handleNext}
+                    disabled={!canProceed}
+                  >
+                    Next
+                    <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
                 )}
               </div>
             </div>
-
-            {/* Navigation */}
-            <div className="flex justify-between pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-              >
-                <ArrowLeft className="h-3 w-3 mr-1" />
-                Previous
-              </Button>
-
-              {isLastStep ? (
-                <Button size="sm" onClick={handleClose}>
-                  Finish Tour
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={!canProceed}
-                >
-                  Next
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              )}
-            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
-      {/* Inject CSS for highlighting and dialog positioning */}
+      {/* Inject CSS for highlighting */}
       <style>{`
         .tour-highlight {
           position: relative;
@@ -210,43 +207,10 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
           border-radius: 4px !important;
         }
         
-        /* Ensure dialog stays within viewport */
-        [data-radix-popper-content-wrapper] {
-          transform: none !important;
-          position: fixed !important;
-          top: 4rem !important;
-          right: 1rem !important;
-          left: auto !important;
-          bottom: auto !important;
-          max-width: calc(100vw - 2rem) !important;
-          max-height: calc(100vh - 5rem) !important;
-        }
-        
-        /* Better dialog positioning */
-        [role="dialog"] {
-          position: fixed !important;
-          top: 4rem !important;
-          right: 1rem !important;
-          left: auto !important;
-          bottom: auto !important;
-          margin: 0 !important;
-          transform: none !important;
-        }
-        
-        /* Make dialog draggable by header */
+        /* Make dialog header draggable */
         .tour-dialog-header {
           cursor: move;
           user-select: none;
-        }
-        
-        /* Hide the automatic close button from DialogContent */
-        [role="dialog"] button[aria-label="Close"] {
-          display: none !important;
-        }
-        
-        /* Alternative selector for close button */
-        [data-radix-collection-item] {
-          display: none !important;
         }
       `}</style>
     </>

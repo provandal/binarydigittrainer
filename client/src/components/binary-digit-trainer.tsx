@@ -603,9 +603,7 @@ export default function BinaryDigitTrainer() {
     setTourDrawnOnCanvas(true); // Tour tracking
     
     // Trigger tour validation immediately when drawing occurs
-    console.log('Drawing pixel, trigger available:', !!tourValidationTrigger);
     if (tourValidationTrigger) {
-      console.log('Calling tour validation trigger');
       tourValidationTrigger();
     }
   };
@@ -3277,7 +3275,6 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointLoaded(false);
           }}
           onValidationTrigger={(triggerFn) => {
-            console.log('Setting tour validation trigger:', !!triggerFn);
             setTourValidationTrigger(() => triggerFn);
           }}
           tourSteps={createTourSteps(

@@ -33,7 +33,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
       const step = tourSteps[current];
       if (step?.validation) {
         const isValid = step.validation();
-        console.log('Validation triggered:', { stepId: step.id, isValid, currentStep: current });
+
         setValidationPassed(isValid);
       }
       return current; // Don't change the step

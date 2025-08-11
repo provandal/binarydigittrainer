@@ -315,6 +315,7 @@ export default function BinaryDigitTrainer() {
   const [tourInferenceModeEnabled, setTourInferenceModeEnabled] = useState(false);
   const [tourCheckpointSaved, setTourCheckpointSaved] = useState(false);
   const [tourCheckpointLoaded, setTourCheckpointLoaded] = useState(false);
+  const [tourValidationTrigger, setTourValidationTrigger] = useState<(() => void) | null>(null);
 
   // Tour validation functions
   const checkCanvasHasDrawing = () => {
@@ -600,6 +601,11 @@ export default function BinaryDigitTrainer() {
     setPixelGrid(newPixelGrid);
     setStep(0); // Reset to first step when input changes
     setTourDrawnOnCanvas(true); // Tour tracking
+    
+    // Trigger tour validation immediately when drawing occurs
+    if (tourValidationTrigger) {
+      tourValidationTrigger();
+    }
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
@@ -3268,6 +3274,7 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
           }}
+          onValidationTrigger={(triggerFn) => setTourValidationTrigger(() => triggerFn)}
           tourSteps={createTourSteps(
             () => pixelGrid.flat().some(pixel => pixel === 1), // Check if any pixels are drawn
             () => tourStepExecuted,

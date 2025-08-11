@@ -18,14 +18,24 @@ interface GuidedTourProps {
   onClose: () => void;
   onReset?: () => void; // Reset network function
   tourSteps: TourStep[];
+  onValidationTrigger?: (triggerValidation: () => void) => void; // Callback to provide validation trigger
 }
 
-export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: GuidedTourProps) {
+export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onValidationTrigger }: GuidedTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState<Element | null>(null);
   const [validationPassed, setValidationPassed] = useState(false);
 
-  // Reset tour state when opened
+  // Validation trigger function that can be called from outside
+  const triggerValidation = () => {
+    const step = tourSteps[currentStep];
+    if (step?.validation) {
+      const isValid = step.validation();
+      setValidationPassed(isValid);
+    }
+  };
+
+  // Reset tour state when opened and provide validation trigger to parent
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
@@ -33,6 +43,10 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       // Reset network if function provided
       if (onReset) {
         onReset();
+      }
+      // Provide validation trigger to parent component
+      if (onValidationTrigger) {
+        onValidationTrigger(triggerValidation);
       }
     }
   }, [isOpen]); // Remove onReset from dependencies to prevent infinite loop

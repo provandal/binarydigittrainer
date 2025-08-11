@@ -121,10 +121,10 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       
       {/* Tour Dialog */}
       <Dialog open={isOpen} onOpenChange={() => {}} modal={false}>
-        <DialogContent className="max-w-md z-50 fixed top-4 right-4">
+        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white">
           <div className="space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between tour-dialog-header">
               <div className="flex items-center space-x-2">
                 <h3 className="font-semibold">Guided Tour</h3>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -197,13 +197,42 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
         </DialogContent>
       </Dialog>
 
-      {/* Inject CSS for highlighting */}
+      {/* Inject CSS for highlighting and dialog positioning */}
       <style jsx global>{`
         .tour-highlight {
           position: relative;
           z-index: 45 !important;
           box-shadow: 0 0 0 2px #3B82F6, 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
           border-radius: 4px !important;
+        }
+        
+        /* Ensure dialog stays within viewport */
+        [data-radix-popper-content-wrapper] {
+          transform: none !important;
+          position: fixed !important;
+          top: 4rem !important;
+          right: 1rem !important;
+          left: auto !important;
+          bottom: auto !important;
+          max-width: calc(100vw - 2rem) !important;
+          max-height: calc(100vh - 5rem) !important;
+        }
+        
+        /* Better dialog positioning */
+        [role="dialog"] {
+          position: fixed !important;
+          top: 4rem !important;
+          right: 1rem !important;
+          left: auto !important;
+          bottom: auto !important;
+          margin: 0 !important;
+          transform: none !important;
+        }
+        
+        /* Make dialog draggable by header */
+        .tour-dialog-header {
+          cursor: move;
+          user-select: none;
         }
       `}</style>
     </>

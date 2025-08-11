@@ -24,6 +24,9 @@ export const createTourSteps = (
         <li>Weight visualization</li>
       </ul>
       <p class="text-xs text-gray-500 mt-2">💡 <strong>Tip:</strong> Click ? icons for detailed mathematical explanations!</p>
+      <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+        <strong>⚠️ Note:</strong> Starting this tour will reset the neural network to its default state to ensure a clean learning experience.
+      </div>
     `
   },
   {

@@ -1559,9 +1559,9 @@ export default function BinaryDigitTrainer() {
                 {mode === 'training' && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
-                    <div className="flex gap-2 justify-center">
+                    <div className="flex gap-2 justify-center" data-tour-target="label-selector">
                       {[0, 1].map((label) => (
-                        <label key={label} className="flex items-center gap-2 cursor-pointer" data-tour-target="label-selector">
+                        <label key={label} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="radio"
                             name="label"

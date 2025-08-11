@@ -308,6 +308,7 @@ export default function BinaryDigitTrainer() {
   const [tourStepStarted, setTourStepStarted] = useState(false);
   const [tourDrawnOnCanvas, setTourDrawnOnCanvas] = useState(false);
   const [tourStepExecuted, setTourStepExecuted] = useState(false);
+  const [tourTrainingCycleCompleted, setTourTrainingCycleCompleted] = useState(false);
   const [tourDatasetLoaded, setTourDatasetLoaded] = useState(false);
   const [tourNextSampleClicked, setTourNextSampleClicked] = useState(false);
   const [tourMultiEpochStarted, setTourMultiEpochStarted] = useState(false);
@@ -329,10 +330,9 @@ export default function BinaryDigitTrainer() {
 
   const checkTrainingStarted = () => tourStepStarted;
   const checkTrainingStepsCompleted = () => {
-    const completed = step === 0 && trainingHistory.length > 0;
-    console.log('🔍 Tour validation - step:', step, 'trainingHistory length:', trainingHistory.length, 'completed:', completed);
-    return completed;
-  }; // Back to step 0 after completing a full cycle
+    console.log('🔍 Tour validation - tourTrainingCycleCompleted:', tourTrainingCycleCompleted);
+    return tourTrainingCycleCompleted;
+  };
   const checkDatasetLoaded = () => tourDatasetLoaded;
   const checkNextSampleClicked = () => tourNextSampleClicked;
   const checkEpochTrainingStarted = () => tourEpochStarted;
@@ -962,6 +962,7 @@ export default function BinaryDigitTrainer() {
         // Complete cycle, start over - clear the canvas for next digit
         setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
         setStep(-1);
+        setTourTrainingCycleCompleted(true); // Tour tracking - full 6-step cycle completed
         break;
     }
     

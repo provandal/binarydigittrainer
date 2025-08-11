@@ -68,8 +68,8 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   useEffect(() => {
     if (isOpen) {
       const step = tourSteps[currentStep];
-      // Position for step 5 (training-steps) in lower left to avoid covering the Next Step button
-      if (step?.id === 'training-steps') {
+      // Position steps in lower left to avoid covering buttons
+      if (step?.id === 'complete-training' || step?.id === 'dataset-training') {
         setDialogPosition({ x: 16, y: window.innerHeight - 400 });
       } else {
         // Default position (top-right)
@@ -146,11 +146,14 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (!isOpen) return;
 
     const step = tourSteps[currentStep];
+    console.log('🔍 TOUR: Step changed to', currentStep, 'stepId:', step?.id, 'waitForAction:', step?.waitForAction);
     if (step?.validation && step.waitForAction) {
       // For steps that wait for action, start with validation failed
       // Validation will be triggered manually when action occurs
+      console.log('🔍 TOUR: Setting validationPassed = false (waiting for action)');
       setValidationPassed(false);
     } else {
+      console.log('🔍 TOUR: Setting validationPassed = true (no wait required)');
       setValidationPassed(true);
     }
   }, [currentStep, isOpen]); // Remove tourSteps from dependencies to prevent re-render loop

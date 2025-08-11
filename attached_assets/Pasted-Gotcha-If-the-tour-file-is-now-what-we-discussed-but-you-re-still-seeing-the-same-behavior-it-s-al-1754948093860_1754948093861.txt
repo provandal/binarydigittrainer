@@ -1,0 +1,59 @@
+Gotcha. If the tour file is now what we discussed but you’re still seeing the same behavior, it’s almost always the **parent-side wiring**—specifically how `triggerValidation` gets called—rather than anything inside `GuidedTour`.
+
+Here’s a super-quick checklist to smoke-test it:
+
+1. Capture the trigger and call it at the exact moment the user completes the action
+
+```tsx
+// parent
+const triggerRef = useRef<() => void>();
+
+<GuidedTour
+  isOpen={isTourOpen}
+  tourSteps={tourSteps}
+  onClose={() => setIsTourOpen(false)}
+  onValidationTrigger={(fn) => (triggerRef.current = fn)}
+/>
+
+// wherever the action happens (canvas draw done, button clicked, etc.)
+triggerRef.current?.();   // <- MUST be called after the action
+```
+
+2. Make sure the step expects an action and knows when to auto-advance
+
+```ts
+{
+  id: "draw-digit",
+  title: "Draw a digit",
+  content: "...",
+  waitForAction: true,         // disables Next until validation passes
+  autoAdvanceOnValid: true,    // optional: auto next when valid
+  validation: () => /* return boolean using current app state */
+}
+```
+
+Tip: if your `validation` reads React state, ensure it returns the **latest** value (avoid stale closures by reading from a store/ref or keeping the function defined at render time and not memoized incorrectly). Add a `console.log('validation ->', result)` inside it to confirm it flips to `true`.
+
+3. Confirm your action actually flips validation
+   Put logs where it matters:
+
+```ts
+// inside your action handler
+console.log('action done -> calling triggerValidation()');
+triggerRef.current?.();
+
+// inside the validation function
+console.log('validation() ->', /*boolean*/);
+```
+
+If `validation()` never returns `true`, `Next` will stay disabled.
+
+4. If the issue is “highlight isn’t showing / can’t click UI under overlay”
+
+* Ensure your `target` selector points to an element that **exists at the moment the step starts**. If it renders later, either start the step later or call the tour step after that mount.
+* The overlay in the tour uses `pointer-events: none`, so it shouldn’t block clicks. If something still blocks, check your own page overlays/z-indexes.
+
+5. Dragging the dialog
+   You have to drag the **header** area (has `.tour-dialog-header`). If that’s not working, check that nothing inside the header is stopping the `onMouseDown` from hitting the container.
+
+If you can paste your parent wiring (the `onValidationTrigger` hookup, the step where `waitForAction` is `true`, and the handler where you call `triggerRef.current?.()`), I’ll pinpoint the exact snag and patch it.

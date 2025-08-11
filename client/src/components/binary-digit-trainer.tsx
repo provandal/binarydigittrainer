@@ -338,8 +338,16 @@ export default function BinaryDigitTrainer() {
   };
 
   // Validation functions for tour steps
-  const validOneClick = () => clicksThisCycleRef.current >= 1;
-  const validFullCycle = () => cycleDoneRef.current === true;
+  const validOneClick = () => {
+    const result = clicksThisCycleRef.current >= 1;
+    console.log('🔍 TOUR: validOneClick - clicks:', clicksThisCycleRef.current, 'result:', result);
+    return result;
+  };
+  const validFullCycle = () => {
+    const result = cycleDoneRef.current === true;
+    console.log('🔍 TOUR: validFullCycle - cycleDone:', cycleDoneRef.current, 'result:', result);
+    return result;
+  };
   const checkTrainingStepsCompleted = () => {
     console.log('🔍 Tour validation - tourTrainingCycleCompleted:', tourTrainingCycleCompleted);
     return tourTrainingCycleCompleted;
@@ -985,31 +993,37 @@ export default function BinaryDigitTrainer() {
         break;
     }
     
-    // Only update React step state if not using forceStep
+    // Track clicks and update step state
     if (forceStep === undefined) {
-      // Increment click counter for tour tracking
+      // Increment click counter for tour tracking (only on user clicks)
       clicksThisCycleRef.current += 1;
+      console.log('🎯 TOUR: User clicked Next Step, clicks this cycle:', clicksThisCycleRef.current);
       
       setStep((prev) => {
         const newStep = (prev + 1) % 6;
+        console.log('🎯 TOUR: Step changed from', prev, 'to', newStep);
         
         // Detect cycle completion (step 5 -> 0)
         if (prev === 5 && newStep === 0) {
           cycleDoneRef.current = true;
-          console.log('🎯 TOUR: Training cycle completed!');
+          console.log('🎯 TOUR: Training cycle completed! cycleDone set to true');
         }
         
         return newStep;
       });
-      
-      // Trigger tour validation after state updates
-      setTimeout(() => {
-        if (tourTriggerRef.current) {
-          console.log('🎯 TOUR: Next step clicked, triggering validation...');
-          tourTriggerRef.current();
-        }
-      }, 100);
+    } else {
+      // Force step without incrementing click counter
+      setStep(forceStep);
+      console.log('🎯 TOUR: Force step to', forceStep, '(no click tracking)');
     }
+    
+    // Always trigger tour validation after any step change
+    setTimeout(() => {
+      if (tourTriggerRef.current) {
+        console.log('🎯 TOUR: Triggering validation after step change...');
+        tourTriggerRef.current();
+      }
+    }, 100);
   };
 
   const resetNetwork = () => {
@@ -3338,6 +3352,8 @@ export default function BinaryDigitTrainer() {
             setTourInferenceModeEnabled(false);
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
+            // Reset cycle counters for fresh tour start
+            resetCycleCounters();
           }}
           onValidationTrigger={(triggerFn) => {
             tourTriggerRef.current = triggerFn;

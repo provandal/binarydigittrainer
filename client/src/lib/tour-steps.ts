@@ -112,21 +112,22 @@ export const createTourSteps = (
   },
   {
     id: 'dataset-training',
-    title: 'Step 4: Dataset-Based Training',
+    title: 'Step 6: Training Set Mode',
     content: `
-      <p>Now let's try <strong>dataset training</strong>. We'll load the pre-built training examples and step through them automatically.</p>
-      <p>Switch to "Dataset" mode to access training examples with both 0s and 1s.</p>
+      <p>Now let's try <strong>training set mode</strong>. We'll load the pre-built training examples and step through them automatically.</p>
+      <p>Switch to "Training Set" mode to access training examples with both 0s and 1s.</p>
     `,
     target: '[data-tour-target="dataset-button"]',
-    action: 'Click the "Dataset" radio button to switch training modes',
+    action: 'Click the "Training Set" radio button to switch training modes',
     waitForAction: true,
-    validation: checkDatasetLoaded
+    validation: checkDatasetLoaded,
+    pin: 'bottom-left'
   },
   {
     id: 'next-sample',
-    title: 'Step 5: Run to Next Sample',
+    title: 'Step 7: Run to Next Sample',
     content: `
-      <p>With dataset mode active, you can now step through training examples automatically.</p>
+      <p>With training set mode active, you can now step through training examples automatically.</p>
       <p>The "Run to Next Sample" button will:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>Load the next training example</li>
@@ -141,9 +142,9 @@ export const createTourSteps = (
   },
   {
     id: 'multi-epoch',
-    title: 'Step 6: Multi-Epoch Training',
+    title: 'Step 8: Multi-Epoch Training',
     content: `
-      <p>For serious training, you can process the entire dataset multiple times using <strong>epochs</strong>.</p>
+      <p>For serious training, you can process the entire training set multiple times using <strong>epochs</strong>.</p>
       <p>An epoch means going through every training example once. Multiple epochs help the network learn better patterns.</p>
     `,
     target: '[data-tour-target="multi-epoch-button"]',
@@ -153,7 +154,7 @@ export const createTourSteps = (
   },
   {
     id: 'checkpoints',
-    title: 'Step 7: Save Your Progress',
+    title: 'Step 9: Save Your Progress',
     content: `
       <p>Checkpoints let you save and restore your trained model.</p>
       <p><strong>Save contains:</strong></p>
@@ -171,7 +172,7 @@ export const createTourSteps = (
   },
   {
     id: 'inference-mode',
-    title: 'Step 8: Test Your Model',
+    title: 'Step 10: Test Your Model',
     content: `
       <p>Switch to <strong>Inference Mode</strong> to test your trained network!</p>
       <p>In inference mode:</p>
@@ -189,7 +190,7 @@ export const createTourSteps = (
   },
   {
     id: 'test-drawing',
-    title: 'Step 9: Draw and Test',
+    title: 'Step 11: Draw and Test',
     content: `
       <p>Perfect! Now you're in inference mode. Draw a digit and watch the network predict what it is.</p>
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
@@ -199,7 +200,7 @@ export const createTourSteps = (
   },
   {
     id: 'weight-visualization',
-    title: 'Step 10: Explore Network Internals',
+    title: 'Step 12: Explore Network Internals',
     content: `
       <p>The final feature is <strong>weight visualization</strong>. Click on any output neuron in the network diagram to see:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">

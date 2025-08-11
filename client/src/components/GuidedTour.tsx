@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -87,13 +87,9 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
   }, [currentStep, isOpen, tourSteps]);
 
   const handleNext = () => {
-    console.log('Next button clicked:', { currentStep, totalSteps: tourSteps.length, canProceed });
     if (currentStep < tourSteps.length - 1) {
-      console.log('Moving to next step:', currentStep + 1);
       setCurrentStep(currentStep + 1);
       setValidationPassed(false);
-    } else {
-      console.log('Already at last step');
     }
   };
 
@@ -114,14 +110,9 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
 
   if (!isOpen) return null;
 
-  // Debug logging
-  console.log('Tour render:', { currentStep, totalSteps: tourSteps.length, tourSteps });
-
   const step = tourSteps[currentStep];
   const isLastStep = currentStep === tourSteps.length - 1;
   const canProceed = !step?.waitForAction || validationPassed;
-  
-  console.log('Step data:', { step, isLastStep, canProceed, validationPassed });
 
   return (
     <>
@@ -130,7 +121,11 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       
       {/* Tour Dialog */}
       <Dialog open={isOpen} onOpenChange={() => {}} modal={false}>
-        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white" hideClose>
+        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogTitle className="sr-only">Guided Tour Step {currentStep + 1}</DialogTitle>
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between tour-dialog-header">
@@ -242,6 +237,16 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
         .tour-dialog-header {
           cursor: move;
           user-select: none;
+        }
+        
+        /* Hide the automatic close button from DialogContent */
+        [role="dialog"] button[aria-label="Close"] {
+          display: none !important;
+        }
+        
+        /* Alternative selector for close button */
+        [data-radix-collection-item] {
+          display: none !important;
         }
       `}</style>
     </>

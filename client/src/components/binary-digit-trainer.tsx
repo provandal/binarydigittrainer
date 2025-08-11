@@ -1938,6 +1938,7 @@ export default function BinaryDigitTrainer() {
                   variant={trainingMode === 'dataset' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
+                  data-tour-target="dataset-button"
                 >
                   Training Set
                 </Button>
@@ -2307,6 +2308,7 @@ export default function BinaryDigitTrainer() {
                     disabled={isAutoTraining}
                     size="sm"
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    data-tour-target="run-next-sample-button"
                   >
                     {isAutoTraining ? 'Training...' : 'Run to Next Sample'}
                   </Button>
@@ -2315,6 +2317,7 @@ export default function BinaryDigitTrainer() {
                     disabled={isAutoTraining}
                     size="sm"
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    data-tour-target="multi-epoch-button"
                   >
                     {isAutoTraining ? 'Processing Set...' : 'Process Training Set'}
                   </Button>

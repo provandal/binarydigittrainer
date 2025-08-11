@@ -64,7 +64,19 @@
   z-index: 1001;
   outline: 3px solid #3b82f6 !important;
   outline-offset: 2px;
-  background-color: rgba(255, 255, 255, 0.95) !important;
   border-radius: 6px;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Special styling for buttons to ensure text visibility */
+.tour-highlight button,
+.tour-highlight input,
+.tour-highlight label {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* For button elements specifically */
+button.tour-highlight {
+  background-color: rgba(59, 130, 246, 0.9) !important;
+  color: white !important;
 }

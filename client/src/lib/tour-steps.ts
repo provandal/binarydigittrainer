@@ -109,7 +109,7 @@ export const createTourSteps = (
       <p>Now let's try <strong>dataset training</strong>. We'll load the pre-built training examples and step through them automatically.</p>
       <p>Switch to "Dataset" mode to access training examples with both 0s and 1s.</p>
     `,
-    target: 'input[value="dataset"]',
+    target: '[data-tour-target="dataset-button"]',
     action: 'Click the "Dataset" radio button to switch training modes',
     waitForAction: true,
     validation: checkDatasetLoaded
@@ -126,7 +126,7 @@ export const createTourSteps = (
         <li>Move to the next example in sequence</li>
       </ul>
     `,
-    target: 'button:contains("Run to Next Sample")',
+    target: '[data-tour-target="run-next-sample-button"]',
     action: 'Click "Run to Next Sample" to process the next training example',
     waitForAction: true,
     validation: checkNextSampleClicked
@@ -138,7 +138,7 @@ export const createTourSteps = (
       <p>For serious training, you can process the entire dataset multiple times using <strong>epochs</strong>.</p>
       <p>An epoch means going through every training example once. Multiple epochs help the network learn better patterns.</p>
     `,
-    target: 'button:contains("Train Multiple Epochs")',
+    target: '[data-tour-target="multi-epoch-button"]',
     action: 'Click "Train Multiple Epochs" to start automated training',
     waitForAction: true,
     validation: checkEpochTrainingStarted

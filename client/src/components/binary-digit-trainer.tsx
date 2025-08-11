@@ -9,6 +9,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { HelpIcon } from "@/components/HelpIcon";
+import GuidedTour from './GuidedTour';
+import { createTourSteps } from '@/lib/tour-steps';
 
 
 // Weight initialization helper using Xavier/Glorot initialization
@@ -302,6 +304,78 @@ export default function BinaryDigitTrainer() {
   const [isGuidedTourOpen, setIsGuidedTourOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   
+  // Tour tracking state
+  const [tourStepStarted, setTourStepStarted] = useState(false);
+  const [tourDatasetLoaded, setTourDatasetLoaded] = useState(false);
+  const [tourNextSampleClicked, setTourNextSampleClicked] = useState(false);
+  const [tourEpochStarted, setTourEpochStarted] = useState(false);
+  const [tourCheckpointSaved, setTourCheckpointSaved] = useState(false);
+  const [tourWeightVisualizationOpened, setTourWeightVisualizationOpened] = useState(false);
+
+  // Tour validation functions
+  const checkCanvasHasDrawing = () => {
+    return pixelGrid.flat().some(pixel => pixel === 1);
+  };
+
+  const checkTrainingStarted = () => tourStepStarted;
+  const checkDatasetLoaded = () => tourDatasetLoaded;
+  const checkNextSampleClicked = () => tourNextSampleClicked;
+  const checkEpochTrainingStarted = () => tourEpochStarted;
+  const checkCheckpointSaved = () => tourCheckpointSaved;
+  const checkInferenceModeActive = () => mode === 'inference';
+  const checkWeightVisualizationOpened = () => tourWeightVisualizationOpened;
+
+  // Reset function for tour
+  const handleTourReset = () => {
+    // Reset network
+    const newWeights = Array.from({ length: 24 }, () => Array(81).fill(0).map(() => initWeight(81, 24)));
+    const newBiases = Array(24).fill(0);
+    const newOutputWeights = Array.from({ length: 2 }, () => Array(24).fill(0).map(() => initWeight(24, 2)));
+    const newOutputBiases = Array(2).fill(0);
+    
+    setWeights(newWeights);
+    setBiases(newBiases);
+    setOutputWeights(newOutputWeights);
+    setOutputBiases(newOutputBiases);
+    setHiddenActivations(Array(24).fill(0));
+    setOutputActivations(Array(2).fill(0));
+    setStep(0);
+    setLoss(0);
+    
+    // Update persistent state
+    currentNetworkState.current = {
+      weights: newWeights.map(w => [...w]),
+      biases: [...newBiases],
+      outputWeights: newOutputWeights.map(w => [...w]),
+      outputBiases: [...newOutputBiases],
+      hiddenActivations: Array(24).fill(0),
+      outputActivations: Array(2).fill(0),
+      loss: 0,
+      outputErrors: Array(2).fill(0),
+      currentTarget: null
+    };
+    
+    // Clear canvas
+    const clearGrid = Array(9).fill(0).map(() => Array(9).fill(0));
+    setPixelGrid(clearGrid);
+    
+    // Reset training mode and other states
+    setMode('training');
+    setTrainingMode('manual');
+    setSelectedLabel(0);
+    setPrediction(null);
+    setIsAutoTraining(false);
+    setTrainingCompleted(false);
+    
+    // Reset tour tracking
+    setTourStepStarted(false);
+    setTourDatasetLoaded(false);
+    setTourNextSampleClicked(false);
+    setTourEpochStarted(false);
+    setTourCheckpointSaved(false);
+    setTourWeightVisualizationOpened(false);
+  };
+  
   // New state for enhanced features
   const [trainingMode, setTrainingMode] = useState<'manual' | 'dataset'>('manual');
   const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
@@ -521,6 +595,7 @@ export default function BinaryDigitTrainer() {
     newPixelGrid[rowIndex][colIndex] = newPixelGrid[rowIndex][colIndex] === 0 ? 1 : 0;
     setPixelGrid(newPixelGrid);
     setStep(0); // Reset to first step when input changes
+    setTourDrawnOnCanvas(true); // Tour tracking
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
@@ -805,6 +880,11 @@ export default function BinaryDigitTrainer() {
     const currentStep = forceStep !== undefined ? forceStep : step;
     console.log('nextStep executing step:', currentStep);
     
+    // Mark tour step as started when first step is taken
+    if (currentStep === 0 && !tourStepStarted) {
+      setTourStepStarted(true);
+    }
+    
     switch (currentStep) {
       case 0:
         forwardPassHidden();
@@ -1071,6 +1151,7 @@ export default function BinaryDigitTrainer() {
       }
     };
     downloadBlobJSON(cp, `checkpoint-${nowStamp()}.json`);
+    setTourCheckpointSaved(true); // Mark for tour tracking
   };
 
   const handleImportCheckpointFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1131,6 +1212,7 @@ export default function BinaryDigitTrainer() {
       setOutputActivations(Array(2).fill(0));
       setLrHistory([]); // Reset learning rate history when loading checkpoint
       setLastCheckpointLoaded(file.name); // Track the loaded checkpoint
+      setTourCheckpointLoaded(true); // Tour tracking
       
       alert(`Loaded checkpoint: ${file.name}`);
     } catch (err) {
@@ -1495,6 +1577,7 @@ export default function BinaryDigitTrainer() {
                               setPrediction(null);
                               // Clear canvas for fresh drawing in inference mode
                               setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+                              setTourInferenceModeEnabled(true); // Tour tracking
                             }
                           }}
                           className="text-blue-600"
@@ -1668,6 +1751,7 @@ export default function BinaryDigitTrainer() {
                     <g key={`hidden-plus-${i}`} className="cursor-pointer" onClick={() => {
                       setSelectedWeightBox({type: 'hidden', index: i});
                       setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                      setTourWeightVisualizationOpened(true); // Tour tracking
                     }}>
                       {/* Green circle */}
                       <circle
@@ -1706,6 +1790,7 @@ export default function BinaryDigitTrainer() {
                     <g key={`output-plus-${i}`} className="cursor-pointer" onClick={() => {
                       setSelectedWeightBox({type: 'output', index: i});
                       setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
+                      setTourWeightVisualizationOpened(true); // Tour tracking
                     }}>
                       {/* Green circle */}
                       <circle
@@ -1821,7 +1906,11 @@ export default function BinaryDigitTrainer() {
                   Manual Draw
                 </Button>
                 <Button 
-                  onClick={() => { setTrainingMode('dataset'); setTrainingCompleted(false); }}
+                  onClick={() => { 
+                    setTrainingMode('dataset'); 
+                    setTrainingCompleted(false); 
+                    setTourDatasetLoaded(true); // Tour tracking
+                  }}
                   variant={trainingMode === 'dataset' ? 'default' : 'outline'}
                   size="sm"
                   className="flex-1"
@@ -1921,7 +2010,10 @@ export default function BinaryDigitTrainer() {
                     ← Previous
                   </Button>
                   <Button 
-                    onClick={() => nextStep()}
+                    onClick={() => {
+                      nextStep();
+                      setTourStepExecuted(true); // Tour tracking
+                    }}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     size="sm"
                   >
@@ -2175,6 +2267,7 @@ export default function BinaryDigitTrainer() {
                       console.log(`📌 CACHE SET: currentTarget = [${oneHot}], example index = ${currentExampleIndex}`);
                       
                       setIsAutoTraining(true);
+                      setTourNextSampleClicked(true); // Tour tracking
                       runStepsForCurrentSample().then((completed) => {
                         setIsAutoTraining(false);
                         if (completed) {
@@ -2273,7 +2366,10 @@ export default function BinaryDigitTrainer() {
                       : `Output Neuron ${selectedWeightBox.index} Weights (24 hidden connections)`}
                   </h2>
                   <Button 
-                    onClick={() => setSelectedWeightBox(null)}
+                    onClick={() => {
+                      setSelectedWeightBox(null);
+                      setTourWeightVisualizationOpened(true); // Tour tracking
+                    }}
                     variant="outline"
                     size="sm"
                   >
@@ -3074,7 +3170,10 @@ export default function BinaryDigitTrainer() {
               
               <div className="flex gap-3 pt-4">
                 <Button 
-                  onClick={startMultiEpochTraining}
+                  onClick={() => {
+                    startMultiEpochTraining();
+                    setTourMultiEpochStarted(true); // Tour tracking
+                  }}
                   className="flex-1 bg-purple-600 hover:bg-purple-700"
                 >
                   Start Training

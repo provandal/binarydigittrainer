@@ -600,10 +600,12 @@ export default function BinaryDigitTrainer() {
   };
 
   const togglePixel = (rowIndex: number, colIndex: number) => {
-    setPixelGrid((prev) => {
+    setPixelGridState((prev) => {
       const next = prev.map((row, r) =>
         r === rowIndex ? row.map((v, c) => (c === colIndex ? (v ? 0 : 1) : v)) : row
       );
+      // Update ref immediately for training logic
+      pixelGridRef.current = next;
       changedCellsRef.current += 1;
       return next;
     });

@@ -34,10 +34,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     // Use a function to get current step and tour steps to avoid stale closure
     setCurrentStep(current => {
       const step = tourSteps[current];
+      console.log('🔍 TOUR: triggerValidation called for step', current, 'stepId:', step?.id);
       if (step?.validation) {
         const isValid = step.validation();
-
+        console.log('🔍 TOUR: validation result:', isValid, 'setting validationPassed');
         setValidationPassed(isValid);
+      } else {
+        console.log('🔍 TOUR: no validation function for this step');
       }
       return current; // Don't change the step
     });

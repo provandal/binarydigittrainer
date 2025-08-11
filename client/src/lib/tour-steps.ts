@@ -74,30 +74,19 @@ export const createTourSteps = (
   },
   {
     id: 'training-steps',
-    title: 'Step 3: Understanding Training Steps',
+    title: 'Step 3: Start Training Process',
     content: `
-      <p>Neural network training happens in 6 steps:</p>
+      <p>Now let's begin the training process. Click the highlighted "Next Step" button once to start.</p>
+      <p>Neural network training happens in 6 steps that you'll see step by step:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li><strong>Step 1-2:</strong> Forward pass (input → hidden → output)</li>
         <li><strong>Step 3:</strong> Calculate loss (error)</li>
         <li><strong>Step 4-5:</strong> Backpropagation (update weights)</li>
-        <li><strong>Step 6:</strong> Move to next example</li>
+        <li><strong>Step 6:</strong> Complete the cycle</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Click "Next Step" to start training - this will begin the 6-step cycle.</p>
     `,
     target: '[data-tour-target="next-step-button"]',
-    action: 'Click "Next Step" to start training on your drawing',
-    waitForAction: false  // Don't wait for validation, just let user click Next to proceed
-  },
-  {
-    id: 'start-training-one-click',
-    title: 'Step 4: Start Training',
-    content: `
-      <p>Now let's begin the training process. Click the highlighted "Next Step" button once to start.</p>
-      <p>This will execute the first training step and show you how the network processes data.</p>
-    `,
-    target: '[data-tour-target="next-step-button"]',
-    action: 'Click "Next Step" one time',
+    action: 'Click "Next Step" one time to start',
     waitForAction: true,
     validation: validOneClick,
     autoAdvanceOnValid: true,
@@ -105,7 +94,7 @@ export const createTourSteps = (
   },
   {
     id: 'complete-training',
-    title: 'Step 5: Complete the Training Cycle',
+    title: 'Step 4: Complete the Training Cycle',
     content: `
       <p>Great! You've started training. Now keep clicking "Next Step" to complete the full training cycle:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">

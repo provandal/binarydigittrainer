@@ -1,0 +1,58 @@
+chunk-WERSD76P.js?v=296bbae0:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+GuidedTour.tsx:157 🔍 TOUR: Step changed to 0 stepId: welcome waitForAction: undefined
+GuidedTour.tsx:164 🔍 TOUR: Setting validationPassed = true (no wait required)
+GuidedTour.tsx:157 🔍 TOUR: Step changed to 1 stepId: reset waitForAction: undefined
+GuidedTour.tsx:164 🔍 TOUR: Setting validationPassed = true (no wait required)
+GuidedTour.tsx:157 🔍 TOUR: Step changed to 2 stepId: draw-digit waitForAction: true
+GuidedTour.tsx:161 🔍 TOUR: Setting validationPassed = false (waiting for action)
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 2 stepId: draw-digit
+GuidedTour.tsx:42 🔍 TOUR: validation result: true setting validationPassed
+GuidedTour.tsx:157 🔍 TOUR: Step changed to 3 stepId: select-label waitForAction: false
+GuidedTour.tsx:164 🔍 TOUR: Setting validationPassed = true (no wait required)
+GuidedTour.tsx:157 🔍 TOUR: Step changed to 4 stepId: training-steps waitForAction: false
+GuidedTour.tsx:164 🔍 TOUR: Setting validationPassed = true (no wait required)
+binary-digit-trainer.tsx:929 nextStep executing step: 0
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 1
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from 0 to 1
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:929 nextStep executing step: 1
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 2
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from 1 to 2
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:929 nextStep executing step: 2
+binary-digit-trainer.tsx:796 🎯 Cross-Entropy Loss - Target: [1,0], Outputs: [0.363,0.637]
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 3
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from 2 to 3
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:929 nextStep executing step: 3
+binary-digit-trainer.tsx:821 🔄 Backprop Output (Cross-Entropy) - Target: [1,0], Errors: [-0.6365,0.6365], Clipped: [-0.6365,0.6365]
+binary-digit-trainer.tsx:887 🔍 Debug: Using cached target from async training - Target: [1,0]
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 4
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from 3 to 4
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:929 nextStep executing step: 4
+binary-digit-trainer.tsx:951 Executing case 4 - backpropagation hidden (input→hidden weights)
+binary-digit-trainer.tsx:972 Captured training history after both backprop steps: {iteration: 1, totalSnapshots: 1, loss: 1.0120206357298371, hiddenWeight: 0.028122878571444406, outputWeight: 0.015615241963178506}
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 5
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from 4 to 5
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:929 nextStep executing step: 5
+binary-digit-trainer.tsx:985 🎯 TOUR: Training cycle completed! Setting tourTrainingCycleCompleted = true
+binary-digit-trainer.tsx:1000 🎯 TOUR: User clicked Next Step, clicks this cycle: 6
+binary-digit-trainer.tsx:1004 🎯 TOUR: Step changed from -1 to 0
+binary-digit-trainer.tsx:989 🎯 TOUR: Triggering validation check...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step
+binary-digit-trainer.tsx:1023 🎯 TOUR: Triggering validation after step change...
+GuidedTour.tsx:39 🔍 TOUR: triggerValidation called for step 4 stepId: training-steps
+GuidedTour.tsx:52 🔍 TOUR: no validation function for this step

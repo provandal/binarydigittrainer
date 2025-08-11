@@ -25,6 +25,9 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElement, setHighlightedElement] = useState<Element | null>(null);
   const [validationPassed, setValidationPassed] = useState(false);
+  const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Validation trigger function that can be called from outside
   const triggerValidation = () => {
@@ -45,6 +48,8 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (isOpen) {
       setCurrentStep(0);
       setValidationPassed(false);
+      // Reset dialog position - default to top-right, except for step 5 (index 4)
+      setDialogPosition({ x: 0, y: 0 });
       // Reset network if function provided
       if (onReset) {
         onReset();
@@ -55,6 +60,57 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
       }
     }
   }, [isOpen]); // Remove onReset from dependencies to prevent infinite loop
+
+  // Update dialog position when step changes
+  useEffect(() => {
+    if (isOpen) {
+      const step = tourSteps[currentStep];
+      // Position for step 5 (training-steps) in lower left to avoid covering the Next Step button
+      if (step?.id === 'training-steps') {
+        setDialogPosition({ x: 16, y: window.innerHeight - 400 });
+      } else {
+        // Default position (top-right)
+        setDialogPosition({ x: 0, y: 0 });
+      }
+    }
+  }, [currentStep, isOpen]);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.tour-dialog-header')) {
+      setIsDragging(true);
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setDialogPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   // Update highlighting when step changes
   useEffect(() => {
@@ -124,18 +180,27 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   const isLastStep = currentStep === tourSteps.length - 1;
   const canProceed = !step?.waitForAction || validationPassed;
 
+  // Calculate dialog style based on position
+  const dialogStyle = dialogPosition.x === 0 && dialogPosition.y === 0
+    ? { top: '4rem', right: '1rem' } // Default top-right position
+    : { left: dialogPosition.x, top: dialogPosition.y }; // Custom dragged position
+
   return (
     <>
       {/* Overlay for highlighting */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40 pointer-events-none" />
       
       {/* Custom Tour Modal */}
-      <div className="fixed top-16 right-4 max-w-md w-full z-50">
+      <div 
+        className="fixed max-w-md w-full z-50" 
+        style={dialogStyle}
+        onMouseDown={handleMouseDown}
+      >
         <div className="bg-white rounded-lg shadow-xl border max-h-[calc(100vh-8rem)] overflow-hidden">
           <div className="overflow-y-auto max-h-[calc(100vh-8rem)]">
             <div className="space-y-4 p-4">
               {/* Header */}
-              <div className="flex items-center justify-between tour-dialog-header">
+              <div className="flex items-center justify-between tour-dialog-header cursor-move select-none">
                 <div className="flex items-center space-x-2">
                   <h3 className="font-semibold">Guided Tour</h3>
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">

@@ -963,6 +963,14 @@ export default function BinaryDigitTrainer() {
         setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
         setStep(-1);
         setTourTrainingCycleCompleted(true); // Tour tracking - full 6-step cycle completed
+        console.log('🎯 TOUR: Training cycle completed! Setting tourTrainingCycleCompleted = true');
+        // Trigger tour validation check
+        setTimeout(() => {
+          if (tourTriggerRef.current) {
+            console.log('🎯 TOUR: Triggering validation check...');
+            tourTriggerRef.current();
+          }
+        }, 100);
         break;
     }
     

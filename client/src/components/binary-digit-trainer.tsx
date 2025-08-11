@@ -1417,6 +1417,7 @@ export default function BinaryDigitTrainer() {
   // Process entire training set by calling runEpochs
   const processTrainingSet = () => {
     setIsEpochDialogOpen(true);
+    setTourEpochStarted(true); // Tour tracking - step 6 validation
   };
 
   const stopTraining = () => {

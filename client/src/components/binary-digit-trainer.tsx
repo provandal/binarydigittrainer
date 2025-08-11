@@ -3269,7 +3269,11 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointLoaded(false);
           }}
           tourSteps={createTourSteps(
-            () => pixelGrid.flat().some(pixel => pixel === 1), // Check if any pixels are drawn
+            () => {
+              const hasDrawing = pixelGrid.flat().some(pixel => pixel === 1);
+              console.log('Canvas validation:', { hasDrawing, pixelGrid: pixelGrid.flat().slice(0, 10) });
+              return hasDrawing;
+            }, // Check if any pixels are drawn
             () => tourStepExecuted,
             () => tourDatasetLoaded,
             () => tourNextSampleClicked,

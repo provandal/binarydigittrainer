@@ -3245,8 +3245,8 @@ export default function BinaryDigitTrainer() {
           isOpen={isGuidedTourOpen}
           onClose={() => setIsGuidedTourOpen(false)}
           onReset={() => {
-            // Reset network and training state for clean start
-            // NOTE: Don't clear pixelGrid - let user draw on existing canvas
+            // Reset everything for clean tour start
+            setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0))); // Clear canvas for fresh start
             setStep(0);
             setMode('training');
             setTrainingMode('manual');

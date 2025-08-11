@@ -82,12 +82,11 @@ export const createTourSteps = (
         <li><strong>Step 4-5:</strong> Backpropagation (update weights)</li>
         <li><strong>Step 6:</strong> Move to next example</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Click "Next Step" repeatedly to see each phase in detail.</p>
+      <p class="text-xs text-gray-500 mt-2">Click "Next Step" to start training - this will begin the 6-step cycle.</p>
     `,
     target: '[data-tour-target="next-step-button"]',
     action: 'Click "Next Step" to start training on your drawing',
-    waitForAction: true,
-    validation: checkTrainingStarted
+    waitForAction: false  // Don't wait for validation, just let user click Next to proceed
   },
   {
     id: 'complete-training',

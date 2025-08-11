@@ -1561,7 +1561,7 @@ export default function BinaryDigitTrainer() {
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Target Label</h3>
                     <div className="flex gap-2 justify-center">
                       {[0, 1].map((label) => (
-                        <label key={label} className="flex items-center gap-2 cursor-pointer">
+                        <label key={label} className="flex items-center gap-2 cursor-pointer" data-tour-target="label-selector">
                           <input
                             type="radio"
                             name="label"
@@ -2040,6 +2040,7 @@ export default function BinaryDigitTrainer() {
                     }}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     size="sm"
+                    data-tour-target="next-step-button"
                   >
                     Next Step →
                   </Button>

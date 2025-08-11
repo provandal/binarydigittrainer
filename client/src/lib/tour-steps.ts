@@ -63,7 +63,7 @@ export const createTourSteps = (
       <p>Great! Now select the correct label that matches what you drew.</p>
       <p>The network needs to know the correct answer to learn from mistakes during training.</p>
     `,
-    target: 'select[value]',
+    target: '[data-tour-target="label-selector"]',
     action: 'Choose the correct label (0 or 1) that matches your drawing',
     waitForAction: false
   },
@@ -80,7 +80,7 @@ export const createTourSteps = (
       </ul>
       <p class="text-xs text-gray-500 mt-2">Click "Next Step" repeatedly to see each phase in detail.</p>
     `,
-    target: '.bg-blue-600',
+    target: '[data-tour-target="next-step-button"]',
     action: 'Click "Next Step" to start training on your drawing',
     waitForAction: true,
     validation: checkTrainingStarted

@@ -1,0 +1,92 @@
+Totally fixable. The cleanest way is: don’t try to “detect drawing” from inside the tour. Instead, let the canvas tell the tour when a draw actually happened.
+
+You already built the right hook in GuidedTour (onValidationTrigger). Use it like a tiny event bus:
+
+Option A (recommended): Fire the tour’s validation trigger on mouse-up after a real stroke
+1) In your parent (BinaryDigitTrainer), keep the trigger and the grid in refs
+
+ts
+Copy
+Edit
+// at top of component
+const tourTriggerRef = useRef<(() => void) | null>(null);
+const pixelGridRef = useRef(pixelGrid);
+useEffect(() => { pixelGridRef.current = pixelGrid; }, [pixelGrid]);
+
+// when rendering the GuidedTour
+<GuidedTour
+  isOpen={isTourOpen}
+  onClose={() => setIsTourOpen(false)}
+  tourSteps={tourSteps}
+  onValidationTrigger={(fn) => { tourTriggerRef.current = fn; }}
+/>
+2) Count whether a stroke actually changed anything, and then trigger once
+
+ts
+Copy
+Edit
+// near your drawing handlers
+const isDrawingRef = useRef(false);
+const changedCellsRef = useRef(0);
+
+const handleMouseDown = (rowIndex: number, colIndex: number) => {
+  setIsDrawing(true);
+  isDrawingRef.current = true;
+  changedCellsRef.current = 0;
+  togglePixel(rowIndex, colIndex); // this will increment changedCellsRef
+};
+
+const togglePixel = (rowIndex: number, colIndex: number) => {
+  setPixelGrid((prev) => {
+    const next = prev.map((row, r) =>
+      r === rowIndex ? row.map((v, c) => (c === colIndex ? (v ? 0 : 1) : v)) : row
+    );
+    changedCellsRef.current += 1;
+    return next;
+  });
+  setStep(0);
+};
+
+const handleMouseUp = () => {
+  setIsDrawing(false);
+  if (isDrawingRef.current) {
+    isDrawingRef.current = false;
+    // Only signal the tour if something actually changed
+    if (changedCellsRef.current > 0) {
+      tourTriggerRef.current?.();
+    }
+  }
+};
+3) Define the tour step’s validation using the current grid via a ref
+
+ts
+Copy
+Edit
+// define this in the same component where pixelGridRef exists
+const validationDrewSomething = () => {
+  const flat = pixelGridRef.current.flat();
+  // Require at least N lit pixels so a single accidental click doesn’t pass
+  const lit = flat.reduce((s, v) => s + (v ? 1 : 0), 0);
+  return lit >= 5;
+};
+
+const tourSteps = [
+  {
+    id: "draw-digit",
+    title: "Draw a 0 or 1",
+    content: "Click and drag on the canvas to draw a simple 0 or 1.",
+    target: ".your-canvas-wrapper-selector",
+    action: "Draw at least five pixels.",
+    waitForAction: true,
+    validation: validationDrewSomething,  // reads pixelGridRef.current, always fresh
+  },
+  // ...
+];
+Why this works:
+
+The tour doesn’t poll; it just runs the validation function when you call its trigger.
+
+The validation reads from a ref, so there’s no stale closure problem.
+
+You signal once per stroke on mouseup, not every pixel, so no spam.
+

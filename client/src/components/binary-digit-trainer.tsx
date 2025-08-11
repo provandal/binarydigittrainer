@@ -315,11 +315,16 @@ export default function BinaryDigitTrainer() {
   const [tourInferenceModeEnabled, setTourInferenceModeEnabled] = useState(false);
   const [tourCheckpointSaved, setTourCheckpointSaved] = useState(false);
   const [tourCheckpointLoaded, setTourCheckpointLoaded] = useState(false);
-  const [tourValidationTrigger, setTourValidationTrigger] = useState<(() => void) | null>(null);
+  const tourTriggerRef = useRef<(() => void) | null>(null);
+  const isDrawingRef = useRef(false);
+  const changedCellsRef = useRef(0);
 
   // Tour validation functions
-  const checkCanvasHasDrawing = () => {
-    return pixelGrid.flat().some(pixel => pixel === 1);
+  const validationDrewSomething = () => {
+    const flat = pixelGridRef.current?.flat() || pixelGrid.flat();
+    // Require at least 3 lit pixels so a single accidental click doesn't pass
+    const lit = flat.reduce((s, v) => s + (v ? 1 : 0), 0);
+    return lit >= 3;
   };
 
   const checkTrainingStarted = () => tourStepStarted;
@@ -595,21 +600,21 @@ export default function BinaryDigitTrainer() {
   };
 
   const togglePixel = (rowIndex: number, colIndex: number) => {
-    const newPixelGrid = [...pixelGrid];
-    newPixelGrid[rowIndex] = [...newPixelGrid[rowIndex]];
-    newPixelGrid[rowIndex][colIndex] = newPixelGrid[rowIndex][colIndex] === 0 ? 1 : 0;
-    setPixelGrid(newPixelGrid);
+    setPixelGrid((prev) => {
+      const next = prev.map((row, r) =>
+        r === rowIndex ? row.map((v, c) => (c === colIndex ? (v ? 0 : 1) : v)) : row
+      );
+      changedCellsRef.current += 1;
+      return next;
+    });
     setStep(0); // Reset to first step when input changes
     setTourDrawnOnCanvas(true); // Tour tracking
-    
-    // Trigger tour validation immediately when drawing occurs
-    if (tourValidationTrigger) {
-      tourValidationTrigger();
-    }
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
     setIsDrawing(true);
+    isDrawingRef.current = true;
+    changedCellsRef.current = 0;
     togglePixel(rowIndex, colIndex);
   };
 
@@ -621,6 +626,13 @@ export default function BinaryDigitTrainer() {
 
   const handleMouseUp = () => {
     setIsDrawing(false);
+    if (isDrawingRef.current) {
+      isDrawingRef.current = false;
+      // Only signal the tour if something actually changed
+      if (changedCellsRef.current > 0) {
+        tourTriggerRef.current?.();
+      }
+    }
   };
 
   const handlePixelHover = (pixelIndex: number) => {
@@ -3275,10 +3287,10 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointLoaded(false);
           }}
           onValidationTrigger={(triggerFn) => {
-            setTourValidationTrigger(() => triggerFn);
+            tourTriggerRef.current = triggerFn;
           }}
           tourSteps={createTourSteps(
-            () => pixelGrid.flat().some(pixel => pixel === 1), // Check if any pixels are drawn
+            validationDrewSomething, // Use the ref-based validation function
             () => tourStepExecuted,
             () => tourDatasetLoaded,
             () => tourNextSampleClicked,

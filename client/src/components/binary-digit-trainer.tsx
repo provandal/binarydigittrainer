@@ -603,7 +603,9 @@ export default function BinaryDigitTrainer() {
     setTourDrawnOnCanvas(true); // Tour tracking
     
     // Trigger tour validation immediately when drawing occurs
+    console.log('Drawing pixel, trigger available:', !!tourValidationTrigger);
     if (tourValidationTrigger) {
+      console.log('Calling tour validation trigger');
       tourValidationTrigger();
     }
   };
@@ -3274,7 +3276,10 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
           }}
-          onValidationTrigger={(triggerFn) => setTourValidationTrigger(() => triggerFn)}
+          onValidationTrigger={(triggerFn) => {
+            console.log('Setting tour validation trigger:', !!triggerFn);
+            setTourValidationTrigger(() => triggerFn);
+          }}
           tourSteps={createTourSteps(
             () => pixelGrid.flat().some(pixel => pixel === 1), // Check if any pixels are drawn
             () => tourStepExecuted,

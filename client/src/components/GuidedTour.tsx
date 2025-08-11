@@ -28,12 +28,16 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
 
   // Validation trigger function that can be called from outside
   const triggerValidation = () => {
-    const step = tourSteps[currentStep];
-    if (step?.validation) {
-      const isValid = step.validation();
-      console.log('Validation triggered:', { stepId: step.id, isValid, currentStep });
-      setValidationPassed(isValid);
-    }
+    // Use a function to get current step and tour steps to avoid stale closure
+    setCurrentStep(current => {
+      const step = tourSteps[current];
+      if (step?.validation) {
+        const isValid = step.validation();
+        console.log('Validation triggered:', { stepId: step.id, isValid, currentStep: current });
+        setValidationPassed(isValid);
+      }
+      return current; // Don't change the step
+    });
   };
 
   // Reset tour state when opened and provide validation trigger to parent

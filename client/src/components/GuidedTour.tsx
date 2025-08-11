@@ -87,9 +87,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
   }, [currentStep, isOpen, tourSteps]);
 
   const handleNext = () => {
+    console.log('Next button clicked:', { currentStep, totalSteps: tourSteps.length, canProceed });
     if (currentStep < tourSteps.length - 1) {
+      console.log('Moving to next step:', currentStep + 1);
       setCurrentStep(currentStep + 1);
       setValidationPassed(false);
+    } else {
+      console.log('Already at last step');
     }
   };
 
@@ -110,9 +114,14 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
 
   if (!isOpen) return null;
 
+  // Debug logging
+  console.log('Tour render:', { currentStep, totalSteps: tourSteps.length, tourSteps });
+
   const step = tourSteps[currentStep];
   const isLastStep = currentStep === tourSteps.length - 1;
   const canProceed = !step?.waitForAction || validationPassed;
+  
+  console.log('Step data:', { step, isLastStep, canProceed, validationPassed });
 
   return (
     <>
@@ -121,7 +130,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       
       {/* Tour Dialog */}
       <Dialog open={isOpen} onOpenChange={() => {}} modal={false}>
-        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white">
+        <DialogContent className="max-w-md z-50 fixed top-16 right-4 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-lg border bg-white" hideClose>
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between tour-dialog-header">
@@ -198,7 +207,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
       </Dialog>
 
       {/* Inject CSS for highlighting and dialog positioning */}
-      <style jsx global>{`
+      <style>{`
         .tour-highlight {
           position: relative;
           z-index: 45 !important;

@@ -1,0 +1,352 @@
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:31 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at GuidedTour (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/GuidedTour.tsx:21:38)
+    at div
+    at div
+    at BinaryDigitTrainer (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/binary-digit-trainer.tsx:170:23)
+    at Home
+    at Route (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:323:16)
+    at Switch (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:379:17)
+    at Router
+    at Provider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPETRJYB.js?v=296bbae0:58:15)
+    at TooltipProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=296bbae0:56:5)
+    at QueryClientProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=296bbae0:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=296bbae0:521
+error @ chunk-WERSD76P.js?v=296bbae0:505
+checkForNestedUpdates @ chunk-WERSD76P.js?v=296bbae0:19665
+scheduleUpdateOnFiber @ chunk-WERSD76P.js?v=296bbae0:18533
+dispatchSetState @ chunk-WERSD76P.js?v=296bbae0:12403
+(anonymous) @ GuidedTour.tsx:31
+commitHookEffectListMount @ chunk-WERSD76P.js?v=296bbae0:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=296bbae0:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=296bbae0:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=296bbae0:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=296bbae0:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=296bbae0:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=296bbae0:19447
+(anonymous) @ chunk-WERSD76P.js?v=296bbae0:19328
+workLoop @ chunk-WERSD76P.js?v=296bbae0:197
+flushWork @ chunk-WERSD76P.js?v=296bbae0:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=296bbae0:384
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:31 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at GuidedTour (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/GuidedTour.tsx:21:38)
+    at div
+    at div
+    at BinaryDigitTrainer (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/binary-digit-trainer.tsx:170:23)
+    at Home
+    at Route (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:323:16)
+    at Switch (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:379:17)
+    at Router
+    at Provider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPETRJYB.js?v=296bbae0:58:15)
+    at TooltipProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=296bbae0:56:5)
+    at QueryClientProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=296bbae0:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=296bbae0:521
+error @ chunk-WERSD76P.js?v=296bbae0:505
+checkForNestedUpdates @ chunk-WERSD76P.js?v=296bbae0:19665
+scheduleUpdateOnFiber @ chunk-WERSD76P.js?v=296bbae0:18533
+dispatchSetState @ chunk-WERSD76P.js?v=296bbae0:12403
+(anonymous) @ GuidedTour.tsx:31
+commitHookEffectListMount @ chunk-WERSD76P.js?v=296bbae0:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=296bbae0:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=296bbae0:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=296bbae0:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=296bbae0:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=296bbae0:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=296bbae0:19447
+(anonymous) @ chunk-WERSD76P.js?v=296bbae0:19328
+workLoop @ chunk-WERSD76P.js?v=296bbae0:197
+flushWork @ chunk-WERSD76P.js?v=296bbae0:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=296bbae0:384
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:31 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at GuidedTour (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/GuidedTour.tsx:21:38)
+    at div
+    at div
+    at BinaryDigitTrainer (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/binary-digit-trainer.tsx:170:23)
+    at Home
+    at Route (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:323:16)
+    at Switch (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:379:17)
+    at Router
+    at Provider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPETRJYB.js?v=296bbae0:58:15)
+    at TooltipProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=296bbae0:56:5)
+    at QueryClientProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=296bbae0:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=296bbae0:521
+error @ chunk-WERSD76P.js?v=296bbae0:505
+checkForNestedUpdates @ chunk-WERSD76P.js?v=296bbae0:19665
+scheduleUpdateOnFiber @ chunk-WERSD76P.js?v=296bbae0:18533
+dispatchSetState @ chunk-WERSD76P.js?v=296bbae0:12403
+(anonymous) @ GuidedTour.tsx:31
+commitHookEffectListMount @ chunk-WERSD76P.js?v=296bbae0:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=296bbae0:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=296bbae0:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=296bbae0:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=296bbae0:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=296bbae0:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=296bbae0:19447
+(anonymous) @ chunk-WERSD76P.js?v=296bbae0:19328
+workLoop @ chunk-WERSD76P.js?v=296bbae0:197
+flushWork @ chunk-WERSD76P.js?v=296bbae0:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=296bbae0:384
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:31 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at GuidedTour (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/GuidedTour.tsx:21:38)
+    at div
+    at div
+    at BinaryDigitTrainer (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/src/components/binary-digit-trainer.tsx:170:23)
+    at Home
+    at Route (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:323:16)
+    at Switch (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=296bbae0:379:17)
+    at Router
+    at Provider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LPETRJYB.js?v=296bbae0:58:15)
+    at TooltipProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=296bbae0:56:5)
+    at QueryClientProvider (https://89b42a09-429f-4d5c-9f0a-16f444827b9e-00-3jjf86xm3mi5r.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=296bbae0:2805:3)
+    at App
+printWarning @ chunk-WERSD76P.js?v=296bbae0:521
+error @ chunk-WERSD76P.js?v=296bbae0:505
+checkForNestedUpdates @ chunk-WERSD76P.js?v=296bbae0:19665
+scheduleUpdateOnFiber @ chunk-WERSD76P.js?v=296bbae0:18533
+dispatchSetState @ chunk-WERSD76P.js?v=296bbae0:12403
+(anonymous) @ GuidedTour.tsx:31
+commitHookEffectListMount @ chunk-WERSD76P.js?v=296bbae0:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=296bbae0:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=296bbae0:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=296bbae0:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=296bbae0:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=296bbae0:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=296bbae0:19447
+(anonymous) @ chunk-WERSD76P.js?v=296bbae0:19328
+workLoop @ chunk-WERSD76P.js?v=296bbae0:197
+flushWork @ chunk-WERSD76P.js?v=296bbae0:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=296bbae0:384
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}
+GuidedTour.tsx:121 Render tour: {currentStep: 0, stepId: 'welcome', waitForAction: undefined, validationPassed: true, canProceed: true}

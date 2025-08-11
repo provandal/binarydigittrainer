@@ -35,7 +35,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
         onReset();
       }
     }
-  }, [isOpen, onReset]);
+  }, [isOpen]); // Remove onReset from dependencies to prevent infinite loop
 
   // Update highlighting when step changes
   useEffect(() => {
@@ -70,8 +70,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
     const step = tourSteps[currentStep];
     if (step?.validation && step.waitForAction) {
       const checkValidation = () => {
-        const passed = step.validation!();
-        setValidationPassed(passed);
+        try {
+          const passed = step.validation!();
+          setValidationPassed(passed);
+        } catch (error) {
+          console.error('Validation error:', error);
+          setValidationPassed(false);
+        }
       };
 
       // Check immediately
@@ -83,17 +88,12 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
     } else {
       setValidationPassed(true);
     }
-  }, [currentStep, isOpen, tourSteps]);
+  }, [currentStep, isOpen]); // Remove tourSteps from dependencies to prevent re-render loop
 
   const handleNext = () => {
-    console.log('Next clicked:', { currentStep, canProceed, validationPassed });
     if (currentStep < tourSteps.length - 1) {
-      const nextStep = currentStep + 1;
-      console.log('Moving to step:', nextStep);
-      setCurrentStep(nextStep);
+      setCurrentStep(currentStep + 1);
       setValidationPassed(false);
-    } else {
-      console.log('Already at last step');
     }
   };
 
@@ -117,14 +117,6 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
   const step = tourSteps[currentStep];
   const isLastStep = currentStep === tourSteps.length - 1;
   const canProceed = !step?.waitForAction || validationPassed;
-
-  console.log('Render tour:', { 
-    currentStep, 
-    stepId: step?.id, 
-    waitForAction: step?.waitForAction, 
-    validationPassed, 
-    canProceed 
-  });
 
   return (
     <>

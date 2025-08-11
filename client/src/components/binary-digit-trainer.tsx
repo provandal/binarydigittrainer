@@ -306,11 +306,15 @@ export default function BinaryDigitTrainer() {
   
   // Tour tracking state
   const [tourStepStarted, setTourStepStarted] = useState(false);
+  const [tourDrawnOnCanvas, setTourDrawnOnCanvas] = useState(false);
+  const [tourStepExecuted, setTourStepExecuted] = useState(false);
   const [tourDatasetLoaded, setTourDatasetLoaded] = useState(false);
   const [tourNextSampleClicked, setTourNextSampleClicked] = useState(false);
-  const [tourEpochStarted, setTourEpochStarted] = useState(false);
-  const [tourCheckpointSaved, setTourCheckpointSaved] = useState(false);
+  const [tourMultiEpochStarted, setTourMultiEpochStarted] = useState(false);
   const [tourWeightVisualizationOpened, setTourWeightVisualizationOpened] = useState(false);
+  const [tourInferenceModeEnabled, setTourInferenceModeEnabled] = useState(false);
+  const [tourCheckpointSaved, setTourCheckpointSaved] = useState(false);
+  const [tourCheckpointLoaded, setTourCheckpointLoaded] = useState(false);
 
   // Tour validation functions
   const checkCanvasHasDrawing = () => {
@@ -3236,41 +3240,46 @@ export default function BinaryDigitTrainer() {
           </DialogContent>
         </Dialog>
 
-        {/* Guided Tour Dialog */}
-        <Dialog open={isGuidedTourOpen} onOpenChange={setIsGuidedTourOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Guided Tour - Coming Soon!</h2>
-              
-              <div className="text-sm text-gray-600 space-y-3">
-                <p>
-                  The interactive guided tour will walk you through all the key features of the Binary Digit Trainer:
-                </p>
-                
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Manual training: Draw characters and train one at a time</li>
-                  <li>Dataset stepping: Load training set and step through examples</li>
-                  <li>Multi-epoch training: Process entire datasets over multiple epochs</li>
-                  <li>Checkpoint save/load: Preserve and restore model states</li>
-                  <li>Inference mode: Test trained models on new drawings</li>
-                  <li>Weight visualization: Explore network internals and contributors</li>
-                </ul>
-                
-                <p className="text-xs text-gray-500 mt-4">
-                  💡 <strong>Tip:</strong> In the meantime, click the ? icons throughout the interface 
-                  for detailed explanations of each feature and mathematical concepts.
-                </p>
-              </div>
-              
-              <Button 
-                onClick={() => setIsGuidedTourOpen(false)}
-                className="w-full mt-4"
-              >
-                Close
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Guided Tour Component */}
+        <GuidedTour
+          isOpen={isGuidedTourOpen}
+          onClose={() => setIsGuidedTourOpen(false)}
+          onReset={() => {
+            // Reset network and training state for clean start
+            setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+            setStep(0);
+            setMode('training');
+            setTrainingMode('manual');
+            setTrainingCompleted(false);
+            setIsAutoTraining(false);
+            setCurrentEpoch(1);
+            setNumberOfEpochs(3);
+            // Clear activations
+            setHiddenActivations(Array(24).fill(0));
+            setOutputActivations(Array(2).fill(0));
+            // Reset tour tracking
+            setTourDrawnOnCanvas(false);
+            setTourStepExecuted(false);
+            setTourDatasetLoaded(false);
+            setTourNextSampleClicked(false);
+            setTourMultiEpochStarted(false);
+            setTourWeightVisualizationOpened(false);
+            setTourInferenceModeEnabled(false);
+            setTourCheckpointSaved(false);
+            setTourCheckpointLoaded(false);
+          }}
+          tourSteps={createTourSteps({
+            tourDrawnOnCanvas,
+            tourStepExecuted,
+            tourDatasetLoaded,
+            tourNextSampleClicked,
+            tourMultiEpochStarted,
+            tourWeightVisualizationOpened,
+            tourInferenceModeEnabled,
+            tourCheckpointSaved,
+            tourCheckpointLoaded
+          })}
+        />
       </div>
     </div>
   );

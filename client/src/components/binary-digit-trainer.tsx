@@ -3246,7 +3246,7 @@ export default function BinaryDigitTrainer() {
           onClose={() => setIsGuidedTourOpen(false)}
           onReset={() => {
             // Reset network and training state for clean start
-            setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
+            // NOTE: Don't clear pixelGrid - let user draw on existing canvas
             setStep(0);
             setMode('training');
             setTrainingMode('manual');
@@ -3269,11 +3269,7 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointLoaded(false);
           }}
           tourSteps={createTourSteps(
-            () => {
-              const hasDrawing = pixelGrid.flat().some(pixel => pixel === 1);
-              console.log('Canvas validation:', { hasDrawing, pixelGrid: pixelGrid.flat().slice(0, 10) });
-              return hasDrawing;
-            }, // Check if any pixels are drawn
+            () => pixelGrid.flat().some(pixel => pixel === 1), // Check if any pixels are drawn
             () => tourStepExecuted,
             () => tourDatasetLoaded,
             () => tourNextSampleClicked,

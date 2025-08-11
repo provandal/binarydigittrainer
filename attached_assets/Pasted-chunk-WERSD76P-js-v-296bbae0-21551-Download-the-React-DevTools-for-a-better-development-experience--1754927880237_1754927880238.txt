@@ -1,0 +1,39 @@
+chunk-WERSD76P.js?v=296bbae0:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: Object
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}
+binary-digit-trainer.tsx:3274 Canvas validation: {hasDrawing: false, pixelGrid: Array(10)}

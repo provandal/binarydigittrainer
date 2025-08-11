@@ -69,7 +69,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (isOpen) {
       const step = tourSteps[currentStep];
       // Position steps in lower left to avoid covering buttons
-      if (step?.id === 'complete-training' || step?.id === 'dataset-training') {
+      if (step?.id === 'start-training' || step?.id === 'complete-training' || step?.id === 'dataset-training') {
         setDialogPosition({ x: 16, y: window.innerHeight - 400 });
       } else {
         // Default position (top-right)

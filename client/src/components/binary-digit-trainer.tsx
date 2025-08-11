@@ -329,6 +329,12 @@ export default function BinaryDigitTrainer() {
   };
 
   const checkTrainingStarted = () => tourStepStarted;
+  const checkFirstStepExecuted = () => {
+    // Check if user clicked "Next Step" at least once (step > 0)
+    const executed = step > 0;
+    console.log('🔍 Tour validation - checkFirstStepExecuted - step:', step, 'executed:', executed);
+    return executed;
+  };
   const checkTrainingStepsCompleted = () => {
     console.log('🔍 Tour validation - tourTrainingCycleCompleted:', tourTrainingCycleCompleted);
     return tourTrainingCycleCompleted;
@@ -976,7 +982,19 @@ export default function BinaryDigitTrainer() {
     
     // Only update React step state if not using forceStep
     if (forceStep === undefined) {
-      setStep((prev) => (prev + 1) % 6);
+      setStep((prev) => {
+        const newStep = (prev + 1) % 6;
+        // Trigger tour validation when user takes first step (from 0 to 1)
+        if (prev === 0 && newStep === 1) {
+          setTimeout(() => {
+            if (tourTriggerRef.current) {
+              console.log('🎯 TOUR: First step executed, triggering validation...');
+              tourTriggerRef.current();
+            }
+          }, 100);
+        }
+        return newStep;
+      });
     }
   };
 
@@ -3313,6 +3331,7 @@ export default function BinaryDigitTrainer() {
           tourSteps={createTourSteps(
             validationDrewSomething, // Use the ref-based validation function
             () => tourStepExecuted,
+            checkFirstStepExecuted,
             checkTrainingStepsCompleted,
             () => tourDatasetLoaded,
             () => tourNextSampleClicked,

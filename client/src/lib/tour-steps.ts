@@ -3,6 +3,7 @@ import { TourStep } from '@/components/GuidedTour';
 export const createTourSteps = (
   checkCanvasHasDrawing: () => boolean,
   checkTrainingStarted: () => boolean,
+  checkFirstStepExecuted: () => boolean,
   checkTrainingStepsCompleted: () => boolean,
   checkDatasetLoaded: () => boolean,
   checkNextSampleClicked: () => boolean,
@@ -89,19 +90,31 @@ export const createTourSteps = (
     waitForAction: false  // Don't wait for validation, just let user click Next to proceed
   },
   {
-    id: 'complete-training',
-    title: 'Complete the Training Steps',
+    id: 'start-training',
+    title: 'Step 4: Start Training',
     content: `
-      <p>Keep clicking "Next Step" to watch the complete training process:</p>
+      <p>Now let's begin the training process. Click the highlighted "Next Step" button to start.</p>
+      <p>This will execute the first training step and show you how the network processes data.</p>
+    `,
+    target: '[data-tour-target="next-step-button"]',
+    action: 'Click "Next Step" to start the training process',
+    waitForAction: true,
+    validation: checkFirstStepExecuted
+  },
+  {
+    id: 'complete-training',
+    title: 'Step 5: Complete the Training Cycle',
+    content: `
+      <p>Great! You've started training. Now keep clicking "Next Step" to complete the full training cycle:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>Watch activations flow through the network</li>
         <li>See the loss calculation</li>
         <li>Observe weight updates during backpropagation</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Click "Next Step" 6 times total to complete one full training cycle.</p>
+      <p class="text-xs text-gray-500 mt-2">Click "Next Step" 5 more times to complete the training cycle.</p>
     `,
     target: '[data-tour-target="next-step-button"]',
-    action: 'Click "Next Step" 6 times to complete the full training cycle',
+    action: 'Click "Next Step" 5 more times to complete the full training cycle',
     waitForAction: true,
     validation: checkTrainingStepsCompleted
   },

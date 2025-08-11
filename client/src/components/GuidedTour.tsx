@@ -31,6 +31,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     const step = tourSteps[currentStep];
     if (step?.validation) {
       const isValid = step.validation();
+      console.log('Validation triggered:', { stepId: step.id, isValid, currentStep });
       setValidationPassed(isValid);
     }
   };
@@ -77,28 +78,15 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     };
   }, [currentStep, isOpen, tourSteps]);
 
-  // Validation checking
+  // Validation checking - only for steps that don't require manual action
   useEffect(() => {
     if (!isOpen) return;
 
     const step = tourSteps[currentStep];
     if (step?.validation && step.waitForAction) {
-      const checkValidation = () => {
-        try {
-          const passed = step.validation!();
-          setValidationPassed(passed);
-        } catch (error) {
-          console.error('Validation error:', error);
-          setValidationPassed(false);
-        }
-      };
-
-      // Check immediately
-      checkValidation();
-
-      // Set up interval to check periodically
-      const interval = setInterval(checkValidation, 500);
-      return () => clearInterval(interval);
+      // For steps that wait for action, start with validation failed
+      // Validation will be triggered manually when action occurs
+      setValidationPassed(false);
     } else {
       setValidationPassed(true);
     }

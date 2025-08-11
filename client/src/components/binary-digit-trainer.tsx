@@ -333,6 +333,7 @@ export default function BinaryDigitTrainer() {
   const checkTrainingStarted = () => tourStepStarted;
   // Reset cycle counters (call when starting fresh cycle)
   const resetCycleCounters = () => {
+    console.log('🔄 TOUR: Resetting cycle counters');
     clicksThisCycleRef.current = 0;
     cycleDoneRef.current = false;
   };
@@ -344,8 +345,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const validFullCycle = () => {
-    const result = cycleDoneRef.current === true;
-    console.log('🔍 TOUR: validFullCycle - cycleDone:', cycleDoneRef.current, 'result:', result);
+    const result = tourTrainingCycleCompleted === true;
+    console.log('🔍 TOUR: validFullCycle - tourTrainingCycleCompleted:', tourTrainingCycleCompleted, 'result:', result);
     return result;
   };
   const checkTrainingStepsCompleted = () => {
@@ -1003,7 +1004,7 @@ export default function BinaryDigitTrainer() {
         const newStep = (prev + 1) % 6;
         console.log('🎯 TOUR: Step changed from', prev, 'to', newStep);
         
-        // Detect cycle completion (step 5 -> 0)
+        // Detect cycle completion when wrapping from step 5 back to 0
         if (prev === 5 && newStep === 0) {
           cycleDoneRef.current = true;
           console.log('🎯 TOUR: Training cycle completed! cycleDone set to true');
@@ -3352,6 +3353,7 @@ export default function BinaryDigitTrainer() {
             setTourInferenceModeEnabled(false);
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
+            setTourTrainingCycleCompleted(false);
             // Reset cycle counters for fresh tour start
             resetCycleCounters();
           }}

@@ -3,8 +3,8 @@ import { TourStep } from '@/components/GuidedTour';
 export const createTourSteps = (
   checkCanvasHasDrawing: () => boolean,
   checkTrainingStarted: () => boolean,
-  checkFirstStepExecuted: () => boolean,
-  checkTrainingStepsCompleted: () => boolean,
+  validOneClick: () => boolean,
+  validFullCycle: () => boolean,
   checkDatasetLoaded: () => boolean,
   checkNextSampleClicked: () => boolean,
   checkEpochTrainingStarted: () => boolean,
@@ -90,16 +90,18 @@ export const createTourSteps = (
     waitForAction: false  // Don't wait for validation, just let user click Next to proceed
   },
   {
-    id: 'start-training',
+    id: 'start-training-one-click',
     title: 'Step 4: Start Training',
     content: `
-      <p>Now let's begin the training process. Click the highlighted "Next Step" button to start.</p>
+      <p>Now let's begin the training process. Click the highlighted "Next Step" button once to start.</p>
       <p>This will execute the first training step and show you how the network processes data.</p>
     `,
     target: '[data-tour-target="next-step-button"]',
-    action: 'Click "Next Step" to start the training process',
+    action: 'Click "Next Step" one time',
     waitForAction: true,
-    validation: checkFirstStepExecuted
+    validation: validOneClick,
+    autoAdvanceOnValid: true,
+    pin: 'bottom-left'
   },
   {
     id: 'complete-training',
@@ -111,12 +113,13 @@ export const createTourSteps = (
         <li>See the loss calculation</li>
         <li>Observe weight updates during backpropagation</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Click "Next Step" 5 more times to complete the training cycle.</p>
+      <p class="text-xs text-gray-500 mt-2">Continue clicking "Next Step" to complete all 6 training steps.</p>
     `,
     target: '[data-tour-target="next-step-button"]',
-    action: 'Click "Next Step" 5 more times to complete the full training cycle',
+    action: 'Finish the remaining training steps of this cycle',
     waitForAction: true,
-    validation: checkTrainingStepsCompleted
+    validation: validFullCycle,
+    pin: 'bottom-left'
   },
   {
     id: 'dataset-training',

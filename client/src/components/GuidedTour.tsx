@@ -11,6 +11,8 @@ export interface TourStep {
   validation?: () => boolean; // Function to check if user completed the required action
   action?: string; // Description of required action
   waitForAction?: boolean; // Whether to wait for user action before enabling Next
+  autoAdvanceOnValid?: boolean; // If true, advance automatically when validation turns true
+  pin?: 'bottom-left' | 'top-right'; // Simple presets for dialog placement
 }
 
 interface GuidedTourProps {
@@ -39,6 +41,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
         const isValid = step.validation();
         console.log('🔍 TOUR: validation result:', isValid, 'setting validationPassed');
         setValidationPassed(isValid);
+        if (isValid && step.autoAdvanceOnValid) {
+          // Advance immediately to the next step and reset validation for it
+          setTimeout(() => {
+            setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
+            setValidationPassed(false);
+          }, 0);
+        }
       } else {
         console.log('🔍 TOUR: no validation function for this step');
       }
@@ -68,12 +77,11 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   useEffect(() => {
     if (isOpen) {
       const step = tourSteps[currentStep];
-      // Position steps in lower left to avoid covering buttons
-      if (step?.id === 'start-training' || step?.id === 'complete-training' || step?.id === 'dataset-training') {
+      // Default (top-right) or pinned preset
+      if (step?.pin === 'bottom-left') {
         setDialogPosition({ x: 16, y: window.innerHeight - 400 });
       } else {
-        // Default position (top-right)
-        setDialogPosition({ x: 0, y: 0 });
+        setDialogPosition({ x: 0, y: 0 }); // default top-right
       }
     }
   }, [currentStep, isOpen]);

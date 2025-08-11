@@ -1,0 +1,212 @@
+Great description—that makes the fix very clear. You need two different validations and a tiny bit of tour plumbing:
+
+* **Step 5 (“one click”)**: wait for the **first** press of your app’s **Next Step** button. When that happens, the tour should **auto-advance** to Step 6.
+* **Step 6 (“finish cycle”)**: wait for the **remaining 5 clicks** to finish the 6-step cycle. The tour’s **Next** stays **disabled** until the cycle completes; then the user can click Next.
+
+Below is a small, surgical patch to your `GuidedTour` plus how to wire it in the parent (BinaryDigitTrainer).
+
+---
+
+## 1) Patch `GuidedTour` (minimal changes)
+
+**What this adds**
+
+* A per-step `autoAdvanceOnValid` flag.
+* A per-step `pin` to place the dialog (supports `"bottom-left"`).
+* Auto-advance when a validation passes (for Step 5 only).
+* Positioning driven by the step (no hardcoded ids).
+
+Replace the top interface and the two effects + `triggerValidation` as shown:
+
+```diff
+--- a/GuidedTour.tsx
++++ b/GuidedTour.tsx
+@@
+ export interface TourStep {
+   id: string;
+   title: string;
+   content: string;
+   target?: string; // CSS selector for highlighting
+-  position?: 'top' | 'bottom' | 'left' | 'right';
++  position?: 'top' | 'bottom' | 'left' | 'right'; // (unused – keep for future)
+   validation?: () => boolean; // Function to check if user completed the required action
+   action?: string; // Description of required action
+   waitForAction?: boolean; // Whether to wait for user action before enabling Next
++  autoAdvanceOnValid?: boolean; // If true, advance automatically when validation turns true
++  pin?: 'bottom-left' | 'top-right'; // Simple presets for dialog placement
+ }
+@@
+-  // Validation trigger function that can be called from outside
++  // Validation trigger function that can be called from outside
+   const triggerValidation = () => {
+-    // Use a function to get current step and tour steps to avoid stale closure
++    // Use a function to get current step and tour steps to avoid stale closure
+     setCurrentStep(current => {
+       const step = tourSteps[current];
+       console.log('🔍 TOUR: triggerValidation called for step', current, 'stepId:', step?.id);
+       if (step?.validation) {
+         const isValid = step.validation();
+         console.log('🔍 TOUR: validation result:', isValid, 'setting validationPassed');
+         setValidationPassed(isValid);
++        if (isValid && step.autoAdvanceOnValid) {
++          // Advance immediately to the next step and reset validation for it
++          setTimeout(() => {
++            setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
++            setValidationPassed(false);
++          }, 0);
++        }
+       } else {
+         console.log('🔍 TOUR: no validation function for this step');
+       }
+       return current; // Don't change the step
+     });
+   };
+@@
+-  // Update dialog position when step changes
++  // Update dialog position when step changes
+   useEffect(() => {
+     if (isOpen) {
+       const step = tourSteps[currentStep];
+-      // Position steps in lower left to avoid covering buttons
+-      if (step?.id === 'start-training' || step?.id === 'complete-training' || step?.id === 'dataset-training') {
+-        setDialogPosition({ x: 16, y: window.innerHeight - 400 });
+-      } else {
+-        // Default position (top-right)
+-        setDialogPosition({ x: 0, y: 0 });
+-      }
++      // Default (top-right) or pinned preset
++      if (step?.pin === 'bottom-left') {
++        setDialogPosition({ x: 16, y: window.innerHeight - 400 });
++      } else {
++        setDialogPosition({ x: 0, y: 0 }); // default top-right
++      }
+     }
+   }, [currentStep, isOpen]);
+@@
+-  // Validation checking - only for steps that don't require manual action
++  // Validation gating per step
+   useEffect(() => {
+     if (!isOpen) return;
+ 
+     const step = tourSteps[currentStep];
+     console.log('🔍 TOUR: Step changed to', currentStep, 'stepId:', step?.id, 'waitForAction:', step?.waitForAction);
+     if (step?.validation && step.waitForAction) {
+       // For steps that wait for action, start with validation failed
+       // Validation will be triggered manually when action occurs
+       console.log('🔍 TOUR: Setting validationPassed = false (waiting for action)');
+       setValidationPassed(false);
+     } else {
+       console.log('🔍 TOUR: Setting validationPassed = true (no wait required)');
+       setValidationPassed(true);
+     }
+   }, [currentStep, isOpen]); // Remove tourSteps from dependencies to prevent re-render loop
+```
+
+Nothing else in the file needs to change.
+
+---
+
+## 2) Parent wiring (BinaryDigitTrainer)
+
+You need two simple refs:
+
+* `clicksThisCycleRef`: counts presses of **Next Step** in the current 6-step cycle.
+* `cycleDoneRef`: flips to `true` when the 6th step completes (i.e., when you wrap).
+
+Hook them into your existing `nextStep()` and call the tour’s trigger each time (the step’s validation will decide when to pass).
+
+```ts
+// Top-level in BinaryDigitTrainer
+const tourTriggerRef = useRef<(() => void) | null>(null);
+const clicksThisCycleRef = useRef(0);
+const cycleDoneRef = useRef(false);
+
+// Receive the trigger from GuidedTour
+<GuidedTour
+  isOpen={isTourOpen}
+  onClose={() => setIsTourOpen(false)}
+  tourSteps={tourSteps}
+  onValidationTrigger={(fn) => { tourTriggerRef.current = fn; }}
+/>
+
+// Wherever you reset an example or start a fresh cycle
+const resetCycleCounters = () => {
+  clicksThisCycleRef.current = 0;
+  cycleDoneRef.current = false;
+};
+
+// Your existing Next Step handler – add the counters + trigger
+const nextStep = (forceStep?: number) => {
+  // ... your existing code ...
+  // increment on every user click of Next Step (not internal auto-steps)
+  clicksThisCycleRef.current += 1;
+
+  // Determine if we just completed step index 5 (wrap to 0)
+  setStep(prev => {
+    const next = (prev + 1) % 6;
+    if (prev === 5) {
+      cycleDoneRef.current = true;
+      // Optionally reset for the next sample/cycle
+      // resetCycleCounters(); // if you start a new sample immediately
+    }
+    return next;
+  });
+
+  // Ping the tour to re-run the current step's validation
+  tourTriggerRef.current?.();
+};
+```
+
+**Validations for Steps 5 & 6**
+
+Define these functions (they read the refs, so they’re always fresh):
+
+```ts
+const validOneClick = () => clicksThisCycleRef.current >= 1;
+const validFullCycle = () => cycleDoneRef.current === true;
+```
+
+Now define the two tour steps:
+
+```ts
+const tourSteps: TourStep[] = [
+  // ...
+  {
+    id: "start-training-one-click",
+    title: "Complete the Training Steps",
+    content: "Press the <b>Next Step</b> button once to start the cycle.",
+    target: ".next-step-button-selector",      // ← make sure this matches your button
+    action: "Click <b>Next Step</b> one time.",
+    waitForAction: true,
+    validation: validOneClick,                 // passes after first click
+    autoAdvanceOnValid: true,                  // jump to Step 6 automatically
+    pin: "bottom-left",                        // place dialog lower-left
+  },
+  {
+    id: "complete-training",
+    title: "Finish the Cycle",
+    content: "Now continue pressing <b>Next Step</b> to complete all six steps.",
+    target: ".next-step-button-selector",
+    action: "Finish the remaining 5 steps of this cycle.",
+    waitForAction: true,
+    validation: validFullCycle,                // only passes once step wraps
+    // No autoAdvance here — Next stays disabled until the cycle is done,
+    // then the user clicks Next to proceed.
+    pin: "bottom-left",
+  },
+  // ...
+];
+```
+
+> Tip: If your app sometimes auto-advances internally (e.g., dataset mode), set `clicksThisCycleRef.current = 0` and `cycleDoneRef.current = false` right before showing Step 5 to ensure a clean slate.
+
+---
+
+## 3) Why this fixes your exact symptoms
+
+* **“Next is enabled immediately” on Step 5**: now Step 5 has `waitForAction: true` + a validation; the button is disabled until the **first** click happens.
+* **“Tour doesn’t auto-advance after 1 click”**: Step 5 has `autoAdvanceOnValid: true`, so as soon as your click is detected, the tour moves to Step 6.
+* **“Disable Next until all 6 steps complete” for Step 6**: Step 6 also has `waitForAction: true` and uses `validFullCycle`, so Next stays disabled until the cycle finishes.
+* **“Position both in lower-left”**: the new `pin: "bottom-left"` places the dialog where you want, without relying on hardcoded step ids.
+
+If you want, send me the selector you use for the **Next Step** button and I’ll drop it directly into the `target` fields above.

@@ -345,8 +345,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const validFullCycle = () => {
-    const result = tourTrainingCycleCompleted === true;
-    console.log('🔍 TOUR: validFullCycle - tourTrainingCycleCompleted:', tourTrainingCycleCompleted, 'result:', result);
+    const result = cycleDoneRef.current === true;
+    console.log('🔍 TOUR: validFullCycle - cycleDoneRef.current:', cycleDoneRef.current, 'result:', result);
     return result;
   };
   const checkTrainingStepsCompleted = () => {
@@ -983,7 +983,8 @@ export default function BinaryDigitTrainer() {
         setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
         setStep(-1);
         setTourTrainingCycleCompleted(true); // Tour tracking - full 6-step cycle completed
-        console.log('🎯 TOUR: Training cycle completed! Setting tourTrainingCycleCompleted = true');
+        cycleDoneRef.current = true; // Set ref immediately for tour validation
+        console.log('🎯 TOUR: Training cycle completed! Setting both state and ref to true');
         // Trigger tour validation check
         setTimeout(() => {
           if (tourTriggerRef.current) {

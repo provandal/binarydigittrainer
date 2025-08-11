@@ -86,9 +86,14 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
   }, [currentStep, isOpen, tourSteps]);
 
   const handleNext = () => {
+    console.log('Next clicked:', { currentStep, canProceed, validationPassed });
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      console.log('Moving to step:', nextStep);
+      setCurrentStep(nextStep);
       setValidationPassed(false);
+    } else {
+      console.log('Already at last step');
     }
   };
 
@@ -112,6 +117,14 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps }: Guid
   const step = tourSteps[currentStep];
   const isLastStep = currentStep === tourSteps.length - 1;
   const canProceed = !step?.waitForAction || validationPassed;
+
+  console.log('Render tour:', { 
+    currentStep, 
+    stepId: step?.id, 
+    waitForAction: step?.waitForAction, 
+    validationPassed, 
+    canProceed 
+  });
 
   return (
     <>

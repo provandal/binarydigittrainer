@@ -3268,17 +3268,16 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
           }}
-          tourSteps={createTourSteps({
-            tourDrawnOnCanvas,
-            tourStepExecuted,
-            tourDatasetLoaded,
-            tourNextSampleClicked,
-            tourMultiEpochStarted,
-            tourWeightVisualizationOpened,
-            tourInferenceModeEnabled,
-            tourCheckpointSaved,
-            tourCheckpointLoaded
-          })}
+          tourSteps={createTourSteps(
+            () => tourDrawnOnCanvas,
+            () => tourStepExecuted,
+            () => tourDatasetLoaded,
+            () => tourNextSampleClicked,
+            () => tourMultiEpochStarted,
+            () => tourCheckpointSaved,
+            () => tourInferenceModeEnabled,
+            () => tourWeightVisualizationOpened
+          )}
         />
       </div>
     </div>

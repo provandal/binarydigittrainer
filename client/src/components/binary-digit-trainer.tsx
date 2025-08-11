@@ -328,6 +328,7 @@ export default function BinaryDigitTrainer() {
   };
 
   const checkTrainingStarted = () => tourStepStarted;
+  const checkTrainingStepsCompleted = () => step === 0 && trainingHistory.length > 0; // Back to step 0 after completing a full cycle
   const checkDatasetLoaded = () => tourDatasetLoaded;
   const checkNextSampleClicked = () => tourNextSampleClicked;
   const checkEpochTrainingStarted = () => tourEpochStarted;
@@ -3299,6 +3300,7 @@ export default function BinaryDigitTrainer() {
           tourSteps={createTourSteps(
             validationDrewSomething, // Use the ref-based validation function
             () => tourStepExecuted,
+            checkTrainingStepsCompleted,
             () => tourDatasetLoaded,
             () => tourNextSampleClicked,
             () => tourMultiEpochStarted,

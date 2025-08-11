@@ -3,6 +3,7 @@ import { TourStep } from '@/components/GuidedTour';
 export const createTourSteps = (
   checkCanvasHasDrawing: () => boolean,
   checkTrainingStarted: () => boolean,
+  checkTrainingStepsCompleted: () => boolean,
   checkDatasetLoaded: () => boolean,
   checkNextSampleClicked: () => boolean,
   checkEpochTrainingStarted: () => boolean,
@@ -98,9 +99,12 @@ export const createTourSteps = (
         <li>See the loss calculation</li>
         <li>Observe weight updates during backpropagation</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Notice how the network diagram highlights active elements at each step.</p>
+      <p class="text-xs text-gray-500 mt-2">Click "Next Step" 6 times total to complete one full training cycle.</p>
     `,
-    target: '.bg-blue-600'
+    target: '[data-tour-target="next-step-button"]',
+    action: 'Click "Next Step" 6 times to complete the full training cycle',
+    waitForAction: true,
+    validation: checkTrainingStepsCompleted
   },
   {
     id: 'dataset-training',

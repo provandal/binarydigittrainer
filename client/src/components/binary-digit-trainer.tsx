@@ -328,7 +328,11 @@ export default function BinaryDigitTrainer() {
   };
 
   const checkTrainingStarted = () => tourStepStarted;
-  const checkTrainingStepsCompleted = () => step === 0 && trainingHistory.length > 0; // Back to step 0 after completing a full cycle
+  const checkTrainingStepsCompleted = () => {
+    const completed = step === 0 && trainingHistory.length > 0;
+    console.log('🔍 Tour validation - step:', step, 'trainingHistory length:', trainingHistory.length, 'completed:', completed);
+    return completed;
+  }; // Back to step 0 after completing a full cycle
   const checkDatasetLoaded = () => tourDatasetLoaded;
   const checkNextSampleClicked = () => tourNextSampleClicked;
   const checkEpochTrainingStarted = () => tourEpochStarted;

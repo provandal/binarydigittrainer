@@ -406,7 +406,7 @@ export default function BinaryDigitTrainer() {
       outputActivations: Array(2).fill(0),
       loss: 0,
       outputErrors: Array(2).fill(0),
-      currentTarget: null
+      currentTarget: [0, 0]
     };
     
     // Clear canvas
@@ -425,7 +425,7 @@ export default function BinaryDigitTrainer() {
     setTourStepStarted(false);
     setTourDatasetLoaded(false);
     setTourNextSampleClicked(false);
-    setTourEpochStarted(false);
+    setTourMultiEpochStarted(false);
     setTourCheckpointSaved(false);
     setTourWeightVisualizationOpened(false);
     

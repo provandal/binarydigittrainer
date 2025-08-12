@@ -378,15 +378,13 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    // Training is considered complete when:
-    // 1. Multi-epoch training was started, AND
-    // 2. Training is no longer running (either completed or stopped), AND
-    // 3. At least one full sample was processed (not just immediately stopped)
+    // Training is considered complete when ALL epochs have finished
+    // This is more precise than just checking if training stopped
     const multiEpochWasStarted = multiEpochStartedRef.current === true;
     const notCurrentlyTraining = !isAutoTraining;
-    const actualProgress = trainedSampleCountRef.current >= 1;
-    const result = multiEpochWasStarted && notCurrentlyTraining && actualProgress;
-    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'samples:', trainedSampleCountRef.current, 'actualProgress:', actualProgress, 'result:', result);
+    const allEpochsCompleted = trainingCompleted; // Only set to true when ALL epochs finish
+    const result = multiEpochWasStarted && notCurrentlyTraining && allEpochsCompleted;
+    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', allEpochsCompleted, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {

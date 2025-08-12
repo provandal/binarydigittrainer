@@ -176,6 +176,48 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     }
   }, [currentStep, isOpen]); // Remove tourSteps from dependencies to prevent re-render loop
 
+  // NEW: actively re-evaluate validation() for steps that define it.
+  // This keeps the "Next" button disabled until validation turns true.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const step = tourSteps[currentStep];
+    if (!step?.validation) return; // only poll for steps that define validation()
+
+    let id: number | null = null;
+
+    const tick = () => {
+      // Guard against exceptions inside validation()
+      let ok = false;
+      try {
+        ok = !!step.validation?.();
+      } catch (e) {
+        ok = false;
+      }
+
+      // Only update if it actually changed (prevents UI jitter)
+      setValidationPassed(prev => {
+        if (prev !== ok) return ok;
+        return prev;
+      });
+
+      if (ok && step.autoAdvanceOnValid) {
+        // Advance once, then stop polling
+        setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
+        return;
+      }
+
+      // Schedule next check
+      id = window.setTimeout(tick, 150);
+    };
+
+    tick();
+
+    return () => {
+      if (id !== null) window.clearTimeout(id);
+    };
+  }, [currentStep, isOpen, tourSteps]);
+
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);

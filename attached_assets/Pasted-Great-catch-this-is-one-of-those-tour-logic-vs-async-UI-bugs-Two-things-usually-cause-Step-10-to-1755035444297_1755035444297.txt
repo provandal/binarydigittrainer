@@ -1,0 +1,153 @@
+Great catch—this is one of those “tour logic vs. async UI” bugs. Two things usually cause Step 10 to unlock early:
+
+1. the tour isn’t continuously re-evaluating the step’s `validation()` while training is running, and/or
+2. the parent flips a flag like `trainingCompleted` too early (e.g., after a single sample instead of after all epochs).
+
+Below is a small, targeted fix that addresses (1) inside **GuidedTour (5).tsx**, plus a sanity-check for (2) in your parent code.
+
+---
+
+# 1) Patch GuidedTour to re-check `validation()` automatically
+
+Right now `validation()` only runs when you call `triggerValidation()` or when the step changes. For steps like your Step 10 (which should unlock *after* all epochs finish), you want the tour to poll the `validation()` function while the step is active.
+
+Add this effect to **GuidedTour (5).tsx** (anywhere near your other `useEffect`s). It re-checks `validation()` about 6–7×/sec, updates the “Next” enabled state, and optionally auto-advances if `autoAdvanceOnValid` is true.
+
+```tsx
+// NEW: actively re-evaluate validation() for steps that define it.
+// This keeps the "Next" button disabled until validation turns true.
+useEffect(() => {
+  if (!isOpen) return;
+
+  const step = tourSteps[currentStep];
+  if (!step?.validation) return; // only poll for steps that define validation()
+
+  let id: number | null = null;
+
+  const tick = () => {
+    // Guard against exceptions inside validation()
+    let ok = false;
+    try {
+      ok = !!step.validation?.();
+    } catch (e) {
+      ok = false;
+    }
+
+    // Only update if it actually changed (prevents UI jitter)
+    setValidationPassed(prev => {
+      if (prev !== ok) return ok;
+      return prev;
+    });
+
+    if (ok && step.autoAdvanceOnValid) {
+      // Advance once, then stop polling
+      setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
+      return;
+    }
+
+    // Schedule next check
+    id = window.setTimeout(tick, 150);
+  };
+
+  tick();
+
+  return () => {
+    if (id !== null) window.clearTimeout(id);
+  };
+}, [currentStep, isOpen, tourSteps]);
+```
+
+No other GuidedTour changes are required. The existing `canProceed` logic will now reflect the live value of `validation()`.
+
+---
+
+# 2) Define Step 10’s validation precisely in the parent
+
+In the component that *creates* your `tourSteps` array (the parent), make sure Step 10 has a **real** `validation()` (not just `waitForAction`) that only returns `true` when *every epoch* finished.
+
+Example (adjust names to your actual state):
+
+```tsx
+// These are typical pieces of state you already have in the trainer:
+const allEpochsDone = !isAutoTraining
+  && trainingCompleted                     // flip this ONLY when *all* epochs finish
+  && currentEpoch === numberOfEpochs;      // or (epochCount > numberOfEpochs) depending on your logic
+
+const tourSteps: TourStep[] = [
+  // ...
+  {
+    id: "epoch-train",
+    title: "Process Training Set",
+    content: `
+      Click <strong>Process Training Set</strong>, enter the number of epochs, and start training.
+      This step will unlock when <em>all</em> epochs have finished.
+    `,
+    target: ".process-training-button",     // highlight your button
+    pin: "bottom-left",
+    // IMPORTANT: real validation function (no trigger needed)
+    validation: () => allEpochsDone,
+    waitForAction: false,
+    autoAdvanceOnValid: false,
+  },
+  // ...
+];
+```
+
+> If the “Next” button enables early, it usually means this step didn’t have a `validation()` (so `requiresValidation` was false), or your `validation()` was returning `true` prematurely due to the flags below.
+
+---
+
+# 3) Make sure the trainer sets flags only at the **end** of all epochs
+
+Double-check the logic where you flip `trainingCompleted`. It should happen only once the multi-epoch loop is done—not at the end of a single sample or single epoch.
+
+**Do:**
+
+```ts
+// Pseudocode around your startMultiEpochTraining loop:
+setTrainingCompleted(false);
+
+let epoch = 1;
+let sample = 0;
+
+const processNext = () => {
+  if (epoch > numberOfEpochs) {
+    setIsAutoTraining(false);
+    setTrainingCompleted(true);  // <-- ONLY HERE
+    return;
+  }
+
+  if (sample >= trainingExamples.length) {
+    // finished one epoch
+    epoch += 1;
+    sample = 0;
+    setCurrentEpoch(epoch);
+    // (optional) apply LR decay here
+    processNext();
+    return;
+  }
+
+  // run single example (all 6 steps), then:
+  sample += 1;
+  setCurrentTrainingIndex(sample);
+  // schedule next:
+  setTimeout(processNext, autoTrainingSpeed);
+};
+
+processNext();
+```
+
+**Don’t:**
+
+* set `trainingCompleted` at the end of `runToNextSample()` for a single example.
+* leave `isAutoTraining` stuck `true` after finishing (the validation above checks it’s `false`).
+
+---
+
+## Why this fixes Step 10
+
+* The new **polling effect** ensures GuidedTour reevaluates `validation()` while the step is active, so the “Next” button can’t unlock until your parent’s state genuinely reflects “done with all epochs.”
+* The **parent validation** makes the condition explicit and robust: *not auto-training anymore* **and** *all epochs accounted for*.
+* The **trainer flag fix** prevents premature `trainingCompleted` flips.
+
+If you want, I can also show a tiny “instrumentation hook” (an event or a numeric `progressTick` prop) so GuidedTour re-checks validation on every progress update instead of polling—but the small polling loop above is simple and reliable for this use case.

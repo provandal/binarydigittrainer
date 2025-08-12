@@ -378,13 +378,15 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    // Training is considered complete when ALL epochs have finished
-    // This is more precise than just checking if training stopped
+    // Training is considered complete when:
+    // 1. Multi-epoch training was started, AND
+    // 2. Training is no longer running, AND  
+    // 3. Either ALL epochs completed OR user manually stopped with some progress
     const multiEpochWasStarted = multiEpochStartedRef.current === true;
     const notCurrentlyTraining = !isAutoTraining;
-    const allEpochsCompleted = trainingCompleted; // Only set to true when ALL epochs finish
-    const result = multiEpochWasStarted && notCurrentlyTraining && allEpochsCompleted;
-    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', allEpochsCompleted, 'result:', result);
+    const hasFinishedOrStopped = trainingCompleted || (notCurrentlyTraining && trainedSampleCountRef.current > 0);
+    const result = multiEpochWasStarted && notCurrentlyTraining && hasFinishedOrStopped;
+    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', trainingCompleted, 'samples:', trainedSampleCountRef.current, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {
@@ -1598,12 +1600,13 @@ export default function BinaryDigitTrainer() {
     
     setIsAutoTraining(false);
     
-    // Only set training completed if we've processed all planned samples
+    // Only set training completed if we've processed ALL planned samples for ALL epochs
     const allPlanned = totalPlannedSamples;
     const actuallyCompleted = trainedSampleCountRef.current >= allPlanned && allPlanned > 0;
-    if (actuallyCompleted) {
+    const allEpochsFinished = !shouldStopTraining.current; // Only true if we naturally finished all epochs
+    if (actuallyCompleted && allEpochsFinished) {
       setTrainingCompleted(true);
-      console.log(`🎉 Training completed! All ${trainedSampleCountRef.current}/${allPlanned} samples finished.`);
+      console.log(`🎉 Training completed! All ${trainedSampleCountRef.current}/${allPlanned} samples finished across all epochs.`);
     }
     
     // Trigger tour validation check for training completion

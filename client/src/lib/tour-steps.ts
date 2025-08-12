@@ -148,7 +148,7 @@ export const createTourSteps = (
       <p>An epoch means going through every training example once. Multiple epochs help the network learn better patterns.</p>
     `,
     target: '[data-tour-target="multi-epoch-button"]',
-    action: 'Click "Train Multiple Epochs" to start automated training',
+    action: 'Click "Process Training Set" to start automated training',
     waitForAction: true,
     validation: checkEpochTrainingStarted
   },

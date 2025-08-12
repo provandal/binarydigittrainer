@@ -378,7 +378,10 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    const result = trainingCompleted;
+    // Training is considered complete when:
+    // 1. trainingCompleted is true (either finished all epochs or manually stopped), AND
+    // 2. isAutoTraining is false (no active training process)
+    const result = trainingCompleted && !isAutoTraining;
     console.log('🔍 TOUR: checkTrainingCompleted - trainingCompleted:', trainingCompleted, 'isAutoTraining:', isAutoTraining, 'result:', result);
     return result;
   };
@@ -1521,6 +1524,14 @@ export default function BinaryDigitTrainer() {
     setIsAutoTraining(false);
     setTrainingCompleted(true);
     console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+    
+    // Trigger tour validation check for training completion
+    setTimeout(() => {
+      if (tourTriggerRef.current) {
+        console.log('🔔 TOUR: Triggering validation check after training completion');
+        tourTriggerRef.current();
+      }
+    }, 100);
   };
   
   // Process entire training set by calling runEpochs
@@ -1554,6 +1565,14 @@ export default function BinaryDigitTrainer() {
       clearInterval(trainingIntervalRef.current);
       trainingIntervalRef.current = null;
     }
+    
+    // Trigger tour validation check for manual training stop
+    setTimeout(() => {
+      if (tourTriggerRef.current) {
+        console.log('🔔 TOUR: Triggering validation check after manual training stop');
+        tourTriggerRef.current();
+      }
+    }, 100);
   };
 
   const startMultiEpochTraining = () => {

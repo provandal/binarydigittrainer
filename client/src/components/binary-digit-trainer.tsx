@@ -378,8 +378,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    const result = !isAutoTraining;
-    console.log('🔍 TOUR: checkTrainingCompleted - isAutoTraining:', isAutoTraining, 'result:', result);
+    const result = trainingCompleted;
+    console.log('🔍 TOUR: checkTrainingCompleted - trainingCompleted:', trainingCompleted, 'isAutoTraining:', isAutoTraining, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {

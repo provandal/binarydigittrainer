@@ -173,7 +173,7 @@ export const createTourSteps = (
     action: 'Wait for training to complete (or click "Stop Training" to stop early)',
     waitForAction: true,
     validation: checkTrainingCompleted,
-    autoAdvanceOnValid: true,
+    autoAdvanceOnValid: false,
     pin: 'bottom-left'
   },
   {

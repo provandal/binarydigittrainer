@@ -378,12 +378,15 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    // Training is considered complete when ALL samples across ALL epochs are processed
-    const allPlanned = totalPlannedSamples;
-    const actuallyCompleted = trainedSampleCountRef.current >= allPlanned && allPlanned > 0;
+    // Training is considered complete when:
+    // 1. Multi-epoch training was started, AND
+    // 2. Training is no longer running (either completed or stopped), AND
+    // 3. Some samples were processed (not just immediately stopped)
+    const multiEpochWasStarted = multiEpochStartedRef.current === true;
     const notCurrentlyTraining = !isAutoTraining;
-    const result = actuallyCompleted && notCurrentlyTraining;
-    console.log('🔍 TOUR: checkTrainingCompleted - trained:', trainedSampleCountRef.current, 'planned:', allPlanned, 'completed:', actuallyCompleted, 'notTraining:', notCurrentlyTraining, 'result:', result);
+    const someProgress = trainedSampleCountRef.current > 0 || trainingCompleted;
+    const result = multiEpochWasStarted && notCurrentlyTraining && someProgress;
+    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'progress:', someProgress, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {
@@ -1389,6 +1392,58 @@ export default function BinaryDigitTrainer() {
     return true;
   };
   
+  // Single sample runner for step 8 - improved visual feedback
+  const runToNextSample = async () => {
+    if (trainingExamples.length === 0) return;
+    
+    console.log('🚀 Starting runToNextSample for example index:', currentExampleIndex);
+    setIsAutoTraining(true);
+    
+    // Set tour tracking for step 8
+    setTourNextSampleClicked(true);
+    nextSampleClickedRef.current = true;
+    
+    // Load current training example with visual feedback
+    const currentExample = trainingExamples[currentExampleIndex];
+    console.log('📖 Loading example for runToNextSample:', currentExample.label);
+    const pattern = currentExample.pattern as number[][] | number[];
+    const grid = Array.isArray(pattern[0]) ? pattern as number[][] : flatToGrid(pattern as number[]);
+    setPixelGrid(grid);
+    const oneHotLabel = parseLabel(currentExample.label);
+    setSelectedLabel(oneHotLabel[0] === 1 ? 0 : 1);
+    setStep(0);
+    
+    // Cache for training logic
+    currentNetworkState.current.currentTarget = oneHotLabel;
+    currentNetworkState.current.inputs = grid.flat();
+    
+    // Run all steps with good visual feedback
+    const completed = await runStepsForCurrentSample();
+    if (!completed) {
+      setIsAutoTraining(false);
+      return;
+    }
+    
+    // Track progress and complete
+    currentEpochLoss.current.push(currentNetworkState.current.loss);
+    setExamplesSeen(prev => prev + 1);
+    
+    // Move to next example
+    const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
+    setCurrentExampleIndex(nextIndex);
+    
+    setIsAutoTraining(false);
+    console.log('✅ Single sample training completed');
+    
+    // Trigger tour validation
+    setTimeout(() => {
+      if (tourTriggerRef.current) {
+        console.log('🔔 TOUR: Triggering validation after single sample completion');
+        tourTriggerRef.current();
+      }
+    }, 100);
+  };
+
   // Automated training functions - LEGACY (will be replaced)
   const runToNextSampleLegacy = () => {
     if (trainingExamples.length === 0) return;
@@ -2471,47 +2526,7 @@ export default function BinaryDigitTrainer() {
                 <div className="mt-4 space-y-2">
                   <div className="text-sm font-medium text-gray-700 mb-2">Automated Training</div>
                   <Button 
-                    onClick={() => {
-                      // Single sample training using new async approach
-                      if (trainingExamples.length === 0) return;
-                      const example = trainingExamples[currentExampleIndex];
-                      const pattern = Array.isArray((example.pattern as any)[0]) 
-                        ? example.pattern as number[][] 
-                        : flatToGrid(example.pattern as number[]);
-                      const oneHot = parseLabel(example.label);
-                      const uiDigit = oneHot[0] === 1 ? 0 : 1;
-                      
-                      console.log(`🚀 Single sample training - Example ${currentExampleIndex}, Label: [${oneHot}]`);
-                      
-                      // Snapshot the sample before running steps (eliminates async state issues)
-                      setPixelGrid(pattern);
-                      setSelectedLabelSafe(uiDigit);
-                      currentNetworkState.current.currentTarget = oneHot;
-                      currentNetworkState.current.inputs = pattern.flat();
-                      console.log(`📌 CACHE SET: currentTarget = [${oneHot}], example index = ${currentExampleIndex}`);
-                      
-                      setIsAutoTraining(true);
-                      setTourNextSampleClicked(true); // Tour tracking - React state
-                      nextSampleClickedRef.current = true; // Tour tracking - immediate ref
-                      console.log('🎯 TOUR: Run to Next Sample clicked! Setting both state and ref to true');
-                      // Trigger tour validation check
-                      setTimeout(() => {
-                        if (tourTriggerRef.current) {
-                          console.log('🔔 TOUR: Triggering validation check after Run to Next Sample click');
-                          tourTriggerRef.current();
-                        }
-                      }, 100);
-                      runStepsForCurrentSample().then((completed) => {
-                        setIsAutoTraining(false);
-                        if (completed) {
-                          // Track the training stats
-                          setExamplesSeen(prev => prev + 1);
-                          // Move to next example
-                          const nextIndex = (currentExampleIndex + 1) % trainingExamples.length;
-                          setCurrentExampleIndex(nextIndex);
-                        }
-                      });
-                    }}
+                    onClick={runToNextSample}
                     disabled={isAutoTraining}
                     size="sm"
                     className="w-full bg-green-600 hover:bg-green-700 text-white"

@@ -2020,6 +2020,13 @@ export default function BinaryDigitTrainer() {
                     setTourDatasetLoaded(true); // Tour tracking - React state
                     datasetLoadedRef.current = true; // Tour tracking - immediate ref
                     console.log('🎯 TOUR: Training Set clicked! Setting both state and ref to true');
+                    // Trigger tour validation check
+                    setTimeout(() => {
+                      if (tourTriggerRef.current) {
+                        console.log('🔔 TOUR: Triggering validation check after Training Set click');
+                        tourTriggerRef.current();
+                      }
+                    }, 100);
                   }}
                   variant={trainingMode === 'dataset' ? 'default' : 'outline'}
                   size="sm"

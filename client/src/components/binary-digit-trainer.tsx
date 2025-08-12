@@ -381,12 +381,12 @@ export default function BinaryDigitTrainer() {
     // Training is considered complete when:
     // 1. Multi-epoch training was started, AND
     // 2. Training is no longer running (either completed or stopped), AND
-    // 3. Some samples were processed (not just immediately stopped)
+    // 3. At least one full sample was processed (not just immediately stopped)
     const multiEpochWasStarted = multiEpochStartedRef.current === true;
     const notCurrentlyTraining = !isAutoTraining;
-    const someProgress = trainedSampleCountRef.current > 0 || trainingCompleted;
-    const result = multiEpochWasStarted && notCurrentlyTraining && someProgress;
-    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'progress:', someProgress, 'result:', result);
+    const actualProgress = trainedSampleCountRef.current >= 1;
+    const result = multiEpochWasStarted && notCurrentlyTraining && actualProgress;
+    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'samples:', trainedSampleCountRef.current, 'actualProgress:', actualProgress, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {
@@ -453,6 +453,7 @@ export default function BinaryDigitTrainer() {
     nextSampleClickedRef.current = false;
     multiEpochStartedRef.current = false;
     checkpointSavedRef.current = false;
+    trainedSampleCountRef.current = 0;
   };
   
   // New state for enhanced features

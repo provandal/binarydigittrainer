@@ -3396,7 +3396,7 @@ export default function BinaryDigitTrainer() {
             () => tourStepExecuted,
             validOneClick,
             validFullCycle,
-            () => tourDatasetLoaded,
+            checkDatasetLoaded, // Use the ref-based validation function
             () => tourNextSampleClicked,
             () => tourMultiEpochStarted,
             () => tourCheckpointSaved,

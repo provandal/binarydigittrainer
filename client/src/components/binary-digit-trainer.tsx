@@ -3460,6 +3460,13 @@ export default function BinaryDigitTrainer() {
             setTourCheckpointSaved(false);
             setTourCheckpointLoaded(false);
             setTourTrainingCycleCompleted(false);
+            // Reset training completion state for tour
+            setTrainingCompleted(false);
+            // Reset ref-based tracking
+            multiEpochStartedRef.current = false;
+            datasetLoadedRef.current = false;
+            nextSampleClickedRef.current = false;
+            checkpointSavedRef.current = false;
             // Reset cycle counters for fresh tour start
             resetCycleCounters();
           }}

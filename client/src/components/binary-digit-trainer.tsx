@@ -386,7 +386,14 @@ export default function BinaryDigitTrainer() {
     const notCurrentlyTraining = !isAutoTraining;
     const hasFinishedOrStopped = trainingCompleted || (notCurrentlyTraining && trainedSampleCountRef.current > 0);
     const result = multiEpochWasStarted && notCurrentlyTraining && hasFinishedOrStopped;
-    console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', trainingCompleted, 'samples:', trainedSampleCountRef.current, 'result:', result);
+    
+    // Only log when result actually changes to reduce console spam
+    const currentResult = result;
+    if (currentResult !== checkTrainingCompleted.lastResult) {
+      console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', trainingCompleted, 'samples:', trainedSampleCountRef.current, 'result:', result);
+      checkTrainingCompleted.lastResult = currentResult;
+    }
+    
     return result;
   };
   const checkModelManagementExpanded = () => {

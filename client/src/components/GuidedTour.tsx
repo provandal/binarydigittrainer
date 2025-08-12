@@ -185,6 +185,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (!step?.validation) return; // only poll for steps that define validation()
 
     let id: number | null = null;
+    let lastValidationResult = false;
 
     const tick = () => {
       // Guard against exceptions inside validation()
@@ -195,11 +196,11 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
         ok = false;
       }
 
-      // Only update if it actually changed (prevents UI jitter)
-      setValidationPassed(prev => {
-        if (prev !== ok) return ok;
-        return prev;
-      });
+      // Only update if validation result actually changed (prevents UI jitter)
+      if (ok !== lastValidationResult) {
+        lastValidationResult = ok;
+        setValidationPassed(ok);
+      }
 
       if (ok && step.autoAdvanceOnValid) {
         // Advance once, then stop polling
@@ -207,8 +208,8 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
         return;
       }
 
-      // Schedule next check
-      id = window.setTimeout(tick, 150);
+      // Schedule next check with longer interval to reduce flicker
+      id = window.setTimeout(tick, 500);
     };
 
     tick();

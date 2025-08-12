@@ -383,8 +383,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkModelManagementExpanded = () => {
-    const result = isModelManagementOpen;
-    console.log('🔍 TOUR: checkModelManagementExpanded - isModelManagementOpen:', isModelManagementOpen, 'result:', result);
+    const result = showModelManagement;
+    console.log('🔍 TOUR: checkModelManagementExpanded - showModelManagement:', showModelManagement, 'result:', result);
     return result;
   };
   const checkInferenceModeActive = () => mode === 'inference';

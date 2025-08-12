@@ -165,8 +165,8 @@ export const createTourSteps = (
       </ul>
       <p class="text-xs text-gray-500 mt-2">Try saving your current progress!</p>
     `,
-    target: 'button:contains("Save Checkpoint")',
-    action: 'Click "Save Checkpoint" to export your trained model',
+    target: '[data-tour-target="save-checkpoint-button"]',
+    action: 'Click "Export" to save your trained model',
     waitForAction: true,
     validation: checkCheckpointSaved
   },

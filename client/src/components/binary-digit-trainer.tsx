@@ -322,6 +322,7 @@ export default function BinaryDigitTrainer() {
   const datasetLoadedRef = useRef(false);
   const nextSampleClickedRef = useRef(false);
   const multiEpochStartedRef = useRef(false);
+  const checkpointSavedRef = useRef(false);
   const isDrawingRef = useRef(false);
   const changedCellsRef = useRef(0);
 
@@ -372,8 +373,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkCheckpointSaved = () => {
-    const result = tourCheckpointSaved;
-    console.log('🔍 TOUR: checkCheckpointSaved - tourCheckpointSaved:', tourCheckpointSaved, 'result:', result);
+    const result = checkpointSavedRef.current === true;
+    console.log('🔍 TOUR: checkCheckpointSaved - checkpointSavedRef.current:', checkpointSavedRef.current, 'result:', result);
     return result;
   };
   const checkInferenceModeActive = () => mode === 'inference';
@@ -434,6 +435,7 @@ export default function BinaryDigitTrainer() {
     datasetLoadedRef.current = false;
     nextSampleClickedRef.current = false;
     multiEpochStartedRef.current = false;
+    checkpointSavedRef.current = false;
   };
   
   // New state for enhanced features
@@ -1262,7 +1264,17 @@ export default function BinaryDigitTrainer() {
       }
     };
     downloadBlobJSON(cp, `checkpoint-${nowStamp()}.json`);
-    setTourCheckpointSaved(true); // Mark for tour tracking
+    setTourCheckpointSaved(true); // Tour tracking - React state
+    checkpointSavedRef.current = true; // Tour tracking - immediate ref
+    console.log('🎯 TOUR: Export checkpoint clicked! Setting both state and ref to true');
+    
+    // Trigger tour validation check
+    setTimeout(() => {
+      if (tourTriggerRef.current) {
+        console.log('🔔 TOUR: Triggering validation check after Export click');
+        tourTriggerRef.current();
+      }
+    }, 100);
   };
 
   const handleImportCheckpointFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2229,6 +2241,7 @@ export default function BinaryDigitTrainer() {
                           variant="outline"
                           size="sm"
                           className="text-xs"
+                          data-tour-target="save-checkpoint-button"
                         >
                           <Save className="w-3 h-3 mr-1" />
                           Export
@@ -3428,7 +3441,7 @@ export default function BinaryDigitTrainer() {
             checkDatasetLoaded, // Use the ref-based validation function
             checkNextSampleClicked, // Use the ref-based validation function
             checkEpochTrainingStarted, // Use the ref-based validation function
-            () => tourCheckpointSaved,
+            checkCheckpointSaved, // Use the ref-based validation function
             () => tourInferenceModeEnabled,
             () => tourWeightVisualizationOpened
           )}

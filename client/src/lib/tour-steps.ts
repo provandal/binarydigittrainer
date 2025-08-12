@@ -8,7 +8,9 @@ export const createTourSteps = (
   checkDatasetLoaded: () => boolean,
   checkNextSampleClicked: () => boolean,
   checkEpochTrainingStarted: () => boolean,
-  checkTrainingCompletedAndCheckpointSaved: () => boolean,
+  checkTrainingCompleted: () => boolean,
+  checkModelManagementExpanded: () => boolean,
+  checkCheckpointSaved: () => boolean,
   checkInferenceModeActive: () => boolean,
   checkWeightVisualizationOpened: () => boolean
 ): TourStep[] => [
@@ -155,27 +157,65 @@ export const createTourSteps = (
     pin: 'bottom-left'
   },
   {
-    id: 'checkpoints',
-    title: 'Step 10: Wait for Training or Save Progress',
+    id: 'wait-for-training',
+    title: 'Step 10: Wait for Training to Complete',
     content: `
-      <p>If training is still running, <strong>wait for it to complete</strong> or click <strong>"Stop Training"</strong> to stop it early.</p>
-      <p>Once training stops, you can save your progress using checkpoints.</p>
+      <p>Now we wait for the training to finish processing all examples in the training set.</p>
+      <p><strong>Options while waiting:</strong></p>
+      <ul class="text-xs space-y-1 ml-4 list-disc">
+        <li>Let it finish automatically</li>
+        <li>Click "Stop Training" to stop early</li>
+        <li>Watch the progress indicators</li>
+      </ul>
+      <p class="text-xs text-gray-500 mt-2">The next step will be enabled when training stops.</p>
+    `,
+    target: '[data-tour-target="stop-training-button"]',
+    action: 'Wait for training to complete (or click "Stop Training" to stop early)',
+    waitForAction: false,
+    validation: checkTrainingCompleted,
+    autoAdvanceOnValid: true,
+    pin: 'bottom-left'
+  },
+  {
+    id: 'checkpoints',
+    title: 'Step 11: Save Your Progress',
+    content: `
+      <p>Great! Training is complete. Now let's save your trained model using checkpoints.</p>
       <p><strong>Checkpoint contains:</strong></p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>All network weights and biases</li>
         <li>Training history and loss data</li>
         <li>Learning rate and configuration</li>
       </ul>
+      <p class="text-xs text-gray-500 mt-2">First, open the Model Management section below.</p>
     `,
-    target: '[data-tour-target="save-checkpoint-button"], [data-tour-target="stop-training-button"]',
-    action: 'Wait for training to complete, then click "Export" to save your model',
+    target: '[data-tour-target="model-management-toggle"]',
+    action: 'Click to expand the "Model Management" section',
     waitForAction: true,
-    validation: checkTrainingCompletedAndCheckpointSaved,
+    validation: checkModelManagementExpanded,
+    pin: 'bottom-left'
+  },
+  {
+    id: 'export-model',
+    title: 'Step 12: Export Your Model',
+    content: `
+      <p>Perfect! Now you can save your trained model as a checkpoint file.</p>
+      <p><strong>The export includes:</strong></p>
+      <ul class="text-xs space-y-1 ml-4 list-disc">
+        <li>Complete network state</li>
+        <li>Training history</li>
+        <li>All configuration settings</li>
+      </ul>
+    `,
+    target: '[data-tour-target="save-checkpoint-button"]',
+    action: 'Click "Export" to save your trained model',
+    waitForAction: true,
+    validation: checkCheckpointSaved,
     pin: 'bottom-left'
   },
   {
     id: 'inference-mode',
-    title: 'Step 11: Test Your Model',
+    title: 'Step 13: Test Your Model',
     content: `
       <p>Switch to <strong>Inference Mode</strong> to test your trained network!</p>
       <p>In inference mode:</p>
@@ -194,7 +234,7 @@ export const createTourSteps = (
   },
   {
     id: 'test-drawing',
-    title: 'Step 12: Draw and Test',
+    title: 'Step 14: Draw and Test',
     content: `
       <p>Perfect! Now you're in inference mode. Draw a digit and watch the network predict what it is.</p>
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
@@ -205,7 +245,7 @@ export const createTourSteps = (
   },
   {
     id: 'weight-visualization',
-    title: 'Step 13: Explore Network Internals',
+    title: 'Step 15: Explore Network Internals',
     content: `
       <p>The final feature is <strong>weight visualization</strong>. Click on any output neuron in the network diagram to see:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">

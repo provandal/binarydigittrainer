@@ -377,13 +377,14 @@ export default function BinaryDigitTrainer() {
     console.log('🔍 TOUR: checkCheckpointSaved - checkpointSavedRef.current:', checkpointSavedRef.current, 'result:', result);
     return result;
   };
-  const checkTrainingCompletedAndCheckpointSaved = () => {
-    // First check if training is completed (not running)
-    const trainingCompleted = !isAutoTraining;
-    // Then check if checkpoint was saved
-    const checkpointSaved = checkpointSavedRef.current === true;
-    const result = trainingCompleted && checkpointSaved;
-    console.log('🔍 TOUR: checkTrainingCompletedAndCheckpointSaved - isAutoTraining:', isAutoTraining, 'checkpointSaved:', checkpointSaved, 'result:', result);
+  const checkTrainingCompleted = () => {
+    const result = !isAutoTraining;
+    console.log('🔍 TOUR: checkTrainingCompleted - isAutoTraining:', isAutoTraining, 'result:', result);
+    return result;
+  };
+  const checkModelManagementExpanded = () => {
+    const result = isModelManagementOpen;
+    console.log('🔍 TOUR: checkModelManagementExpanded - isModelManagementOpen:', isModelManagementOpen, 'result:', result);
     return result;
   };
   const checkInferenceModeActive = () => mode === 'inference';
@@ -2227,6 +2228,7 @@ export default function BinaryDigitTrainer() {
                   variant="ghost"
                   size="sm"
                   className="w-full justify-between p-2 h-auto"
+                  data-tour-target="model-management-toggle"
                 >
                   <span className="text-sm font-medium text-gray-700">Model Management</span>
                   {showModelManagement ? (
@@ -3451,7 +3453,9 @@ export default function BinaryDigitTrainer() {
             checkDatasetLoaded, // Use the ref-based validation function
             checkNextSampleClicked, // Use the ref-based validation function
             checkEpochTrainingStarted, // Use the ref-based validation function
-            checkTrainingCompletedAndCheckpointSaved, // Use the ref-based validation function
+            checkTrainingCompleted, // Use the ref-based validation function
+            checkModelManagementExpanded, // Use the ref-based validation function
+            checkCheckpointSaved, // Use the ref-based validation function
             () => tourInferenceModeEnabled,
             () => tourWeightVisualizationOpened
           )}

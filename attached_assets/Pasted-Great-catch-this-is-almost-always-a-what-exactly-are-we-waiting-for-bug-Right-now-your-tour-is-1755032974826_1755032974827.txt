@@ -1,0 +1,129 @@
+Great catch — this is almost always a “what exactly are we waiting for?” bug. Right now your tour is advancing when **one sample finishes**, not when **all samples across all epochs** are done. Here’s a tight fix that’s robust and easy to reason about.
+
+# 1) Make “done” unambiguous (parent component)
+
+Add explicit training progress counters and only flip `trainingCompleted` when **every** sample in **every** epoch has been processed.
+
+```ts
+// --- add near your other refs/state ---
+const trainedSampleCountRef = useRef(0);
+const totalPlannedSamples = useMemo(
+  () => (trainingExamples.length || 0) * (numberOfEpochs || 0),
+  [trainingExamples.length, numberOfEpochs]
+);
+
+// Optional: expose these as state too if you want the UI to re-render
+const [trainedSampleCount, setTrainedSampleCount] = useState(0);
+
+// --- reset when starting multi-epoch training ---
+const startMultiEpochTraining = () => {
+  if (trainingExamples.length === 0) return;
+
+  trainedSampleCountRef.current = 0;
+  setTrainedSampleCount(0);
+  setTrainingCompleted(false);
+  // ... your existing setup ...
+  
+  const processNextExample = () => {
+    // ... your existing per-sample code ...
+    // When a single sample finishes:
+    trainedSampleCountRef.current += 1;
+    setTrainedSampleCount(c => c + 1);
+
+    const allDone = trainedSampleCountRef.current >= totalPlannedSamples;
+    if (allDone) {
+      setIsAutoTraining(false);
+      setTrainingCompleted(true);       // <-- flip only here
+      // (do not start another example)
+      return;
+    }
+
+    // otherwise continue to next example / next epoch
+    // ... your existing increment + recurse ...
+  };
+
+  processNextExample();
+};
+```
+
+**Important:** Do **not** set `trainingCompleted(true)` in your “single-sample” path (e.g., `runToNextSample`). That flag should be reserved for “all samples in all epochs are finished.”
+
+# 2) Wire the tour’s validation to those counters
+
+Use the `onValidationTrigger` hook you already added to the tour. Cache it in a ref and call it whenever progress changes. This avoids React state timing issues and lets the tour re-check exactly when it should.
+
+```ts
+// Hold the tour’s trigger function once GuidedTour provides it
+const tourTriggerValidationRef = useRef<null | (() => void)>(null);
+
+// GuidedTour prop
+<GuidedTour
+  isOpen={isTourOpen}
+  onClose={() => setIsTourOpen(false)}
+  onReset={resetNetwork}
+  tourSteps={tourSteps}
+  onValidationTrigger={(trigger) => { tourTriggerValidationRef.current = trigger; }}
+/>
+
+// Whenever training progress changes, ask the tour to re-validate
+useEffect(() => {
+  if (tourTriggerValidationRef.current) {
+    tourTriggerValidationRef.current();
+  }
+}, [trainedSampleCount, trainingCompleted, isAutoTraining, currentEpoch, numberOfEpochs, trainingExamples.length]);
+```
+
+# 3) Define Step 10’s validation precisely
+
+Where you define `tourSteps`, make Step 10 wait until the **entire plan** is done. You can use either the boolean or the exact count:
+
+```ts
+const tourSteps: TourStep[] = [
+  // ...
+  {
+    id: "waitAllTraining",
+    title: "Training: all samples in all epochs",
+    content: "We’ll wait until the full dataset has been processed for every epoch.",
+    target: ".automated-training-controls",     // wherever your training UI lives
+    pin: "bottom-left",
+    waitForAction: true,
+    autoAdvanceOnValid: true,
+    validation: () => {
+      // Option A: exact count
+      const allPlanned = (trainingExamples.length || 0) * (numberOfEpochs || 0);
+      return !isAutoTraining && trainedSampleCountRef.current >= allPlanned;
+
+      // Option B (if you prefer): single boolean
+      // return trainingCompleted && !isAutoTraining;
+    },
+    action: "Click Start Training and let it run until all epochs complete."
+  },
+  // ...
+];
+```
+
+> Tip: keep `autoAdvanceOnValid: true` so the tour moves the moment the last sample of the last epoch finishes.
+
+# 4) Common pitfalls to double-check
+
+* **Don’t** set `trainingCompleted` inside a single-sample runner (`runToNextSample`). That’s what caused the early advance.
+* Ensure you **reset** `trainedSampleCountRef`, `trainingCompleted`, and `currentEpoch` at the **start** of multi-epoch training.
+* If you shuffle the dataset each epoch, the counters still work — they’re order-agnostic.
+* Keep `isAutoTraining` true while the loop runs, then flip it to false right before setting `trainingCompleted(true)`.
+
+# 5) Optional: show progress in the tour step
+
+To make it self-evident for the user, append live progress text to Step 10:
+
+```ts
+content: `
+  <p>Training is running… We’ll advance when all samples across all epochs finish.</p>
+  <p><strong>Progress:</strong> ${trainedSampleCount} / ${totalPlannedSamples}</p>
+`
+```
+
+(If you render the step content inside React, you can pass those numbers via state instead of string interpolation.)
+
+---
+
+If you drop these in, Step 10 will only pass when **every** sample in **every** epoch has been processed, and the tour will re-check exactly when training state changes.

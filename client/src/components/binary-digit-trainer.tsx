@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -378,13 +378,12 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkTrainingCompleted = () => {
-    // Training is considered complete when:
-    // 1. Multi-epoch training was started (multiEpochStartedRef.current is true), AND
-    // 2. trainingCompleted is true (either finished all epochs or manually stopped), AND
-    // 3. isAutoTraining is false (no active training process)
-    const multiEpochWasStarted = multiEpochStartedRef.current === true;
-    const result = multiEpochWasStarted && trainingCompleted && !isAutoTraining;
-    console.log('🔍 TOUR: checkTrainingCompleted - multiEpochStarted:', multiEpochWasStarted, 'trainingCompleted:', trainingCompleted, 'isAutoTraining:', isAutoTraining, 'result:', result);
+    // Training is considered complete when ALL samples across ALL epochs are processed
+    const allPlanned = totalPlannedSamples;
+    const actuallyCompleted = trainedSampleCountRef.current >= allPlanned && allPlanned > 0;
+    const notCurrentlyTraining = !isAutoTraining;
+    const result = actuallyCompleted && notCurrentlyTraining;
+    console.log('🔍 TOUR: checkTrainingCompleted - trained:', trainedSampleCountRef.current, 'planned:', allPlanned, 'completed:', actuallyCompleted, 'notTraining:', notCurrentlyTraining, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {
@@ -478,6 +477,14 @@ export default function BinaryDigitTrainer() {
   const [epochLossHistory, setEpochLossHistory] = useState<{epoch: number, averageLoss: number}[]>([]);
   const currentEpochLoss = useRef<number[]>([]);
   const [trainingCompleted, setTrainingCompleted] = useState(false);
+  
+  // Training progress tracking for tour validation
+  const trainedSampleCountRef = useRef(0);
+  const [trainedSampleCount, setTrainedSampleCount] = useState(0);
+  const totalPlannedSamples = useMemo(
+    () => (trainingExamples.length || 0) * (numberOfEpochs || 0),
+    [trainingExamples.length, numberOfEpochs]
+  );
   
   // Debug info display
   const [showDebugDialog, setShowDebugDialog] = useState(false);
@@ -650,6 +657,14 @@ export default function BinaryDigitTrainer() {
   // Sync refs with state changes
   useEffect(() => { selectedLabelRef.current = selectedLabel; }, [selectedLabel]);
   useEffect(() => { pixelGridRef.current = pixelGrid; }, [pixelGrid]);
+
+  // Trigger tour validation when training progress changes (for step 10 validation)
+  useEffect(() => {
+    if (tourTriggerRef.current) {
+      console.log('🔔 TOUR: Training progress changed, triggering validation');
+      tourTriggerRef.current();
+    }
+  }, [trainedSampleCount, trainingCompleted, isAutoTraining, currentEpoch, numberOfEpochs, trainingExamples.length]);
 
   // Calculate pixel values - read from ref for training logic, fallback to state for UI
   const getPixelValues = () => {
@@ -1495,6 +1510,10 @@ export default function BinaryDigitTrainer() {
         
         currentEpochLoss.current.push(currentNetworkState.current.loss);
         setExamplesSeen(prev => prev + 1);
+        
+        // Increment sample counter for tour validation
+        trainedSampleCountRef.current += 1;
+        setTrainedSampleCount(prev => prev + 1);
       }
       
       // Calculate average loss for completed epoch
@@ -1524,8 +1543,14 @@ export default function BinaryDigitTrainer() {
     }
     
     setIsAutoTraining(false);
-    setTrainingCompleted(true);
-    console.log(`🎉 Training completed! All ${numberOfEpochs} epochs finished.`);
+    
+    // Only set training completed if we've processed all planned samples
+    const allPlanned = totalPlannedSamples;
+    const actuallyCompleted = trainedSampleCountRef.current >= allPlanned && allPlanned > 0;
+    if (actuallyCompleted) {
+      setTrainingCompleted(true);
+      console.log(`🎉 Training completed! All ${trainedSampleCountRef.current}/${allPlanned} samples finished.`);
+    }
     
     // Trigger tour validation check for training completion
     setTimeout(() => {
@@ -1562,7 +1587,15 @@ export default function BinaryDigitTrainer() {
     console.log('🛑 Training stopped by user');
     shouldStopTraining.current = true;
     setIsAutoTraining(false);
-    setTrainingCompleted(true);
+    
+    // Only set training completed if we've processed all planned samples
+    const allPlanned = totalPlannedSamples;
+    const actuallyCompleted = trainedSampleCountRef.current >= allPlanned && allPlanned > 0;
+    if (actuallyCompleted) {
+      setTrainingCompleted(true);
+      console.log(`🎉 Training completed via stop! All ${trainedSampleCountRef.current}/${allPlanned} samples finished.`);
+    }
+    
     if (trainingIntervalRef.current) {
       clearInterval(trainingIntervalRef.current);
       trainingIntervalRef.current = null;
@@ -1582,6 +1615,14 @@ export default function BinaryDigitTrainer() {
     
     console.log(`Starting multi-epoch training for ${numberOfEpochs} epoch(s) with ${trainingExamples.length} examples`);
     
+    // Reset training progress counters
+    trainedSampleCountRef.current = 0;
+    setTrainedSampleCount(0);
+    setTrainingCompleted(false);
+    
+    // Set multi-epoch started ref for tour tracking
+    multiEpochStartedRef.current = true;
+    
     shouldStopTraining.current = false;
     setIsAutoTraining(true);
     setCurrentExampleIndex(0);
@@ -1590,7 +1631,6 @@ export default function BinaryDigitTrainer() {
     // Reset epoch loss tracking
     setEpochLossHistory([]);
     currentEpochLoss.current = [];
-    setTrainingCompleted(false);
     setCurrentEpoch(1);
     
     // Start the async training process
@@ -3462,6 +3502,8 @@ export default function BinaryDigitTrainer() {
             setTourTrainingCycleCompleted(false);
             // Reset training completion state for tour
             setTrainingCompleted(false);
+            trainedSampleCountRef.current = 0;
+            setTrainedSampleCount(0);
             // Reset ref-based tracking
             multiEpochStartedRef.current = false;
             datasetLoadedRef.current = false;

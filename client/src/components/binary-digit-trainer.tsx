@@ -1510,7 +1510,7 @@ export default function BinaryDigitTrainer() {
     }
     
     setIsEpochDialogOpen(true);
-    setTourEpochStarted(true); // Tour tracking - React state
+    setTourMultiEpochStarted(true); // Tour tracking - React state
     multiEpochStartedRef.current = true; // Tour tracking - immediate ref
     console.log('🎯 TOUR: Process Training Set clicked! Setting both state and ref to true');
     

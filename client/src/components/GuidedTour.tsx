@@ -31,25 +31,35 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  // Helper: does this step require validation to proceed?
+  const requiresValidation = (step?: TourStep) =>
+    !!step?.validation || !!step?.waitForAction;
+
   // Validation trigger function that can be called from outside
   const triggerValidation = () => {
     // Use a function to get current step and tour steps to avoid stale closure
     setCurrentStep(current => {
       const step = tourSteps[current];
       console.log('🔍 TOUR: triggerValidation called for step', current, 'stepId:', step?.id);
-      if (step?.validation) {
-        const isValid = step.validation();
-        console.log('🔍 TOUR: validation result:', isValid, 'setting validationPassed');
+      if (!step) return current;
+      let isValid = false;
+      if (step.validation) {
+        isValid = !!step.validation();
+        console.log('🔍 TOUR: validation() →', isValid);
+      } else if (requiresValidation(step)) {
+        // No validation function, but this step still requires an external acknowledgement.
+        // Calling triggerValidation() marks it complete.
+        isValid = true;
+        console.log('🔍 TOUR: no validation(), treating external trigger as completion');
+      }
+      if (requiresValidation(step)) {
         setValidationPassed(isValid);
         if (isValid && step.autoAdvanceOnValid) {
-          // Advance immediately to the next step and reset validation for it
           setTimeout(() => {
             setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
             setValidationPassed(false);
           }, 0);
         }
-      } else {
-        console.log('🔍 TOUR: no validation function for this step');
       }
       return current; // Don't change the step
     });
@@ -155,13 +165,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
 
     const step = tourSteps[currentStep];
     console.log('🔍 TOUR: Step changed to', currentStep, 'stepId:', step?.id, 'waitForAction:', step?.waitForAction);
-    if (step?.validation && step.waitForAction) {
-      // For steps that wait for action, start with validation failed
-      // Validation will be triggered manually when action occurs
-      console.log('🔍 TOUR: Setting validationPassed = false (waiting for action)');
+    // New logic: if the step REQUIRES validation (either it has validation() OR waitForAction),
+    // start with "not passed" and wait for triggerValidation() or a true validation().
+    if (requiresValidation(step)) {
+      console.log('🔍 TOUR: Step requires validation → validationPassed = false');
       setValidationPassed(false);
     } else {
-      console.log('🔍 TOUR: Setting validationPassed = true (no wait required)');
+      console.log('🔍 TOUR: Step does not require validation → validationPassed = true');
       setValidationPassed(true);
     }
   }, [currentStep, isOpen]); // Remove tourSteps from dependencies to prevent re-render loop
@@ -192,7 +202,8 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
 
   const step = tourSteps[currentStep];
   const isLastStep = currentStep === tourSteps.length - 1;
-  const canProceed = !step?.waitForAction || validationPassed;
+  // Only allow Next if either the step does not require validation, or it has passed.
+  const canProceed = !requiresValidation(step) || validationPassed;
 
   // Calculate dialog style based on position
   const dialogStyle = dialogPosition.x === 0 && dialogPosition.y === 0

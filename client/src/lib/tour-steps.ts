@@ -171,7 +171,7 @@ export const createTourSteps = (
     `,
     target: '[data-tour-target="stop-training-button"]',
     action: 'Wait for training to complete (or click "Stop Training" to stop early)',
-    waitForAction: false,
+    waitForAction: true,
     validation: checkTrainingCompleted,
     autoAdvanceOnValid: true,
     pin: 'bottom-left'

@@ -1,0 +1,168 @@
+You’re right: in your current `GuidedTour` the **Next** button can become enabled too early whenever a step has a `validation` function but `waitForAction` is not `true`. Your component defaults to `validationPassed = true` for any step that doesn’t explicitly set `waitForAction`, even if a `validation` exists. That’s why Step 10 can “unlock” early.
+
+Below is a safe fix that makes the tour **require validation whenever a step defines either `validation` OR `waitForAction`**. It also lets you “mark complete” from the parent even if a step has no `validation` function (useful for one-click actions).
+
+---
+
+# Patch for `GuidedTour (4).tsx`
+
+```diff
+*** GuidedTour (4).tsx
+@@
+ export interface TourStep {
+   id: string;
+   title: string;
+   content: string;
+   target?: string; // CSS selector for highlighting
+   position?: 'top' | 'bottom' | 'left' | 'right';
+-  validation?: () => boolean; // Function to check if user completed the required action
++  validation?: () => boolean; // Return true when this step's requirement is met
+   action?: string; // Description of required action
+-  waitForAction?: boolean; // Whether to wait for user action before enabling Next
++  waitForAction?: boolean; // If true, Next stays disabled until validation or external trigger says done
+   autoAdvanceOnValid?: boolean; // If true, advance automatically when validation turns true
+   pin?: 'bottom-left' | 'top-right'; // Simple presets for dialog placement
+ }
+@@
+ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onValidationTrigger }: GuidedTourProps) {
+   const [currentStep, setCurrentStep] = useState(0);
+   const [highlightedElement, setHighlightedElement] = useState<Element | null>(null);
+   const [validationPassed, setValidationPassed] = useState(false);
+   const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
+   const [isDragging, setIsDragging] = useState(false);
+   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+ 
++  // Helper: does this step require validation to proceed?
++  const requiresValidation = (step?: TourStep) =>
++    !!step?.validation || !!step?.waitForAction;
++
+   // Validation trigger function that can be called from outside
+-  const triggerValidation = () => {
++  const triggerValidation = () => {
+     // Use a function to get current step and tour steps to avoid stale closure
+     setCurrentStep(current => {
+       const step = tourSteps[current];
+       console.log('🔍 TOUR: triggerValidation called for step', current, 'stepId:', step?.id);
+-      if (step?.validation) {
+-        const isValid = step.validation();
+-        console.log('🔍 TOUR: validation result:', isValid, 'setting validationPassed');
+-        setValidationPassed(isValid);
+-        if (isValid && step.autoAdvanceOnValid) {
+-          // Advance immediately to the next step and reset validation for it
+-          setTimeout(() => {
+-            setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
+-            setValidationPassed(false);
+-          }, 0);
+-        }
+-      } else {
+-        console.log('🔍 TOUR: no validation function for this step');
+-      }
++      if (!step) return current;
++      let isValid = false;
++      if (step.validation) {
++        isValid = !!step.validation();
++        console.log('🔍 TOUR: validation() →', isValid);
++      } else if (requiresValidation(step)) {
++        // No validation function, but this step still requires an external acknowledgement.
++        // Calling triggerValidation() marks it complete.
++        isValid = true;
++        console.log('🔍 TOUR: no validation(), treating external trigger as completion');
++      }
++      if (requiresValidation(step)) {
++        setValidationPassed(isValid);
++        if (isValid && step.autoAdvanceOnValid) {
++          setTimeout(() => {
++            setCurrentStep(c => Math.min(c + 1, tourSteps.length - 1));
++            setValidationPassed(false);
++          }, 0);
++        }
++      }
+       return current; // Don't change the step
+     });
+   };
+@@
+   // Validation checking - only for steps that don't require manual action
+   useEffect(() => {
+     if (!isOpen) return;
+ 
+     const step = tourSteps[currentStep];
+     console.log('🔍 TOUR: Step changed to', currentStep, 'stepId:', step?.id, 'waitForAction:', step?.waitForAction);
+-    if (step?.validation && step.waitForAction) {
+-      // For steps that wait for action, start with validation failed
+-      // Validation will be triggered manually when action occurs
+-      console.log('🔍 TOUR: Setting validationPassed = false (waiting for action)');
+-      setValidationPassed(false);
+-    } else {
+-      console.log('🔍 TOUR: Setting validationPassed = true (no wait required)');
+-      setValidationPassed(true);
+-    }
++    // New logic: if the step REQUIRES validation (either it has validation() OR waitForAction),
++    // start with "not passed" and wait for triggerValidation() or a true validation().
++    if (requiresValidation(step)) {
++      console.log('🔍 TOUR: Step requires validation → validationPassed = false');
++      setValidationPassed(false);
++    } else {
++      console.log('🔍 TOUR: Step does not require validation → validationPassed = true');
++      setValidationPassed(true);
++    }
+   }, [currentStep, isOpen]); // keep deps minimal
+@@
+-  const canProceed = !step?.waitForAction || validationPassed;
++  // Only allow Next if either the step does not require validation, or it has passed.
++  const canProceed = !requiresValidation(step) || validationPassed;
+```
+
+---
+
+## How to define Step 10 in the parent
+
+Make sure Step 10 **requires** validation (either set `waitForAction: true` or provide a `validation` function — I recommend both):
+
+```ts
+// In the parent where you define tourSteps:
+{
+  id: "waitAllTraining",
+  title: "Training the full plan",
+  content: `
+    <p>We’ll advance when <strong>all samples across all epochs</strong> finish.</p>
+    <p>Progress: ${trainedSampleCount} / ${totalPlannedSamples}</p>
+  `,
+  target: ".automated-training-controls",
+  pin: "bottom-left",
+  waitForAction: true,            // ensures GuidedTour treats this as gated
+  autoAdvanceOnValid: false,      // optional: keep it manual (enable Next when done)
+  validation: () => {
+    const allPlanned = (trainingExamples.length || 0) * (numberOfEpochs || 0);
+    return !isAutoTraining && trainedSampleCountRef.current >= allPlanned;
+  },
+}
+```
+
+And from the parent, **ask the tour to re-check** whenever progress changes:
+
+```ts
+// Hold the trigger from GuidedTour
+const tourTriggerValidationRef = useRef<null | (() => void)>(null);
+
+<GuidedTour
+  isOpen={isTourOpen}
+  onClose={() => setIsTourOpen(false)}
+  onReset={resetNetwork}
+  tourSteps={tourSteps}
+  onValidationTrigger={(trigger) => { tourTriggerValidationRef.current = trigger; }}
+/>
+
+useEffect(() => {
+  tourTriggerValidationRef.current?.();
+}, [trainedSampleCount, trainingCompleted, isAutoTraining, numberOfEpochs, trainingExamples.length]);
+```
+
+> Important: only set `trainingCompleted = true` **once all samples in all epochs** are processed. Don’t set it in a per-sample loop.
+
+---
+
+### Why this fixes your case
+
+* Previously, a step that **had a `validation`** but didn’t set `waitForAction` got `validationPassed = true` by default (due to the “no wait required” branch), enabling **Next** prematurely.
+* Now, **any step with `validation` or `waitForAction` is considered gated**, starts as “not passed,” and only unlocks when `triggerValidation()` sets it true or `validation()` returns true.
+* Step 10 won’t enable **Next** until your dataset×epochs loop has fully completed.

@@ -377,6 +377,15 @@ export default function BinaryDigitTrainer() {
     console.log('🔍 TOUR: checkCheckpointSaved - checkpointSavedRef.current:', checkpointSavedRef.current, 'result:', result);
     return result;
   };
+  const checkTrainingCompletedAndCheckpointSaved = () => {
+    // First check if training is completed (not running)
+    const trainingCompleted = !isAutoTraining;
+    // Then check if checkpoint was saved
+    const checkpointSaved = checkpointSavedRef.current === true;
+    const result = trainingCompleted && checkpointSaved;
+    console.log('🔍 TOUR: checkTrainingCompletedAndCheckpointSaved - isAutoTraining:', isAutoTraining, 'checkpointSaved:', checkpointSaved, 'result:', result);
+    return result;
+  };
   const checkInferenceModeActive = () => mode === 'inference';
   const checkWeightVisualizationOpened = () => tourWeightVisualizationOpened;
 
@@ -2464,6 +2473,7 @@ export default function BinaryDigitTrainer() {
                       size="sm"
                       variant="outline"
                       className="w-full border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-600"
+                      data-tour-target="stop-training-button"
                     >
                       🛑 Stop Training
                     </Button>
@@ -3441,7 +3451,7 @@ export default function BinaryDigitTrainer() {
             checkDatasetLoaded, // Use the ref-based validation function
             checkNextSampleClicked, // Use the ref-based validation function
             checkEpochTrainingStarted, // Use the ref-based validation function
-            checkCheckpointSaved, // Use the ref-based validation function
+            checkTrainingCompletedAndCheckpointSaved, // Use the ref-based validation function
             () => tourInferenceModeEnabled,
             () => tourWeightVisualizationOpened
           )}

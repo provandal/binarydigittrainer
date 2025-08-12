@@ -8,7 +8,7 @@ export const createTourSteps = (
   checkDatasetLoaded: () => boolean,
   checkNextSampleClicked: () => boolean,
   checkEpochTrainingStarted: () => boolean,
-  checkCheckpointSaved: () => boolean,
+  checkTrainingCompletedAndCheckpointSaved: () => boolean,
   checkInferenceModeActive: () => boolean,
   checkWeightVisualizationOpened: () => boolean
 ): TourStep[] => [
@@ -138,7 +138,8 @@ export const createTourSteps = (
     target: '[data-tour-target="run-next-sample-button"]',
     action: 'Click "Run to Next Sample" to process the next training example',
     waitForAction: true,
-    validation: checkNextSampleClicked
+    validation: checkNextSampleClicked,
+    pin: 'bottom-left'
   },
   {
     id: 'multi-epoch',
@@ -150,25 +151,27 @@ export const createTourSteps = (
     target: '[data-tour-target="multi-epoch-button"]',
     action: 'Click "Process Training Set" to start automated training',
     waitForAction: true,
-    validation: checkEpochTrainingStarted
+    validation: checkEpochTrainingStarted,
+    pin: 'bottom-left'
   },
   {
     id: 'checkpoints',
-    title: 'Step 10: Save Your Progress',
+    title: 'Step 10: Wait for Training or Save Progress',
     content: `
-      <p>Checkpoints let you save and restore your trained model.</p>
-      <p><strong>Save contains:</strong></p>
+      <p>If training is still running, <strong>wait for it to complete</strong> or click <strong>"Stop Training"</strong> to stop it early.</p>
+      <p>Once training stops, you can save your progress using checkpoints.</p>
+      <p><strong>Checkpoint contains:</strong></p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>All network weights and biases</li>
         <li>Training history and loss data</li>
         <li>Learning rate and configuration</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">Try saving your current progress!</p>
     `,
-    target: '[data-tour-target="save-checkpoint-button"]',
-    action: 'Click "Export" to save your trained model',
+    target: '[data-tour-target="save-checkpoint-button"], [data-tour-target="stop-training-button"]',
+    action: 'Wait for training to complete, then click "Export" to save your model',
     waitForAction: true,
-    validation: checkCheckpointSaved
+    validation: checkTrainingCompletedAndCheckpointSaved,
+    pin: 'bottom-left'
   },
   {
     id: 'inference-mode',
@@ -186,7 +189,8 @@ export const createTourSteps = (
     target: 'input[value="inference"]',
     action: 'Click the "Inference" radio button to switch to testing mode',
     waitForAction: true,
-    validation: checkInferenceModeActive
+    validation: checkInferenceModeActive,
+    pin: 'bottom-left'
   },
   {
     id: 'test-drawing',
@@ -196,7 +200,8 @@ export const createTourSteps = (
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
     `,
     target: '.grid.grid-cols-9',
-    action: 'Draw a digit (0 or 1) to see the network make predictions'
+    action: 'Draw a digit (0 or 1) to see the network make predictions',
+    pin: 'bottom-left'
   },
   {
     id: 'weight-visualization',
@@ -213,7 +218,8 @@ export const createTourSteps = (
     target: 'circle[fill="#EF4444"], circle[fill="#22C55E"]',
     action: 'Click on an output neuron (red or green circle) to open weight visualization',
     waitForAction: true,
-    validation: checkWeightVisualizationOpened
+    validation: checkWeightVisualizationOpened,
+    pin: 'bottom-left'
   },
   {
     id: 'tour-complete',

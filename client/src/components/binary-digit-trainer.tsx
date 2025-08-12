@@ -379,10 +379,12 @@ export default function BinaryDigitTrainer() {
   };
   const checkTrainingCompleted = () => {
     // Training is considered complete when:
-    // 1. trainingCompleted is true (either finished all epochs or manually stopped), AND
-    // 2. isAutoTraining is false (no active training process)
-    const result = trainingCompleted && !isAutoTraining;
-    console.log('🔍 TOUR: checkTrainingCompleted - trainingCompleted:', trainingCompleted, 'isAutoTraining:', isAutoTraining, 'result:', result);
+    // 1. Multi-epoch training was started (multiEpochStartedRef.current is true), AND
+    // 2. trainingCompleted is true (either finished all epochs or manually stopped), AND
+    // 3. isAutoTraining is false (no active training process)
+    const multiEpochWasStarted = multiEpochStartedRef.current === true;
+    const result = multiEpochWasStarted && trainingCompleted && !isAutoTraining;
+    console.log('🔍 TOUR: checkTrainingCompleted - multiEpochStarted:', multiEpochWasStarted, 'trainingCompleted:', trainingCompleted, 'isAutoTraining:', isAutoTraining, 'result:', result);
     return result;
   };
   const checkModelManagementExpanded = () => {

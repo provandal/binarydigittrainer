@@ -320,6 +320,7 @@ export default function BinaryDigitTrainer() {
   const clicksThisCycleRef = useRef(0);
   const cycleDoneRef = useRef(false);
   const datasetLoadedRef = useRef(false);
+  const nextSampleClickedRef = useRef(false);
   const isDrawingRef = useRef(false);
   const changedCellsRef = useRef(0);
 
@@ -360,8 +361,8 @@ export default function BinaryDigitTrainer() {
     return result;
   };
   const checkNextSampleClicked = () => {
-    const result = tourNextSampleClicked;
-    console.log('🔍 TOUR: checkNextSampleClicked - tourNextSampleClicked:', tourNextSampleClicked, 'result:', result);
+    const result = nextSampleClickedRef.current === true;
+    console.log('🔍 TOUR: checkNextSampleClicked - nextSampleClickedRef.current:', nextSampleClickedRef.current, 'result:', result);
     return result;
   };
   const checkEpochTrainingStarted = () => {
@@ -430,6 +431,7 @@ export default function BinaryDigitTrainer() {
     // Reset tour refs
     cycleDoneRef.current = false;
     datasetLoadedRef.current = false;
+    nextSampleClickedRef.current = false;
   };
   
   // New state for enhanced features
@@ -2386,7 +2388,16 @@ export default function BinaryDigitTrainer() {
                       console.log(`📌 CACHE SET: currentTarget = [${oneHot}], example index = ${currentExampleIndex}`);
                       
                       setIsAutoTraining(true);
-                      setTourNextSampleClicked(true); // Tour tracking
+                      setTourNextSampleClicked(true); // Tour tracking - React state
+                      nextSampleClickedRef.current = true; // Tour tracking - immediate ref
+                      console.log('🎯 TOUR: Run to Next Sample clicked! Setting both state and ref to true');
+                      // Trigger tour validation check
+                      setTimeout(() => {
+                        if (tourTriggerRef.current) {
+                          console.log('🔔 TOUR: Triggering validation check after Run to Next Sample click');
+                          tourTriggerRef.current();
+                        }
+                      }, 100);
                       runStepsForCurrentSample().then((completed) => {
                         setIsAutoTraining(false);
                         if (completed) {
@@ -3397,7 +3408,7 @@ export default function BinaryDigitTrainer() {
             validOneClick,
             validFullCycle,
             checkDatasetLoaded, // Use the ref-based validation function
-            () => tourNextSampleClicked,
+            checkNextSampleClicked, // Use the ref-based validation function
             () => tourMultiEpochStarted,
             () => tourCheckpointSaved,
             () => tourInferenceModeEnabled,

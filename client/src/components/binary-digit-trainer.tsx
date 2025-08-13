@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { HelpIcon } from "@/components/HelpIcon";
 import GuidedTour from './GuidedTour';
 import { createTourSteps } from '@/lib/tour-steps';
+import { tourCheckpointData } from '@/data/tour-checkpoint';
 
 
 // Weight initialization helper using Xavier/Glorot initialization
@@ -1456,9 +1457,8 @@ export default function BinaryDigitTrainer() {
 
   // Pre-trained tour checkpoint (20 epochs trained)
   const getTourCheckpoint = (): Checkpoint => {
-    // This checkpoint was generated from a model trained for 20 epochs
-    // with good performance on binary digit recognition
-    return generateCurrentCheckpoint(); // Use the current well-trained model
+    // Import your specific 20-epoch trained model with excellent performance
+    return tourCheckpointData;
   };
 
   // Load tour checkpoint for step 13 

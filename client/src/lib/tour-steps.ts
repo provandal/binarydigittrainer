@@ -12,7 +12,8 @@ export const createTourSteps = (
   checkModelManagementExpanded: () => boolean,
   checkCheckpointSaved: () => boolean,
   checkInferenceModeActive: () => boolean,
-  checkWeightVisualizationOpened: () => boolean
+  checkWeightVisualizationOpened: () => boolean,
+  stopTraining: () => void
 ): TourStep[] => [
   {
     id: 'welcome',
@@ -167,13 +168,14 @@ export const createTourSteps = (
         <li>Click "Stop Training" to stop early</li>
         <li>Watch the progress indicators</li>
       </ul>
-      <p class="text-xs text-gray-500 mt-2">The next step will be enabled when training stops.</p>
+      <p class="text-xs text-gray-500 mt-2">When ready to continue, click <strong>Next</strong> (will auto-stop training if needed).</p>
     `,
     target: '[data-tour-target="stop-training-button"]',
-    action: 'Wait for training to complete (or click "Stop Training" to stop early)',
-    waitForAction: true,
-    validation: checkTrainingCompleted,
+    action: 'Wait for training progress, then click Next when ready to continue',
+    waitForAction: false,
+    validation: checkEpochTrainingStarted,
     autoAdvanceOnValid: false,
+    onNext: stopTraining,
     pin: 'bottom-left'
   },
   {

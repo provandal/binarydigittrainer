@@ -13,6 +13,7 @@ export interface TourStep {
   waitForAction?: boolean; // Whether to wait for user action before enabling Next
   autoAdvanceOnValid?: boolean; // If true, advance automatically when validation turns true
   pin?: 'bottom-left' | 'top-right'; // Simple presets for dialog placement
+  onNext?: () => void; // Callback to execute when Next button is clicked
 }
 
 interface GuidedTourProps {
@@ -220,6 +221,13 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   }, [currentStep, isOpen, tourSteps]);
 
   const handleNext = () => {
+    const step = tourSteps[currentStep];
+    
+    // Call onNext callback if defined (e.g., auto-stop training)
+    if (step?.onNext) {
+      step.onNext();
+    }
+    
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
       setValidationPassed(false);

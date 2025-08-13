@@ -3551,7 +3551,8 @@ export default function BinaryDigitTrainer() {
             checkModelManagementExpanded, // Use the ref-based validation function
             checkCheckpointSaved, // Use the ref-based validation function
             () => tourInferenceModeEnabled,
-            () => tourWeightVisualizationOpened
+            () => tourWeightVisualizationOpened,
+            stopTraining // Add stopTraining as callback for auto-stop
           )}
         />
       </div>

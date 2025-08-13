@@ -280,13 +280,21 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
         transform: 'translate(-50%, -50%)' 
       };
     }
-    // Adjust position for step 5 (index 4) to prevent cutoff
-    if (currentStep === 4 && dialogPosition.x === 0 && dialogPosition.y === 0) {
+    // Adjust position for steps 5 and 6 (index 4 and 5) to prevent cutoff
+    if ((currentStep === 4 || currentStep === 5) && dialogPosition.x === 0 && dialogPosition.y === 0) {
       return { 
-        top: '2rem', 
-        right: '1rem',
-        maxHeight: 'calc(100vh - 4rem)',
+        bottom: '1rem', 
+        left: '1rem',
+        maxHeight: 'calc(100vh - 2rem)',
         overflow: 'auto'
+      };
+    }
+    // Position final step (16 of 16) to the right of weight box
+    if (currentStep === 15 && dialogPosition.x === 0 && dialogPosition.y === 0) {
+      return { 
+        top: '50%', 
+        left: '60%',
+        transform: 'translateY(-50%)'
       };
     }
     // Default positioning for other steps
@@ -300,51 +308,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
       {/* Overlay for highlighting */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40 pointer-events-none" />
       
-      {/* Arrow overlay for step 6 (index 5) - pointing from Input to Hidden Layer */}
-      {currentStep === 5 && (
-        <div 
-          className="fixed z-45 pointer-events-none"
-          style={{
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%'
-          }}
-        >
-          <div 
-            className="absolute"
-            style={{
-              // Position relative to the neural network diagram
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '750px',
-              height: '550px'
-            }}
-          >
-            <svg width="100%" height="100%" viewBox="0 -20 750 550" className="pointer-events-none">
-              <defs>
-                <marker id="tour-arrowhead" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
-                  <polygon points="0 0, 12 4, 0 8" fill="#F59E0B" />
-                </marker>
-              </defs>
-              {/* Arrow from Input Layer (around x=150) to Hidden Layer (around x=313) */}
-              <path
-                d="M 150 150 L 290 150"
-                stroke="#F59E0B"
-                strokeWidth="5"
-                fill="none"
-                markerEnd="url(#tour-arrowhead)"
-                className="animate-pulse"
-                opacity="0.9"
-              />
-              <text x="220" y="135" fontSize="16" fill="#F59E0B" textAnchor="middle" fontWeight="bold">
-                Forward Pass
-              </text>
-            </svg>
-          </div>
-        </div>
-      )}
+
       
       {/* Custom Tour Modal */}
       <div 

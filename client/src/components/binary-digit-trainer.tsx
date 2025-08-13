@@ -1865,7 +1865,7 @@ export default function BinaryDigitTrainer() {
 
                 {/* Prediction Display (Inference Mode) */}
                 {mode === 'inference' && prediction && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3" data-tour-target="prediction-display">
                     <h4 className="text-sm font-medium text-green-800 mb-1">Prediction</h4>
                     <div className="text-2xl font-bold text-green-700">
                       Digit: {prediction.digit}

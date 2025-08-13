@@ -157,7 +157,7 @@ export const createTourSteps = (
       </ul>
       <p class="text-xs text-gray-500 mt-2">When ready to continue, click <strong>Next</strong> (will auto-stop training if needed).</p>
     `,
-    target: '[data-tour-target="stop-training-button"]',
+    target: '[data-tour-target="stop-training-button"], .neural-network-diagram, .grid.grid-cols-9, [data-tour-target="label-selector"], .training-step-display',
     action: 'Wait for training progress, then click Next when ready to continue',
     waitForAction: false,
     validation: checkEpochTrainingStarted,
@@ -228,7 +228,7 @@ export const createTourSteps = (
       <p>Perfect! Now you're in inference mode. Draw a digit and watch the network predict what it is.</p>
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
     `,
-    target: '.grid.grid-cols-9',
+    target: '.grid.grid-cols-9, [data-tour-target="prediction-display"]',
     action: 'Draw a digit (0 or 1) to see the network make predictions',
     pin: 'bottom-left'
   },
@@ -236,7 +236,7 @@ export const createTourSteps = (
     id: 'weight-visualization',
     title: 'Step 15: Explore Network Internals',
     content: `
-      <p>The final feature is <strong>weight visualization</strong>. Click on any output neuron in the network diagram to see:</p>
+      <p>The final feature is <strong>weight visualization</strong>. Click the green plus button next to output neuron 0 to see:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>Which hidden neurons contribute most</li>
         <li>Excitatory vs inhibitory patterns</li>
@@ -244,8 +244,8 @@ export const createTourSteps = (
         <li>Decision contribution analysis</li>
       </ul>
     `,
-    target: 'circle[fill="#EF4444"], circle[fill="#22C55E"]',
-    action: 'Click on an output neuron (red or green circle) to open weight visualization',
+    target: 'g[key="output-plus-0"]',
+    action: 'Click the green plus button next to output neuron 0',
     waitForAction: true,
     validation: checkWeightVisualizationOpened,
     pin: 'bottom-left'

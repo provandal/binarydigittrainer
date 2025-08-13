@@ -80,3 +80,15 @@ button.tour-highlight {
   background-color: rgba(59, 130, 246, 0.9) !important;
   color: white !important;
 }
+
+/* For SVG elements (like the plus button) */
+.tour-highlight svg,
+.tour-highlight g {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.tour-highlight circle,
+.tour-highlight line {
+  opacity: 1 !important;
+}

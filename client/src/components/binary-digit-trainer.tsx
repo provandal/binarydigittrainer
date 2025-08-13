@@ -2698,7 +2698,7 @@ export default function BinaryDigitTrainer() {
         {/* Detailed Weight View - Below main grid */}
         {selectedWeightBox && (
           <div className="mt-6">
-            <Card>
+            <Card data-tour-target="weight-dialog">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">

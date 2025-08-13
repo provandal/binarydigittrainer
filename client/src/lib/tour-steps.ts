@@ -268,6 +268,7 @@ export const createTourSteps = (
         <strong>Remember:</strong> Click the ? icons throughout the interface for detailed mathematical explanations of each concept!
       </p>
     `,
-    pin: 'top-right'
+    target: '[data-tour-target="weight-dialog"]',
+    pin: 'right'
   }
 ];

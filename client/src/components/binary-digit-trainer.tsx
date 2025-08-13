@@ -2143,7 +2143,7 @@ export default function BinaryDigitTrainer() {
 
                   {/* Output layer plus buttons */}
                   {outputActivations.map((activation, i) => (
-                    <g key={`output-plus-${i}`} className="cursor-pointer" onClick={() => {
+                    <g key={`output-plus-${i}`} className="cursor-pointer" data-tour-target={i === 0 ? "output-neuron-0-plus" : undefined} onClick={() => {
                       setSelectedWeightBox({type: 'output', index: i});
                       setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
                       setTourWeightVisualizationOpened(true); // Tour tracking

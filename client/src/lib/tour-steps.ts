@@ -246,7 +246,7 @@ export const createTourSteps = (
         <li>Decision contribution analysis</li>
       </ul>
     `,
-    target: 'g[key="output-plus-0"]',
+    target: '[data-tour-target="output-neuron-0-plus"]',
     action: 'Click the green plus button next to output neuron 0',
     waitForAction: true,
     validation: checkWeightVisualizationOpened,
@@ -267,6 +267,7 @@ export const createTourSteps = (
       <p class="text-xs text-gray-500 mt-3">
         <strong>Remember:</strong> Click the ? icons throughout the interface for detailed mathematical explanations of each concept!
       </p>
-    `
+    `,
+    pin: 'top-right'
   }
 ];

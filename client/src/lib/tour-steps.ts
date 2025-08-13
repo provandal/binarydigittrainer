@@ -269,6 +269,6 @@ export const createTourSteps = (
       </p>
     `,
     target: '[data-tour-target="weight-dialog"]',
-    pin: 'right'
+    pin: 'top-right'
   }
 ];

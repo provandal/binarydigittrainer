@@ -83,12 +83,21 @@ button.tour-highlight {
 
 /* For SVG elements (like the plus button) */
 .tour-highlight svg,
-.tour-highlight g {
+.tour-highlight g,
+.tour-highlight circle,
+.tour-highlight line,
+.tour-highlight path {
   opacity: 1 !important;
   filter: none !important;
+  background: none !important;
 }
 
-.tour-highlight circle,
-.tour-highlight line {
+/* Ensure SVG elements inside highlighted containers are fully visible */
+svg .tour-highlight,
+svg .tour-highlight *,
+g.tour-highlight,
+g.tour-highlight * {
   opacity: 1 !important;
+  fill-opacity: 1 !important;
+  stroke-opacity: 1 !important;
 }

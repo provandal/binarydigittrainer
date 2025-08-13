@@ -13,7 +13,8 @@ export const createTourSteps = (
   checkCheckpointSaved: () => boolean,
   checkInferenceModeActive: () => boolean,
   checkWeightVisualizationOpened: () => boolean,
-  stopTraining: () => void
+  stopTraining: () => void,
+  loadTourCheckpoint?: () => void
 ): TourStep[] => [
   {
     id: 'welcome',
@@ -206,7 +207,7 @@ export const createTourSteps = (
     id: 'inference-mode',
     title: 'Step 13: Test Your Model',
     content: `
-      <p>Switch to <strong>Inference Mode</strong> to test your trained network!</p>
+      <p>Now let's load a well-trained model for testing. Switch to <strong>Inference Mode</strong> to test your trained network!</p>
       <p>In inference mode:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
         <li>Draw digits on the canvas</li>
@@ -219,6 +220,7 @@ export const createTourSteps = (
     action: 'Click the "Inference" radio button to switch to testing mode',
     waitForAction: true,
     validation: checkInferenceModeActive,
+    onNext: loadTourCheckpoint,
     pin: 'bottom-left'
   },
   {

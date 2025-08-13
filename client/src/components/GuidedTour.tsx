@@ -147,7 +147,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (step?.target) {
       // Support multiple targets separated by commas
       const targets = step.target.split(',').map(t => t.trim());
-      let firstElement = null;
+      let firstElement: Element | null = null;
       
       targets.forEach(target => {
         const element = document.querySelector(target);
@@ -160,7 +160,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
       if (firstElement) {
         setHighlightedElement(firstElement);
         // Scroll into view using the first element
-        firstElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (firstElement as Element).scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     } else {
       setHighlightedElement(null);

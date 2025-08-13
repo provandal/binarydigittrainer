@@ -80,38 +80,25 @@ export const createTourSteps = (
     title: 'Step 3: Start Training Process',
     content: `
       <p>Now let's begin the training process. Click the highlighted "Next Step" button once to start.</p>
-      <p>Neural network training happens in 6 steps that you'll see step by step:</p>
-      <ul class="text-xs space-y-1 ml-4 list-disc">
-        <li><strong>Step 1-2:</strong> Forward pass (input → hidden → output)</li>
-        <li><strong>Step 3:</strong> Calculate loss (error)</li>
-        <li><strong>Step 4-5:</strong> Backpropagation (update weights)</li>
-        <li><strong>Step 6:</strong> Complete the cycle</li>
-      </ul>
     `,
-    target: '[data-tour-target="next-step-button"]',
+    target: '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
     action: 'Click "Next Step" one time to start',
     waitForAction: true,
     validation: validOneClick,
     autoAdvanceOnValid: true,
-    pin: 'bottom-left'
+    pin: 'top-right'
   },
   {
     id: 'complete-training',
     title: 'Step 4: Complete the Training Cycle',
     content: `
-      <p>Great! You've started training. Now keep clicking "Next Step" to complete the full training cycle:</p>
-      <ul class="text-xs space-y-1 ml-4 list-disc">
-        <li>Watch activations flow through the network</li>
-        <li>See the loss calculation</li>
-        <li>Observe weight updates during backpropagation</li>
-      </ul>
-      <p class="text-xs text-gray-500 mt-2">Continue clicking "Next Step" to complete all 6 training steps.</p>
+      <p>Great! You've started training. Now keep clicking "Next Step" to complete the full training cycle and watch how the network processes information step by step.</p>
     `,
-    target: '[data-tour-target="next-step-button"]',
+    target: '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
     action: 'Finish the remaining training steps of this cycle',
     waitForAction: true,
     validation: validFullCycle,
-    pin: 'bottom-left'
+    pin: 'top-right'
   },
   {
     id: 'dataset-training',

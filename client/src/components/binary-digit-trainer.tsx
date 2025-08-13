@@ -1912,7 +1912,7 @@ export default function BinaryDigitTrainer() {
               
               <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto flex items-start">
                 <svg 
-                  className="block w-full self-start" 
+                  className="block w-full self-start neural-network-diagram" 
                   viewBox="0 -20 750 1340" 
                   preserveAspectRatio="xMinYMin meet"
                   style={{ minHeight: 1340 }}
@@ -2206,7 +2206,7 @@ export default function BinaryDigitTrainer() {
 
               {/* Current Step Info - Show detailed info only when not auto-training and not completed */}
               {!isAutoTraining && !trainingCompleted ? (
-                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg training-step-display">
                   <div className="text-sm font-medium text-blue-900 mb-2 flex items-center">
                     Step {step + 1} of 6: {STEP_DESCRIPTIONS[step] ? STEP_DESCRIPTIONS[step].name : 'Ready'}
                     {step < 6 && <HelpIcon k={`step${step + 1}` as keyof typeof MINI_TUTORIALS} />}

@@ -139,20 +139,34 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
     if (!isOpen) return;
 
     const step = tourSteps[currentStep];
+    // Cleanup previous highlights
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+      el.classList.remove('tour-highlight');
+    });
+
     if (step?.target) {
-      const element = document.querySelector(step.target);
-      if (element) {
-        setHighlightedElement(element);
-        // Add highlight class
-        element.classList.add('tour-highlight');
-        // Scroll into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Support multiple targets separated by commas
+      const targets = step.target.split(',').map(t => t.trim());
+      let firstElement = null;
+      
+      targets.forEach(target => {
+        const element = document.querySelector(target);
+        if (element) {
+          if (!firstElement) firstElement = element;
+          element.classList.add('tour-highlight');
+        }
+      });
+
+      if (firstElement) {
+        setHighlightedElement(firstElement);
+        // Scroll into view using the first element
+        firstElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     } else {
       setHighlightedElement(null);
     }
 
-    // Cleanup previous highlights
+    // Cleanup on component unmount
     return () => {
       document.querySelectorAll('.tour-highlight').forEach(el => {
         el.classList.remove('tour-highlight');
@@ -257,14 +271,80 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
   const canProceed = !requiresValidation(step) || validationPassed;
 
   // Calculate dialog style based on position
-  const dialogStyle = dialogPosition.x === 0 && dialogPosition.y === 0
-    ? { top: '4rem', right: '1rem' } // Default top-right position
-    : { left: dialogPosition.x, top: dialogPosition.y }; // Custom dragged position
+  const dialogStyle = (() => {
+    // Center first two steps (welcome and reset)
+    if ((currentStep === 0 || currentStep === 1) && dialogPosition.x === 0 && dialogPosition.y === 0) {
+      return { 
+        top: '50%', 
+        left: '50%', 
+        transform: 'translate(-50%, -50%)' 
+      };
+    }
+    // Adjust position for step 5 (index 4) to prevent cutoff
+    if (currentStep === 4 && dialogPosition.x === 0 && dialogPosition.y === 0) {
+      return { 
+        top: '2rem', 
+        right: '1rem',
+        maxHeight: 'calc(100vh - 4rem)',
+        overflow: 'auto'
+      };
+    }
+    // Default positioning for other steps
+    return dialogPosition.x === 0 && dialogPosition.y === 0
+      ? { top: '4rem', right: '1rem' } // Default top-right position
+      : { left: dialogPosition.x, top: dialogPosition.y }; // Custom dragged position
+  })();
 
   return (
     <>
       {/* Overlay for highlighting */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40 pointer-events-none" />
+      
+      {/* Arrow overlay for step 6 (index 5) - pointing from Input to Hidden Layer */}
+      {currentStep === 5 && (
+        <div 
+          className="fixed z-45 pointer-events-none"
+          style={{
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          <div 
+            className="absolute"
+            style={{
+              // Position relative to the neural network diagram
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '750px',
+              height: '550px'
+            }}
+          >
+            <svg width="100%" height="100%" viewBox="0 -20 750 550" className="pointer-events-none">
+              <defs>
+                <marker id="tour-arrowhead" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto">
+                  <polygon points="0 0, 12 4, 0 8" fill="#F59E0B" />
+                </marker>
+              </defs>
+              {/* Arrow from Input Layer (around x=150) to Hidden Layer (around x=313) */}
+              <path
+                d="M 150 150 L 290 150"
+                stroke="#F59E0B"
+                strokeWidth="5"
+                fill="none"
+                markerEnd="url(#tour-arrowhead)"
+                className="animate-pulse"
+                opacity="0.9"
+              />
+              <text x="220" y="135" fontSize="16" fill="#F59E0B" textAnchor="middle" fontWeight="bold">
+                Forward Pass
+              </text>
+            </svg>
+          </div>
+        </div>
+      )}
       
       {/* Custom Tour Modal */}
       <div 
@@ -280,7 +360,7 @@ export default function GuidedTour({ isOpen, onClose, onReset, tourSteps, onVali
                 <div className="flex items-center space-x-2">
                   <h3 className="font-semibold">Guided Tour</h3>
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    Step {currentStep + 1} of {tourSteps.length}
+                    {currentStep + 1} of {tourSteps.length}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleClose}>

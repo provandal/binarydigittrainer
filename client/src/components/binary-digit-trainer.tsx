@@ -216,7 +216,7 @@ const STEP_DESCRIPTIONS = [
   {
     name: "Backpropagation - Hidden Layer",
     concept: "Error signals propagate to hidden layer, adjusting input weights based on their contribution to the total error.",
-    formula: "δⱼ = hⱼ·(1-hⱼ)·∑ₖδₖ·wⱼₖ, Δwᵢⱼ = α·δⱼ·xᵢ",
+    formula: "δⱼ = σ'(zⱼ)·∑ₖδₖ·wⱼₖ, Δwᵢⱼ = α·δⱼ·xᵢ",
     activeElements: ["hidden", "inputWeights", "backprop"]
   }
 ];
@@ -1253,7 +1253,7 @@ export default function BinaryDigitTrainer() {
       architecture: { input: 81, hidden: 24, output: 2 },
       normalize: { enabled: normalizeEnabled, targetSize },
       optimizer: { learningRate, lrDecayRate, minLR, decayEnabled: lrDecayEnabled },
-      stats: { epoch: completedEpochs, avgLoss: lastEpochAvgLoss ?? NaN, examplesSeen },
+      stats: { epoch: completedEpochs, avgLoss: lastEpochAvgLoss ?? 0, examplesSeen },
       params: {
         weights: currentNetworkState.current.weights.map(r => [...r]),
         biases:  [...currentNetworkState.current.biases],
@@ -1878,7 +1878,7 @@ export default function BinaryDigitTrainer() {
                   <div className="flex gap-2 justify-center">
                     {[
                       { value: 'training', label: 'Training' },
-                      { value: 'inference', label: 'Inferencing' }
+                      { value: 'inference', label: 'Inference' }
                     ].map((modeOption) => (
                       <label key={modeOption.value} className="flex items-center gap-2 cursor-pointer">
                         <input

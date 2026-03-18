@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="Binary Digit Trainer" width="100%">
+</p>
+
 # Binary Digit Trainer
 
 An interactive neural network that learns to recognize binary digits (0 and 1) — entirely in your browser. Draw a digit on a 9x9 pixel grid, step through each phase of training, and watch the math happen in real time.

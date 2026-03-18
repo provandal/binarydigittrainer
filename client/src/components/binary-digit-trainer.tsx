@@ -18,6 +18,7 @@ import { HelpIcon } from "@/components/HelpIcon";
 import GuidedTour from './GuidedTour';
 import { createTourSteps } from '@/lib/tour-steps';
 import { tourCheckpointData } from '@/data/tour-checkpoint';
+import { tourTrainingData } from '@/data/tour-training-data';
 
 
 // Weight initialization helper using Xavier/Glorot initialization
@@ -3575,6 +3576,10 @@ export default function BinaryDigitTrainer() {
             checkpointSavedRef.current = false;
             // Reset cycle counters for fresh tour start
             resetCycleCounters();
+            // Load tour training dataset into localStorage
+            clearTrainingExamples();
+            bulkUploadTrainingExamples(tourTrainingData);
+            refreshExamples();
           }}
           onValidationTrigger={(triggerFn) => {
             tourTriggerRef.current = triggerFn;

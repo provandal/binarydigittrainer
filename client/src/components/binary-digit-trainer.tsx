@@ -2379,10 +2379,9 @@ export default function BinaryDigitTrainer() {
                     variant="outline"
                     className="w-full"
                     size="sm"
-                    disabled={bulkUploadMutation.isPending}
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    {bulkUploadMutation.isPending ? 'Uploading...' : 'Upload Training Set'}
+                    Upload Training Set
                   </Button>
                 </div>
               </div>

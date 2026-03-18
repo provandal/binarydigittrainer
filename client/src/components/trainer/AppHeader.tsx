@@ -29,6 +29,14 @@ export function AppHeader({ onOpenGuidedTour, onOpenAbout }: AppHeaderProps) {
         >
           About
         </button>
+        <a
+          href="https://github.com/provandal/binarydigittrainer/discussions"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-md bg-green-600 px-2 py-1 text-xs text-white transition-colors hover:bg-green-700 sm:px-3 sm:text-sm"
+        >
+          Feedback
+        </a>
       </div>
     </div>
   );

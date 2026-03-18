@@ -280,6 +280,9 @@ export default function BinaryDigitTrainer() {
   const nextSampleClickedRef = useRef(false);
   const multiEpochStartedRef = useRef(false);
   const checkpointSavedRef = useRef(false);
+  const tourInferenceModeEnabledRef = useRef(false);
+  const tourWeightVisualizationOpenedRef = useRef(false);
+  const modeRef = useRef<'training' | 'inference'>('training');
   const isDrawingRef = useRef(false);
   const changedCellsRef = useRef(0);
 
@@ -294,72 +297,27 @@ export default function BinaryDigitTrainer() {
   const checkTrainingStarted = () => tourStepStarted;
   // Reset cycle counters (call when starting fresh cycle)
   const resetCycleCounters = () => {
-    console.log('🔄 TOUR: Resetting cycle counters');
     clicksThisCycleRef.current = 0;
     cycleDoneRef.current = false;
   };
 
-  // Validation functions for tour steps
-  const validOneClick = () => {
-    const result = clicksThisCycleRef.current >= 1;
-    console.log('🔍 TOUR: validOneClick - clicks:', clicksThisCycleRef.current, 'result:', result);
-    return result;
-  };
-  const validFullCycle = () => {
-    const result = cycleDoneRef.current === true;
-    console.log('🔍 TOUR: validFullCycle - cycleDoneRef.current:', cycleDoneRef.current, 'result:', result);
-    return result;
-  };
-  const checkTrainingStepsCompleted = () => {
-    console.log('🔍 Tour validation - tourTrainingCycleCompleted:', tourTrainingCycleCompleted);
-    return tourTrainingCycleCompleted;
-  };
-  const checkDatasetLoaded = () => {
-    const result = datasetLoadedRef.current === true;
-    console.log('🔍 TOUR: checkDatasetLoaded - datasetLoadedRef.current:', datasetLoadedRef.current, 'result:', result);
-    return result;
-  };
-  const checkNextSampleClicked = () => {
-    const result = nextSampleClickedRef.current === true;
-    console.log('🔍 TOUR: checkNextSampleClicked - nextSampleClickedRef.current:', nextSampleClickedRef.current, 'result:', result);
-    return result;
-  };
-  const checkEpochTrainingStarted = () => {
-    const result = multiEpochStartedRef.current === true;
-    console.log('🔍 TOUR: checkEpochTrainingStarted - multiEpochStartedRef.current:', multiEpochStartedRef.current, 'result:', result);
-    return result;
-  };
-  const checkCheckpointSaved = () => {
-    const result = checkpointSavedRef.current === true;
-    console.log('🔍 TOUR: checkCheckpointSaved - checkpointSavedRef.current:', checkpointSavedRef.current, 'result:', result);
-    return result;
-  };
+  // Validation functions for tour steps (all use refs to avoid stale closures)
+  const validOneClick = () => clicksThisCycleRef.current >= 1;
+  const validFullCycle = () => cycleDoneRef.current === true;
+  const checkTrainingStepsCompleted = () => tourTrainingCycleCompleted;
+  const checkDatasetLoaded = () => datasetLoadedRef.current === true;
+  const checkNextSampleClicked = () => nextSampleClickedRef.current === true;
+  const checkEpochTrainingStarted = () => multiEpochStartedRef.current === true;
+  const checkCheckpointSaved = () => checkpointSavedRef.current === true;
   const checkTrainingCompleted = () => {
-    // Training is considered complete when:
-    // 1. Multi-epoch training was started, AND
-    // 2. Training is no longer running, AND  
-    // 3. Either ALL epochs completed OR user manually stopped with some progress
     const multiEpochWasStarted = multiEpochStartedRef.current === true;
     const notCurrentlyTraining = !isAutoTraining;
     const hasFinishedOrStopped = trainingCompleted || (notCurrentlyTraining && trainedSampleCountRef.current > 0);
-    const result = multiEpochWasStarted && notCurrentlyTraining && hasFinishedOrStopped;
-    
-    // Only log when result actually changes to reduce console spam
-    const currentResult = result;
-    if (currentResult !== checkTrainingCompleted.lastResult) {
-      console.log('🔍 TOUR: checkTrainingCompleted - started:', multiEpochWasStarted, 'notTraining:', notCurrentlyTraining, 'completed:', trainingCompleted, 'samples:', trainedSampleCountRef.current, 'result:', result);
-      checkTrainingCompleted.lastResult = currentResult;
-    }
-    
-    return result;
+    return multiEpochWasStarted && notCurrentlyTraining && hasFinishedOrStopped;
   };
-  const checkModelManagementExpanded = () => {
-    const result = showModelManagement;
-    console.log('🔍 TOUR: checkModelManagementExpanded - showModelManagement:', showModelManagement, 'result:', result);
-    return result;
-  };
-  const checkInferenceModeActive = () => mode === 'inference';
-  const checkWeightVisualizationOpened = () => tourWeightVisualizationOpened;
+  const checkModelManagementExpanded = () => showModelManagementRef.current;
+  const checkInferenceModeActive = () => modeRef.current === 'inference';
+  const checkWeightVisualizationOpened = () => tourWeightVisualizationOpenedRef.current;
 
   // Reset function for tour
   const handleTourReset = () => {
@@ -418,6 +376,10 @@ export default function BinaryDigitTrainer() {
     multiEpochStartedRef.current = false;
     checkpointSavedRef.current = false;
     trainedSampleCountRef.current = 0;
+    tourInferenceModeEnabledRef.current = false;
+    tourWeightVisualizationOpenedRef.current = false;
+    showModelManagementRef.current = false;
+    modeRef.current = 'training';
   };
   
   // New state for enhanced features
@@ -484,6 +446,7 @@ export default function BinaryDigitTrainer() {
 
   // ----- Model Management UI -----
   const [showModelManagement, setShowModelManagement] = useState(false);
+  const showModelManagementRef = useRef(false);
   const [lastCheckpointLoaded, setLastCheckpointLoaded] = useState<string | null>(null);
   
   // ----- Activation Explorer UI -----
@@ -1925,12 +1888,14 @@ export default function BinaryDigitTrainer() {
                           checked={mode === modeOption.value}
                           onChange={() => {
                             setMode(modeOption.value as 'training' | 'inference');
+                            modeRef.current = modeOption.value as 'training' | 'inference';
                             if (modeOption.value === 'inference') {
                               setStep(0);
                               setPrediction(null);
                               // Clear canvas for fresh drawing in inference mode
                               setPixelGrid(Array(9).fill(0).map(() => Array(9).fill(0)));
                               setTourInferenceModeEnabled(true); // Tour tracking
+                              tourInferenceModeEnabledRef.current = true;
                             }
                           }}
                           className="text-blue-600"
@@ -2104,7 +2069,7 @@ export default function BinaryDigitTrainer() {
                     <g key={`hidden-plus-${i}`} className="cursor-pointer" onClick={() => {
                       setSelectedWeightBox({type: 'hidden', index: i});
                       setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
-                      setTourWeightVisualizationOpened(true); // Tour tracking
+                      setTourWeightVisualizationOpened(true); tourWeightVisualizationOpenedRef.current = true; // Tour tracking
                     }}>
                       {/* Green circle */}
                       <circle
@@ -2143,7 +2108,7 @@ export default function BinaryDigitTrainer() {
                     <g key={`output-plus-${i}`} className="cursor-pointer" data-tour-target={i === 0 ? "output-neuron-0-plus" : undefined} onClick={() => {
                       setSelectedWeightBox({type: 'output', index: i});
                       setWeightDialogIteration(trainingHistory.length === 0 ? 0 : Math.max(0, trainingHistory.length - 1));
-                      setTourWeightVisualizationOpened(true); // Tour tracking
+                      setTourWeightVisualizationOpened(true); tourWeightVisualizationOpenedRef.current = true; // Tour tracking
                     }}>
                       {/* Green circle */}
                       <circle
@@ -2426,7 +2391,7 @@ export default function BinaryDigitTrainer() {
               {/* Model Management Section */}
               <div className="mt-4">
                 <Button
-                  onClick={() => setShowModelManagement(!showModelManagement)}
+                  onClick={() => { const next = !showModelManagement; setShowModelManagement(next); showModelManagementRef.current = next; }}
                   variant="ghost"
                   size="sm"
                   className="w-full justify-between p-2 h-auto"
@@ -2705,7 +2670,7 @@ export default function BinaryDigitTrainer() {
                   <Button 
                     onClick={() => {
                       setSelectedWeightBox(null);
-                      setTourWeightVisualizationOpened(true); // Tour tracking
+                      setTourWeightVisualizationOpened(true); tourWeightVisualizationOpenedRef.current = true; // Tour tracking
                     }}
                     variant="outline"
                     size="sm"
@@ -3610,6 +3575,10 @@ export default function BinaryDigitTrainer() {
             datasetLoadedRef.current = false;
             nextSampleClickedRef.current = false;
             checkpointSavedRef.current = false;
+            tourInferenceModeEnabledRef.current = false;
+            tourWeightVisualizationOpenedRef.current = false;
+            showModelManagementRef.current = false;
+            modeRef.current = 'training';
             // Reset cycle counters for fresh tour start
             resetCycleCounters();
             // Load tour training dataset into localStorage
@@ -3631,8 +3600,8 @@ export default function BinaryDigitTrainer() {
             checkTrainingCompleted, // Use the ref-based validation function
             checkModelManagementExpanded, // Use the ref-based validation function
             checkCheckpointSaved, // Use the ref-based validation function
-            () => tourInferenceModeEnabled,
-            () => tourWeightVisualizationOpened,
+            checkInferenceModeActive, // Use the ref-based validation function
+            checkWeightVisualizationOpened, // Use the ref-based validation function
             stopTraining, // Add stopTraining as callback for auto-stop
             loadTourCheckpoint // Add loadTourCheckpoint for step 13
           )}

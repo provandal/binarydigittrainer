@@ -5,9 +5,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus, Edit3, Upload, ChevronDown, ChevronRight, Save, FolderOpen } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TrainingExample, InsertTrainingExample } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import {
+  getTrainingExamples,
+  createTrainingExample,
+  updateTrainingExample,
+  deleteTrainingExample,
+  clearTrainingExamples,
+  bulkUploadTrainingExamples,
+} from "@/lib/local-storage";
 import { HelpIcon } from "@/components/HelpIcon";
 import GuidedTour from './GuidedTour';
 import { createTourSteps } from '@/lib/tour-steps';
@@ -215,61 +221,10 @@ const STEP_DESCRIPTIONS = [
 ];
 
 export default function BinaryDigitTrainer() {
-  const queryClient = useQueryClient();
-  
-  // Fetch training examples from the API
-  const { data: trainingExamples = [], isLoading: loadingExamples } = useQuery<TrainingExample[]>({
-    queryKey: ["/api/training-examples"],
-    queryFn: () => fetch("/api/training-examples").then(res => res.json()),
-  });
+  // Training examples stored in localStorage
+  const [trainingExamples, setTrainingExamples] = useState<TrainingExample[]>(() => getTrainingExamples());
 
-  // Mutations for CRUD operations
-  const createExampleMutation = useMutation({
-    mutationFn: (example: InsertTrainingExample) => 
-      apiRequest("POST", "/api/training-examples", example),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
-    },
-  });
-
-  const updateExampleMutation = useMutation({
-    mutationFn: ({ id, example }: { id: number; example: InsertTrainingExample }) =>
-      apiRequest("PUT", `/api/training-examples/${id}`, example),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
-    },
-  });
-
-  const deleteExampleMutation = useMutation({
-    mutationFn: (id: number) =>
-      apiRequest("DELETE", `/api/training-examples/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
-    },
-  });
-
-  const bulkUploadMutation = useMutation({
-    mutationFn: (data: { input: number[]; target: number[] }[]) =>
-      apiRequest("POST", "/api/training-examples/bulk-upload", data),
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
-      alert(`Successfully uploaded ${data.count} training examples!`);
-    },
-    onError: (error) => {
-      console.error("Bulk upload error:", error);
-      alert("Failed to upload training data. Please check the file format.");
-    }
-  });
-
-  const clearExamplesMutation = useMutation({
-    mutationFn: () =>
-      apiRequest("DELETE", "/api/training-examples"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/training-examples"] });
-      // Also clear any cached data to prevent stale ID issues
-      queryClient.removeQueries({ queryKey: ["/api/training-examples"] });
-    },
-  });
+  const refreshExamples = () => setTrainingExamples(getTrainingExamples());
 
   const [pixelGrid, setPixelGridState] = useState(initialPixelGrid);
   
@@ -1165,13 +1120,15 @@ export default function BinaryDigitTrainer() {
       pattern: Array(9).fill(0).map(() => Array(9).fill(0)),
       label: [1, 0] // Default to digit 0 in one-hot format
     };
-    createExampleMutation.mutate(newExample);
+    createTrainingExample(newExample);
+    refreshExamples();
   };
 
   const removeDatasetExample = (index: number) => {
     const example = trainingExamples[index];
     if (example?.id) {
-      deleteExampleMutation.mutate(example.id);
+      deleteTrainingExample(example.id);
+      refreshExamples();
     }
   };
 
@@ -1180,10 +1137,8 @@ export default function BinaryDigitTrainer() {
     if (example?.id) {
       // Convert integer label to one-hot format
       const oneHotLabel = label === 0 ? [1, 0] : [0, 1];
-      updateExampleMutation.mutate({ 
-        id: example.id, 
-        example: { pattern, label: oneHotLabel } 
-      });
+      updateTrainingExample(example.id, { pattern, label: oneHotLabel });
+      refreshExamples();
     }
   };
 
@@ -1223,10 +1178,8 @@ export default function BinaryDigitTrainer() {
         newPattern = flatArray;
       }
       
-      updateExampleMutation.mutate({ 
-        id: example.id, 
-        example: { pattern: newPattern, label: example.label as number[] } 
-      });
+      updateTrainingExample(example.id, { pattern: newPattern, label: example.label as number[] });
+      refreshExamples();
     } else {
       console.warn(`No valid example found at index ${exampleIndex}`, { example, trainingExamples });
     }
@@ -1271,7 +1224,14 @@ export default function BinaryDigitTrainer() {
           if (firstItem.input && firstItem.target && 
               Array.isArray(firstItem.input) && firstItem.input.length === 81 &&
               Array.isArray(firstItem.target) && firstItem.target.length === 2) {
-            bulkUploadMutation.mutate(jsonData);
+            try {
+              const count = bulkUploadTrainingExamples(jsonData);
+              refreshExamples();
+              alert(`Successfully uploaded ${count} training examples!`);
+            } catch (err) {
+              console.error("Bulk upload error:", err);
+              alert("Failed to upload training data. Please check the file format.");
+            }
           } else {
             alert("Invalid file format. Expected array of objects with 'input' (81 numbers) and 'target' (2 numbers) fields.");
           }

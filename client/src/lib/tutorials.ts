@@ -31,7 +31,7 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
     html: `
       <ul>
         <li><strong>Manual:</strong> You draw a digit and select its label.</li>
-        <li><strong>Dataset:</strong> The app loads saved samples (<code>/api/training-examples</code>) and iterates through them.</li>
+        <li><strong>Dataset:</strong> The app loads saved samples from local storage and iterates through them.</li>
       </ul>
       <p><strong>Important:</strong> Dataset order should be shuffled each epoch to avoid learning order bias.</p>
     `

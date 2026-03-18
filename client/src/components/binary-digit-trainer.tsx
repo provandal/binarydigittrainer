@@ -687,6 +687,38 @@ export default function BinaryDigitTrainer() {
     }
   };
 
+  // Touch support for mobile drawing
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  const getTouchCell = (touch: React.Touch): [number, number] | null => {
+    const el = canvasRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const col = Math.floor((x / rect.width) * 9);
+    const row = Math.floor((y / rect.height) * 9);
+    if (row < 0 || row > 8 || col < 0 || col > 8) return null;
+    return [row, col];
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const cell = getTouchCell(e.touches[0]);
+    if (cell) handleMouseDown(cell[0], cell[1]);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const cell = getTouchCell(e.touches[0]);
+    if (cell) handleMouseEnter(cell[0], cell[1]);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseUp();
+  };
+
   const handlePixelHover = (pixelIndex: number) => {
     setHoveredPixel(pixelIndex);
   };
@@ -1788,38 +1820,42 @@ export default function BinaryDigitTrainer() {
   }, [mode, pixelGrid]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8 relative">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🧠 Binary Digit Trainer</h1>
-          <p className="text-gray-600">Step-by-step Neural Network Learning Simulator</p>
-          
-          {/* Action buttons in top right */}
-          <div className="absolute top-0 right-0 flex gap-2">
+        <div className="text-center mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">🧠 Binary Digit Trainer</h1>
+          <p className="text-xs sm:text-base text-gray-600">Step-by-step Neural Network Learning Simulator</p>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 justify-center mt-2 sm:mt-0 sm:absolute sm:top-0 sm:right-0">
             <button
               onClick={() => setIsGuidedTourOpen(true)}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+              className="px-2 py-1 sm:px-3 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-colors"
             >
-              Take Guided Tour
+              Guided Tour
             </button>
             <button
               onClick={() => setIsAboutOpen(true)}
-              className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+              className="px-2 py-1 sm:px-3 bg-gray-600 text-white text-xs sm:text-sm rounded-md hover:bg-gray-700 transition-colors"
             >
               About
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6">
           {/* Drawing Canvas */}
           <Card>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Drawing Canvas (9×9 pixels)</h2>
-              <div 
-                className="grid grid-cols-9 gap-0 mb-4 w-48 h-48 mx-auto border-2 border-gray-400 bg-gray-100"
+            <CardContent className="p-3 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Drawing Canvas (9×9 pixels)</h2>
+              <div
+                ref={canvasRef}
+                className="grid grid-cols-9 gap-0 mb-4 w-48 h-48 mx-auto border-2 border-gray-400 bg-gray-100 touch-none"
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               >
                 {(Array.isArray(pixelGrid[0]) ? pixelGrid : flatToGrid(pixelGrid as any)).map((row, rowIndex) => 
                   row.map((pixel, colIndex) => (
@@ -1948,11 +1984,11 @@ export default function BinaryDigitTrainer() {
           </Card>
 
           {/* Neural Network Diagram */}
-          <Card className="col-span-2">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Neural Network Diagram</h2>
-              
-              <div className="relative h-[550px] bg-gray-50 rounded-lg overflow-auto flex items-start">
+          <Card className="lg:col-span-2">
+            <CardContent className="p-3 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Neural Network Diagram</h2>
+
+              <div className="relative h-[350px] sm:h-[550px] bg-gray-50 rounded-lg overflow-auto flex items-start">
                 <svg 
                   className="block w-full self-start neural-network-diagram" 
                   viewBox="0 -20 750 1340" 
@@ -2201,10 +2237,10 @@ export default function BinaryDigitTrainer() {
             </CardContent>
           </Card>
 
-          {/* Controls - Made 50% wider */}
-          <Card className="lg:col-span-1 lg:min-w-[400px]">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Training Steps</h2>
+          {/* Controls */}
+          <Card>
+            <CardContent className="p-3 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Training Steps</h2>
               
               {/* Training Mode Toggle */}
               <div className="mb-2">
@@ -2657,9 +2693,9 @@ export default function BinaryDigitTrainer() {
 
         {/* Detailed Weight View - Below main grid */}
         {selectedWeightBox && (
-          <div className="mt-6">
+          <div className="mt-3 sm:mt-6">
             <Card data-tour-target="weight-dialog">
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">
                     {selectedWeightBox.type === 'hidden' 
@@ -2700,7 +2736,7 @@ export default function BinaryDigitTrainer() {
                 {/* Weight Visualization */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   {selectedWeightBox.type === 'hidden' && (
-                    <div className="flex gap-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* Left side: Activation Explorer with 9x9 heatmap */}
                       <div className="flex-shrink-0">
                         <div className="mb-4">
@@ -2799,9 +2835,9 @@ export default function BinaryDigitTrainer() {
                       </div>
 
                       {/* Right side: Weight bars (fixed spacing and bias visibility) */}
-                      <div className="flex-grow">
+                      <div className="flex-grow min-w-0">
                         <h3 className="text-sm font-semibold mb-2">Weight Details</h3>
-                        <div className="h-[400px] overflow-auto">
+                        <div className="h-[300px] sm:h-[400px] overflow-auto">
                           <svg viewBox="0 0 600 1350" className="w-full" style={{ minHeight: '1350px' }}>
                               {/* Background */}
                               <rect x="50" y="30" width="500" height="1300" fill="white" stroke="#9CA3AF" strokeWidth="2"/>
@@ -2872,9 +2908,9 @@ export default function BinaryDigitTrainer() {
 
                   {selectedWeightBox.type === 'output' && (
                     <div>
-                      <div className="flex gap-6">
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                         {/* Left side: Top Contributors with mini thumbnails */}
-                        <div className="w-1/3 flex-shrink-0">
+                        <div className="sm:w-1/3 flex-shrink-0">
                           <div className="flex items-baseline justify-between mb-4">
                             <h3 className="text-sm font-semibold">
                               {viewMode === 'decision' 
@@ -2922,7 +2958,7 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {contributors.map(({ idx, contrib, w0, w1, h }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[idx]) ?? weights[idx];
                                       const grid = vec81ToGrid9(w81);
@@ -3024,7 +3060,7 @@ export default function BinaryDigitTrainer() {
                                     <h4 className="text-sm font-medium text-gray-800 mb-1">{title}</h4>
                                     <p className="text-xs text-gray-600">{description}</p>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {contributors.map(({ i, w }) => {
                                       const w81 = (trainingHistory[weightDialogIteration]?.weights?.[i]) ?? weights[i];
                                       const grid = vec81ToGrid9(w81);
@@ -3085,7 +3121,7 @@ export default function BinaryDigitTrainer() {
                               </h4>
                             </div>
                             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                              <div className="flex items-center gap-4 mb-2">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2">
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="radio"
@@ -3233,7 +3269,7 @@ export default function BinaryDigitTrainer() {
                             </g>
                           </svg>
                           
-                          <p className="text-xs text-gray-600 mt-4 max-w-[500px] ml-20">
+                          <p className="text-xs text-gray-600 mt-4 max-w-[500px] sm:ml-20">
                             Bars show connection strength from each hidden unit to this output. Thumbnails show each 
                             hidden unit's input template. Together they explain how mid-level patterns combine to vote 
                             for "0" or "1". Click a thumbnail to view that hidden neuron's detailed analysis.
@@ -3250,9 +3286,9 @@ export default function BinaryDigitTrainer() {
 
         {/* Debug History Dialog */}
         {showDebugDialog && (
-          <div className="mt-6">
+          <div className="mt-3 sm:mt-6">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">
                     Debug History ({debugHistory.length} entries)
@@ -3271,9 +3307,9 @@ export default function BinaryDigitTrainer() {
                     No debug data captured yet. Run some training steps to see debug information.
                   </div>
                 ) : (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 rounded-lg overflow-x-auto">
                     {/* Fixed Table Headers */}
-                    <div className="bg-gray-50 border-b border-gray-200">
+                    <div className="bg-gray-50 border-b border-gray-200 min-w-[600px]">
                       <div className="grid grid-cols-8 gap-2 p-3 text-xs font-medium text-gray-700">
                         <div className="text-center">Iteration #</div>
                         <div className="text-center">Time</div>
@@ -3287,7 +3323,7 @@ export default function BinaryDigitTrainer() {
                     </div>
                     
                     {/* Scrollable Data Rows */}
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="max-h-96 overflow-y-auto min-w-[600px]">
                       {debugHistory.map((entry, index) => (
                         <div 
                           key={index} 
@@ -3325,7 +3361,7 @@ export default function BinaryDigitTrainer() {
 
         {/* Dataset Editor Dialog */}
         <Dialog open={showDatasetEditor} onOpenChange={setShowDatasetEditor}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onMouseUp={handleEditorMouseUp}>
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto" onMouseUp={handleEditorMouseUp}>
             <DialogHeader>
               <DialogTitle>Edit Training Dataset</DialogTitle>
             </DialogHeader>
@@ -3493,7 +3529,7 @@ export default function BinaryDigitTrainer() {
 
         {/* About Dialog */}
         <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-[95vw] sm:max-w-md">
             <div className="text-center space-y-4">
               <h2 className="text-xl font-bold">About Binary Digit Trainer</h2>
               

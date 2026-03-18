@@ -54,7 +54,7 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
   }
 }
 
@@ -65,7 +65,9 @@
   outline: 3px solid #3b82f6 !important;
   outline-offset: 2px;
   border-radius: 6px;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Special styling for buttons to ensure text visibility */

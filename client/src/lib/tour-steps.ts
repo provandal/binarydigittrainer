@@ -1,4 +1,4 @@
-import { TourStep } from '@/components/GuidedTour';
+import { TourStep } from "@/components/GuidedTour";
 
 export const createTourSteps = (
   checkCanvasHasDrawing: () => boolean,
@@ -14,11 +14,11 @@ export const createTourSteps = (
   checkInferenceModeActive: () => boolean,
   checkWeightVisualizationOpened: () => boolean,
   stopTraining: () => void,
-  loadTourCheckpoint?: () => void
+  loadTourCheckpoint?: () => void,
 ): TourStep[] => [
   {
-    id: 'welcome',
-    title: 'Welcome to Binary Digit Trainer!',
+    id: "welcome",
+    title: "Welcome to Binary Digit Trainer!",
     content: `
       <p>This interactive tour will guide you through all the key features of the Neural Network trainer.</p>
       <p><strong>You'll learn:</strong></p>
@@ -33,11 +33,11 @@ export const createTourSteps = (
       <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
         <strong>⚠️ Note:</strong> Starting this tour will reset the neural network to its default state to ensure a clean learning experience.
       </div>
-    `
+    `,
   },
   {
-    id: 'reset',
-    title: 'Starting Fresh',
+    id: "reset",
+    title: "Starting Fresh",
     content: `
       <p>We've reset the network to start with clean weights and a blank canvas.</p>
       <p>The network architecture is <strong>81 → 24 → 2</strong>:</p>
@@ -46,11 +46,11 @@ export const createTourSteps = (
         <li>24 hidden neurons with sigmoid activation</li>
         <li>2 output neurons for digits 0 and 1</li>
       </ul>
-    `
+    `,
   },
   {
-    id: 'draw-digit',
-    title: 'Step 1: Draw a Binary Digit',
+    id: "draw-digit",
+    title: "Step 1: Draw a Binary Digit",
     content: `
       <p>Let's start with <strong>manual training</strong>. First, draw a binary digit (0 or 1) on the 9×9 canvas.</p>
       <p><strong>Drawing tips:</strong></p>
@@ -60,50 +60,52 @@ export const createTourSteps = (
         <li>Draw clear, simple shapes</li>
       </ul>
     `,
-    target: '.grid.grid-cols-9',
-    action: 'Draw a digit (0 or 1) on the canvas by clicking and dragging',
+    target: ".grid.grid-cols-9",
+    action: "Draw a digit (0 or 1) on the canvas by clicking and dragging",
     waitForAction: true,
-    validation: checkCanvasHasDrawing
+    validation: checkCanvasHasDrawing,
   },
   {
-    id: 'select-label',
-    title: 'Step 2: Select the Correct Label',
+    id: "select-label",
+    title: "Step 2: Select the Correct Label",
     content: `
       <p>Great! Now select the correct label that matches what you drew.</p>
       <p>The network needs to know the correct answer to learn from mistakes during training.</p>
     `,
     target: '[data-tour-target="label-selector"]',
-    action: 'Choose the correct label (0 or 1) that matches your drawing',
-    waitForAction: false
+    action: "Choose the correct label (0 or 1) that matches your drawing",
+    waitForAction: false,
   },
   {
-    id: 'training-steps',
-    title: 'Step 3: Start Training Process',
+    id: "training-steps",
+    title: "Step 3: Start Training Process",
     content: `
       <p>Now let's begin the training process. Click the highlighted "Next Step" button once to start.</p>
     `,
-    target: '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
+    target:
+      '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
     action: 'Click "Next Step" one time to start',
     waitForAction: true,
     validation: validOneClick,
     autoAdvanceOnValid: true,
-    pin: 'top-right'
+    pin: "top-right",
   },
   {
-    id: 'complete-training',
-    title: 'Step 4: Complete the Training Cycle',
+    id: "complete-training",
+    title: "Step 4: Complete the Training Cycle",
     content: `
       <p>Great! You've started training. Now keep clicking "Next Step" to complete the full training cycle and watch how the network processes information step by step.</p>
     `,
-    target: '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
-    action: 'Finish the remaining training steps of this cycle',
+    target:
+      '[data-tour-target="next-step-button"], .training-step-display, .neural-network-diagram',
+    action: "Finish the remaining training steps of this cycle",
     waitForAction: true,
     validation: validFullCycle,
-    pin: 'top-right'
+    pin: "top-right",
   },
   {
-    id: 'dataset-training',
-    title: 'Step 7: Training Set Mode',
+    id: "dataset-training",
+    title: "Step 7: Training Set Mode",
     content: `
       <p>Now let's try <strong>training set mode</strong>. We'll load the pre-built training examples and step through them automatically.</p>
       <p>Switch to "Training Set" mode to access training examples with both 0s and 1s.</p>
@@ -112,11 +114,11 @@ export const createTourSteps = (
     action: 'Click the "Training Set" radio button to switch training modes',
     waitForAction: true,
     validation: checkDatasetLoaded,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'next-sample',
-    title: 'Step 8: Run to Next Sample',
+    id: "next-sample",
+    title: "Step 8: Run to Next Sample",
     content: `
       <p>With training set mode active, you can now step through training examples automatically.</p>
       <p>The "Run to Next Sample" button will:</p>
@@ -130,11 +132,11 @@ export const createTourSteps = (
     action: 'Click "Run to Next Sample" to process the next training example',
     waitForAction: true,
     validation: checkNextSampleClicked,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'multi-epoch',
-    title: 'Step 9: Multi-Epoch Training',
+    id: "multi-epoch",
+    title: "Step 9: Multi-Epoch Training",
     content: `
       <p>For serious training, you can process the entire training set multiple times using <strong>epochs</strong>.</p>
       <p>An epoch means going through every training example once. Multiple epochs help the network learn better patterns.</p>
@@ -143,11 +145,11 @@ export const createTourSteps = (
     action: 'Click "Process Training Set" to start automated training',
     waitForAction: true,
     validation: checkEpochTrainingStarted,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'wait-for-training',
-    title: 'Step 10: Wait for Training to Complete',
+    id: "wait-for-training",
+    title: "Step 10: Wait for Training to Complete",
     content: `
       <p>Now we wait for the training to finish processing all examples in the training set.</p>
       <p><strong>Options while waiting:</strong></p>
@@ -158,17 +160,18 @@ export const createTourSteps = (
       </ul>
       <p class="text-xs text-gray-500 mt-2">When ready to continue, click <strong>Next</strong> (will auto-stop training if needed).</p>
     `,
-    target: '[data-tour-target="stop-training-button"], .neural-network-diagram, .grid.grid-cols-9, [data-tour-target="label-selector"], .training-step-display',
-    action: 'Wait for training progress, then click Next when ready to continue',
+    target:
+      '[data-tour-target="stop-training-button"], .neural-network-diagram, .grid.grid-cols-9, [data-tour-target="label-selector"], .training-step-display',
+    action: "Wait for training progress, then click Next when ready to continue",
     waitForAction: false,
     validation: checkEpochTrainingStarted,
     autoAdvanceOnValid: false,
     onNext: stopTraining,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'checkpoints',
-    title: 'Step 11: Save Your Progress',
+    id: "checkpoints",
+    title: "Step 11: Save Your Progress",
     content: `
       <p>Great! Training is complete. Now let's save your trained model using checkpoints.</p>
       <p><strong>Checkpoint contains:</strong></p>
@@ -183,11 +186,11 @@ export const createTourSteps = (
     action: 'Click to expand the "Model Management" section',
     waitForAction: true,
     validation: checkModelManagementExpanded,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'export-model',
-    title: 'Step 12: Export Your Model',
+    id: "export-model",
+    title: "Step 12: Export Your Model",
     content: `
       <p>Perfect! Now you can save your trained model as a checkpoint file.</p>
       <p><strong>The export includes:</strong></p>
@@ -201,11 +204,11 @@ export const createTourSteps = (
     action: 'Click "Export" to save your trained model',
     waitForAction: true,
     validation: checkCheckpointSaved,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'inference-mode',
-    title: 'Step 13: Test Your Model',
+    id: "inference-mode",
+    title: "Step 13: Test Your Model",
     content: `
       <p>Now let's load a well-trained model for testing. Switch to <strong>Inference Mode</strong> to test your trained network!</p>
       <p>In inference mode:</p>
@@ -221,22 +224,22 @@ export const createTourSteps = (
     waitForAction: true,
     validation: checkInferenceModeActive,
     onNext: loadTourCheckpoint,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'test-drawing',
-    title: 'Step 14: Draw and Test',
+    id: "test-drawing",
+    title: "Step 14: Draw and Test",
     content: `
       <p>Perfect! Now you're in inference mode. Draw a digit and watch the network predict what it is.</p>
       <p>The prediction updates in real-time as you draw, showing both the predicted digit and confidence level.</p>
     `,
     target: '.grid.grid-cols-9, [data-tour-target="prediction-display"]',
-    action: 'Draw a digit (0 or 1) to see the network make predictions',
-    pin: 'bottom-left'
+    action: "Draw a digit (0 or 1) to see the network make predictions",
+    pin: "bottom-left",
   },
   {
-    id: 'weight-visualization',
-    title: 'Step 15: Explore Network Internals',
+    id: "weight-visualization",
+    title: "Step 15: Explore Network Internals",
     content: `
       <p>The final feature is <strong>weight visualization</strong>. Click the green plus button next to output neuron 0 to see:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
@@ -247,14 +250,14 @@ export const createTourSteps = (
       </ul>
     `,
     target: '[data-tour-target="output-neuron-0-plus"]',
-    action: 'Click the green plus button next to output neuron 0',
+    action: "Click the green plus button next to output neuron 0",
     waitForAction: true,
     validation: checkWeightVisualizationOpened,
-    pin: 'bottom-left'
+    pin: "bottom-left",
   },
   {
-    id: 'tour-complete',
-    title: 'Tour Complete! 🎉',
+    id: "tour-complete",
+    title: "Tour Complete! 🎉",
     content: `
       <p><strong>Congratulations!</strong> You've learned all the key features:</p>
       <ul class="text-xs space-y-1 ml-4 list-disc">
@@ -269,6 +272,6 @@ export const createTourSteps = (
       </p>
     `,
     target: '[data-tour-target="weight-dialog"]',
-    pin: 'top-right'
-  }
+    pin: "top-right",
+  },
 ];

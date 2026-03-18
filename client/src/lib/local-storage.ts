@@ -39,7 +39,7 @@ export function createTrainingExample(data: InsertTrainingExample): TrainingExam
 
 export function updateTrainingExample(
   id: number,
-  data: InsertTrainingExample
+  data: InsertTrainingExample,
 ): TrainingExample | null {
   const examples = loadExamples();
   const idx = examples.findIndex((e) => e.id === id);
@@ -61,9 +61,7 @@ export function clearTrainingExamples(): void {
   saveExamples([]);
 }
 
-export function bulkUploadTrainingExamples(
-  data: { input: number[]; target: number[] }[]
-): number {
+export function bulkUploadTrainingExamples(data: { input: number[]; target: number[] }[]): number {
   const examples = loadExamples();
   let id = nextId(examples);
   const newExamples: TrainingExample[] = data.map((item) => ({

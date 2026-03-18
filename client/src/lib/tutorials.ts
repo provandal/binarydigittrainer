@@ -14,18 +14,18 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>∇L</strong>: the gradient of the loss <strong>L</strong> with respect to θ, computed by backpropagation during Steps 3–4.</li>
       </ul>
       <p><strong>Guidance:</strong> Start around 0.05–0.2 for this tiny network. If loss jumps or oscillates, lower it. If learning crawls, raise it slightly.</p>
-    `
+    `,
   },
-  
+
   mode: {
     title: "Mode: Training vs Inference",
     html: `
       <p><strong>Training:</strong> Runs full cycle (Steps 0–4) and updates parameters.</p>
       <p><strong>Inference (Predict):</strong> Forward pass only (Steps 0–2 without updates). <strong>No</strong> parameter changes.</p>
       <p><strong>Tip:</strong> Inference should use the same preprocessing as training (e.g., centering/scaling if enabled).</p>
-    `
+    `,
   },
-  
+
   trainingMode: {
     title: "Training Mode: Manual vs Dataset",
     html: `
@@ -34,18 +34,18 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>Dataset:</strong> The app loads saved samples from local storage and iterates through them.</li>
       </ul>
       <p><strong>Important:</strong> Dataset order should be shuffled each epoch to avoid learning order bias.</p>
-    `
+    `,
   },
-  
+
   epochs: {
     title: "Epochs",
     html: `
       <p><strong>Definition:</strong> One pass through the entire dataset.</p>
       <p><strong>Average epoch loss:</strong> mean of per-sample losses in that pass.</p>
       <p><strong>Guidance:</strong> For your 100-sample set, try 10–30 epochs with moderate learning rate.</p>
-    `
+    `,
   },
-  
+
   loss: {
     title: "Loss Function",
     html: `
@@ -60,9 +60,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>a<sub>k</sub></strong>: output activation of neuron <strong>k</strong> (with sigmoid). In code: <code>outputActivations[k]</code>.</li>
       </ul>
       <p><strong>Tip:</strong> For classification with softmax, cross‑entropy + softmax usually learns faster and gives simpler gradients: δ<sub>k</sub> = p<sub>k</sub> - y<sub>k</sub>.</p>
-    `
+    `,
   },
-  
+
   activationSigmoid: {
     title: "Activation (Sigmoid)",
     html: `
@@ -72,9 +72,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>Output:</strong> activation <em>a=σ(z)</em> in (0,1). In code: <code>hiddenActivations[j]</code>, <code>outputActivations[k]</code>.</li>
       </ul>
       <p><strong>Derivative:</strong> σ'(z) = σ(z)(1-σ(z)). Used in backprop (Steps 3–4) unless using softmax+CE at the output.</p>
-    `
+    `,
   },
-  
+
   gradClip: {
     title: "Gradient Clipping",
     html: `
@@ -84,25 +84,25 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>g</strong>: a gradient component for some parameter.</li>
         <li><strong>c</strong>: clip value (e.g., 1.0).</li>
       </ul>
-    `
+    `,
   },
-  
+
   lrDecay: {
     title: "Learning‑Rate Decay",
     html: `
       <p><strong>Purpose:</strong> Reduce η over epochs to fine‑tune near a minimum.</p>
       <p><strong>Example:</strong> η<sub>new</sub> = max(η<sub>min</sub>, η·decay) at epoch end.</p>
-    `
+    `,
   },
-  
+
   checkpoints: {
     title: "Checkpoints: Export/Import",
     html: `
       <p><strong>Export:</strong> Saves <code>weights</code>, <code>outputWeights</code>, <code>biases</code>, <code>outputBiases</code>, architecture, and optimizer metadata as JSON.</p>
       <p><strong>Import:</strong> Restores these arrays and updates the current network state; useful for A/B comparisons.</p>
-    `
+    `,
   },
-  
+
   decisionVsLogit: {
     title: "Decision vs Logit View",
     html: `
@@ -112,9 +112,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
       <ul>
         <li>Positive contributions push toward class 0; negative toward class 1.</li>
       </ul>
-    `
+    `,
   },
-  
+
   activationExplorer: {
     title: "Activation Explorer",
     html: `
@@ -124,7 +124,7 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>Blue cells:</strong> negative weights (turning that pixel on decreases the neuron's pre‑activation).</li>
         <li>Scrub the training‑iteration slider to watch the learned template evolve.</li>
       </ul>
-    `
+    `,
   },
 
   // Training Steps
@@ -142,9 +142,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
       <ul>
         <li><strong>h<sub>j</sub></strong>: hidden activation stored in <code>hiddenActivations[j]</code>.</li>
       </ul>
-    `
+    `,
   },
-  
+
   step2: {
     title: "Step 2 — Forward Pass: Hidden → Output",
     html: `
@@ -158,9 +158,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
       <ul>
         <li><strong>p<sub>k</sub></strong>: probability for class <strong>k</strong>; in code, you can derive from <code>outputPreActivations</code>.</li>
       </ul>
-    `
+    `,
   },
-  
+
   step3: {
     title: "Step 3 — Compute Loss",
     html: `
@@ -170,9 +170,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>Where values come from:</strong> <code>selectedLabel</code> or dataset → target <em>y</em>; Step 2 gives <em>p<sub>k</sub></em>.</li>
       </ul>
       <p><strong>(If MSE used):</strong> L=½∑<sub>k</sub> (a<sub>k</sub>-y<sub>k</sub>)², where a<sub>k</sub>=σ(z<sub>k</sub>).</p>
-    `
+    `,
   },
-  
+
   step4: {
     title: "Step 4 — Backprop: Output Layer",
     html: `
@@ -184,9 +184,9 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
       <ul>
         <li>Uses <em>h<sub>j</sub></em> from Step 1 and <em>η</em> from the Learning Rate field.</li>
       </ul>
-    `
+    `,
   },
-  
+
   step5: {
     title: "Step 5 — Backprop: Hidden Layer",
     html: `
@@ -196,14 +196,14 @@ export const MINI_TUTORIALS: Record<string, Tutorial> = {
         <li><strong>σ'</strong>: derivative of sigmoid: σ(z)(1-σ(z)).</li>
       </ul>
       <p><strong>Parameter updates:</strong> W<sub>i→j</sub> ← W<sub>i→j</sub> - η δ<sup>(h)</sup><sub>j</sub> x<sub>i</sub>, &nbsp;&nbsp;&nbsp;&nbsp; b<sup>(h)</sup><sub>j</sub> ← b<sup>(h)</sup><sub>j</sub> - η δ<sup>(h)</sup><sub>j</sub></p>
-    `
+    `,
   },
-  
+
   step6: {
     title: "Step 6 — Next Sample / Reset",
     html: `
       <p>Advance to the next example (or clear the canvas in manual mode). If using epochs, loop until all samples are processed.</p>
       <p><strong>Tip:</strong> When auto‑training, prefer a loop that passes the <strong>index explicitly</strong> rather than relying on asynchronous state updates.</p>
-    `
-  }
+    `,
+  },
 };

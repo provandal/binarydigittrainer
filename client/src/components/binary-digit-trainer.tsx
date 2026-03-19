@@ -14,7 +14,7 @@ import { tourTrainingData } from "@/data/tour-training-data";
 
 // Extracted pure modules
 import { sigmoid, softmax } from "@/lib/nn-math";
-import { flatToGrid, parseLabel, STEP_DESCRIPTIONS } from "@/lib/nn-helpers";
+import { flatToGrid, STEP_DESCRIPTIONS } from "@/lib/nn-helpers";
 import { type ColorScheme } from "@/lib/color-schemes";
 
 // Extracted hooks
@@ -191,8 +191,6 @@ export default function BinaryDigitTrainer() {
     index: number;
   } | null>(null);
   const [weightDialogIteration, setWeightDialogIteration] = useState(0);
-  const [stepHistory, setStepHistory] = useState<any[]>([]);
-  const [currentStepInHistory, setCurrentStepInHistory] = useState(0);
   const [activeElements, setActiveElements] = useState<string[]>([]);
   const [showDatasetEditor, setShowDatasetEditor] = useState(false);
   const [isDrawingInEditor, setIsDrawingInEditor] = useState(false);
@@ -217,9 +215,6 @@ export default function BinaryDigitTrainer() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>("blue-red");
   const [viewMode, setViewMode] = useState<"decision" | "logit">("logit");
 
-  // Using Cross-Entropy Loss (fixed)
-  const lossFunction = "crossentropy";
-
   // ========================
   // Convenience aliases (flatten hook returns for JSX readability)
   // ========================
@@ -235,57 +230,30 @@ export default function BinaryDigitTrainer() {
     trainingHistory,
     learningRate,
     currentNetworkState,
-    trainingHistoryStore,
     selectedLabelRef,
-    setWeights,
-    setBiases,
-    setOutputWeights,
-    setOutputBiases,
     setHiddenActivations,
     setOutputActivations,
-    setLoss,
     setStep,
-    setTrainingHistory,
     setLearningRate,
     resetNetwork: resetNetworkBase,
   } = network;
 
   const {
     pixelGrid,
-    isDrawing,
-    hoveredPixel,
     canvasRef,
-    isDrawingRef,
-    changedCellsRef,
-    togglePixel,
     handleMouseDown,
     handleMouseEnter,
     handleMouseUp,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
-    handlePixelHover,
-    handlePixelLeave,
     clearCanvas: clearCanvasBase,
     setPixelGrid,
-    getTouchCell,
   } = canvas;
 
   const {
-    tourStepStarted,
-    tourDrawnOnCanvas,
     tourStepExecuted,
-    tourTrainingCycleCompleted,
-    tourDatasetLoaded,
-    tourNextSampleClicked,
-    tourMultiEpochStarted,
-    tourWeightVisualizationOpened,
-    tourInferenceModeEnabled,
-    tourCheckpointSaved,
-    tourCheckpointLoaded,
     tourTriggerRef,
-    clicksThisCycleRef,
-    cycleDoneRef,
     datasetLoadedRef,
     nextSampleClickedRef,
     multiEpochStartedRef,
@@ -293,7 +261,6 @@ export default function BinaryDigitTrainer() {
     tourInferenceModeEnabledRef,
     tourWeightVisualizationOpenedRef,
     modeRef,
-    setTourStepStarted,
     setTourDrawnOnCanvas,
     setTourStepExecuted,
     setTourTrainingCycleCompleted,
@@ -305,7 +272,6 @@ export default function BinaryDigitTrainer() {
     setTourCheckpointSaved,
     setTourCheckpointLoaded,
     validationDrewSomething,
-    checkTrainingStarted,
     validOneClick,
     validFullCycle,
     checkDatasetLoaded,
@@ -316,7 +282,6 @@ export default function BinaryDigitTrainer() {
     checkInferenceModeActive,
     checkWeightVisualizationOpened,
     checkCheckpointSaved,
-    handleTourReset,
     resetCycleCounters,
   } = tour;
 
@@ -330,9 +295,7 @@ export default function BinaryDigitTrainer() {
     minLR,
     setMinLR,
     normalizeEnabled,
-    setNormalizeEnabled,
     targetSize,
-    setTargetSize,
     examplesSeen,
     setExamplesSeen,
     lastEpochAvgLoss,
@@ -345,9 +308,7 @@ export default function BinaryDigitTrainer() {
     setLastCheckpointLoaded,
     handleExportCheckpoint,
     handleImportCheckpointFile,
-    loadCheckpointFromData,
     loadTourCheckpoint,
-    generateCurrentCheckpoint,
   } = model;
 
   const {
@@ -361,10 +322,8 @@ export default function BinaryDigitTrainer() {
     isEpochDialogOpen,
     currentExampleIndex,
     trainingMode,
-    currentEpochLoss,
     trainingIntervalRef,
     setIsAutoTraining,
-    setAutoTrainingSpeed,
     setTrainingCompleted,
     setCurrentEpoch,
     setNumberOfEpochs,
@@ -378,8 +337,6 @@ export default function BinaryDigitTrainer() {
     stopTraining,
     startMultiEpochTraining,
     runToNextSample,
-    runEpochs,
-    totalPlannedSamples,
   } = training;
 
   // ========================
@@ -611,56 +568,6 @@ export default function BinaryDigitTrainer() {
     const confidence = outputs[predictedDigit];
 
     setPrediction({ digit: predictedDigit, confidence });
-  };
-
-  // ========================
-  // Debug info capture
-  // ========================
-  const captureDebugInfo = (stage: string) => {
-    let currentOneHotTarget;
-
-    if (currentNetworkState.current.currentTarget) {
-      currentOneHotTarget = currentNetworkState.current.currentTarget;
-      console.log(
-        `🔍 Debug: Using cached target from async training - Target: [${currentOneHotTarget}]`,
-      );
-    } else {
-      console.log(
-        `🔍 Debug: NOT using cached target - cachedTarget=${currentNetworkState.current.currentTarget}`,
-      );
-      if (trainingMode === "dataset") {
-        const example = trainingExamples[currentExampleIndex];
-        if (example) {
-          currentOneHotTarget = parseLabel(example.label);
-          console.log(
-            `🔍 Debug: Dataset mode - currentExampleIndex: ${currentExampleIndex}, ExampleID: ${example.id}, rawLabel: ${JSON.stringify(example.label)}, parsedLabel: [${currentOneHotTarget}]`,
-          );
-        } else {
-          currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
-          console.log(
-            `🔍 Debug: Fallback to selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`,
-          );
-        }
-      } else {
-        currentOneHotTarget = selectedLabel === 0 ? [1, 0] : [0, 1];
-        console.log(
-          `🔍 Debug: Manual drawing - selectedLabel: ${selectedLabel} -> [${currentOneHotTarget}]`,
-        );
-      }
-    }
-
-    const debugEntry = {
-      iteration: trainingHistoryStore.current.length,
-      label: currentOneHotTarget as number[],
-      outputActivations: [...currentNetworkState.current.outputActivations],
-      outputErrors: [...currentNetworkState.current.outputErrors],
-      outputBiases: [...currentNetworkState.current.outputBiases],
-      loss: currentNetworkState.current.loss,
-      step: step,
-      timestamp: new Date(),
-    };
-
-    setDebugHistory((prev) => [...prev, debugEntry]);
   };
 
   // ========================

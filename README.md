@@ -55,17 +55,17 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Available scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview production build locally |
-| `npm run test` | Run all tests |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run lint` | ESLint analysis |
-| `npm run format` | Format all files with Prettier |
-| `npm run format:check` | Check formatting without writing |
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Start development server with hot reload |
+| `npm run build`        | Production build to `dist/`              |
+| `npm run preview`      | Preview production build locally         |
+| `npm run test`         | Run all tests                            |
+| `npm run test:watch`   | Run tests in watch mode                  |
+| `npm run typecheck`    | TypeScript type checking                 |
+| `npm run lint`         | ESLint analysis                          |
+| `npm run format`       | Format all files with Prettier           |
+| `npm run format:check` | Check formatting without writing         |
 
 ## Architecture
 
